@@ -4,6 +4,11 @@ using Microsoft.Toolkit.Uwp.Notifications;
 var configPath = Path.Combine(AppContext.BaseDirectory, "config.json");
 var config = JsonSerializer.Deserialize<Config>(File.ReadAllText(configPath))!;
 
+new ToastContentBuilder()
+    .AddText("Cornealius Eyeworth")
+    .AddText("Cornealius is on duty.")
+    .Show();
+
 Console.WriteLine("Cornealius Eyeworth is on duty. Press Ctrl+C to dismiss him.");
 
 while (true)
