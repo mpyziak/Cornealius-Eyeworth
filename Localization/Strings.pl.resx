@@ -14,12 +14,12 @@
   <data name="NextTrigger" xml:space="preserve"><value>Nast&#281;pne przypomnienie: {0:HH\:mm}</value></data>
 
   <data name="MenuOptions" xml:space="preserve"><value>Opcje</value></data>
-  <data name="MenuTriggerTimes" xml:space="preserve"><value>Godziny przypomnień...</value></data>
+  <data name="MenuTriggerTimes" xml:space="preserve"><value>Ustawienia...</value></data>
   <data name="MenuHelp" xml:space="preserve"><value>Pomoc</value></data>
   <data name="MenuAbout" xml:space="preserve"><value>O programie...</value></data>
   <data name="MenuGitHub" xml:space="preserve"><value>GitHub...</value></data>
 
-  <data name="OptionsDialogTitle" xml:space="preserve"><value>Opcje &#x2014; Cornealius Eyeworth</value></data>
+  <data name="OptionsDialogTitle" xml:space="preserve"><value>Ustawienia &#x2014; Cornealius Eyeworth</value></data>
   <data name="OptionsInstruction" xml:space="preserve"><value>Minuty ka&#380;dej godziny, w kt&#243;rych Cornealius&#10;przypomni Ci o odpoczynku dla oczu (np. 20, 40, 55):</value></data>
   <data name="ButtonSave" xml:space="preserve"><value>Zapisz</value></data>
   <data name="ButtonCancel" xml:space="preserve"><value>Anuluj</value></data>
@@ -33,6 +33,10 @@
 
   <data name="ParseErrorNoMinutes" xml:space="preserve"><value>Cornealius nalega na co najmniej jedn&#261; minut&#281;. Ma swoje standardy.</value></data>
   <data name="ParseErrorInvalidMinute" xml:space="preserve"><value>&#x201E;{0}&#x201D; to nieprawid&#322;owa minuta. Cornealius oczekuje liczb ca&#322;kowitych od 0 do 59.</value></data>
+
+  <data name="OptionsLanguageLabel" xml:space="preserve"><value>J&#281;zyk (wymaga ponownego uruchomienia):</value></data>
+  <data name="OptionsLanguageDefault" xml:space="preserve"><value>Domy&#347;lny systemowy</value></data>
+  <data name="OptionsLanguageRestartNotice" xml:space="preserve"><value>Zmiana j&#281;zyka zostanie zastosowana przy nast&#281;pnym uruchomieniu.</value></data>
 
   <data name="FatalErrorTitle" xml:space="preserve"><value>B&#322;&#261;d krytyczny</value></data>
   <data name="FatalErrorMessage" xml:space="preserve"><value>Cornealius Eyeworth nie m&#243;g&#322; si&#281; uruchomi&#263;:&#10;&#10;{0}&#10;&#10;{1}</value></data>

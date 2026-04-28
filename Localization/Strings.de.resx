@@ -14,12 +14,12 @@
   <data name="NextTrigger" xml:space="preserve"><value>N&#228;chste Erinnerung: {0:HH\:mm}</value></data>
 
   <data name="MenuOptions" xml:space="preserve"><value>Optionen</value></data>
-  <data name="MenuTriggerTimes" xml:space="preserve"><value>Erinnerungszeiten...</value></data>
+  <data name="MenuTriggerTimes" xml:space="preserve"><value>Einstellungen...</value></data>
   <data name="MenuHelp" xml:space="preserve"><value>Hilfe</value></data>
   <data name="MenuAbout" xml:space="preserve"><value>&#220;ber...</value></data>
   <data name="MenuGitHub" xml:space="preserve"><value>GitHub...</value></data>
 
-  <data name="OptionsDialogTitle" xml:space="preserve"><value>Optionen &#x2014; Cornealius Eyeworth</value></data>
+  <data name="OptionsDialogTitle" xml:space="preserve"><value>Einstellungen &#x2014; Cornealius Eyeworth</value></data>
   <data name="OptionsInstruction" xml:space="preserve"><value>Minuten jeder Stunde, in denen Korn&#228;lius&#10;Sie an die Augenpause erinnern soll (z. B. 20, 40, 55):</value></data>
   <data name="ButtonSave" xml:space="preserve"><value>Speichern</value></data>
   <data name="ButtonCancel" xml:space="preserve"><value>Abbrechen</value></data>
@@ -33,6 +33,10 @@
 
   <data name="ParseErrorNoMinutes" xml:space="preserve"><value>Korn&#228;lius besteht auf mindestens einer Minute. Er hat Anspr&#252;che.</value></data>
   <data name="ParseErrorInvalidMinute" xml:space="preserve"><value>&#x201E;{0}&#x201C; ist keine g&#252;ltige Minute. Korn&#228;lius erwartet ganze Zahlen zwischen 0 und 59.</value></data>
+
+  <data name="OptionsLanguageLabel" xml:space="preserve"><value>Sprache (erfordert Neustart):</value></data>
+  <data name="OptionsLanguageDefault" xml:space="preserve"><value>Systemstandard</value></data>
+  <data name="OptionsLanguageRestartNotice" xml:space="preserve"><value>Die Sprach&#228;nderung wird beim n&#228;chsten Start wirksam.</value></data>
 
   <data name="FatalErrorTitle" xml:space="preserve"><value>Schwerwiegender Fehler</value></data>
   <data name="FatalErrorMessage" xml:space="preserve"><value>Cornealius Eyeworth konnte nicht gestartet werden:&#10;&#10;{0}&#10;&#10;{1}</value></data>

@@ -1,27 +1,19 @@
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 using CornealiusEyeworth.Configuration;
 using CornealiusEyeworth.Localization;
 using CornealiusEyeworth.Parsing;
 
 namespace CornealiusEyeworth.UI;
 
-/// <summary>
-/// Modal dialog that allows the user to edit the minutes-of-the-hour
-/// at which reminders are scheduled. Validates input before persisting.
-/// </summary>
 internal class OptionsDialog : Form
 {
     private readonly IConfigRepository _configRepository;
     private readonly IMinutesInputParser _parser;
     private readonly TextBox _minutesInput;
+    private readonly ComboBox _languageDropdown;
 
-    /// <summary>Raised after the user successfully saves new settings.</summary>
     public event Action<Config>? ConfigSaved;
 
-    /// <summary>
-    /// Initialises the dialog with its required dependencies and pre-populates
-    /// the minutes input from the current persisted configuration.
-    /// </summary>
     public OptionsDialog(
         IConfigRepository configRepository,
         IMinutesInputParser parser,
@@ -31,7 +23,7 @@ internal class OptionsDialog : Form
         _parser = parser;
 
         Text = Strings.OptionsDialogTitle;
-        Size = new System.Drawing.Size(320, 200);
+        Size = new System.Drawing.Size(320, 260);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -41,6 +33,7 @@ internal class OptionsDialog : Form
 
         var currentConfig = _configRepository.Load();
         _minutesInput = controlFactory.CreateMinutesInput(string.Join(", ", currentConfig.MinutesOfHour));
+        _languageDropdown = controlFactory.CreateLanguageDropdown(currentConfig.Language);
 
         var saveButton = controlFactory.CreateSaveButton();
         saveButton.Click += OnSaveClicked;
@@ -50,7 +43,14 @@ internal class OptionsDialog : Form
         AcceptButton = saveButton;
         CancelButton = cancelButton;
 
-        Controls.AddRange([controlFactory.CreateInstructionLabel(), _minutesInput, saveButton, cancelButton]);
+        Controls.AddRange([
+            controlFactory.CreateInstructionLabel(),
+            _minutesInput,
+            controlFactory.CreateLanguageLabel(),
+            _languageDropdown,
+            saveButton,
+            cancelButton
+        ]);
     }
 
     private void OnSaveClicked(object? sender, EventArgs e)
@@ -64,9 +64,15 @@ internal class OptionsDialog : Form
             return;
         }
 
+        var selectedLanguage = (_languageDropdown.SelectedItem as LanguageItem)?.Code;
         var existing = _configRepository.Load();
-        var updated = existing with { MinutesOfHour = result.Minutes! };
+        var updated = existing with { MinutesOfHour = result.Minutes!, Language = selectedLanguage };
         _configRepository.Save(updated);
         ConfigSaved?.Invoke(updated);
+
+        // If the language changed, prompt the user to restart.
+        if (selectedLanguage != existing.Language)
+            MessageBox.Show(Strings.OptionsLanguageRestartNotice, Strings.AppName,
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 }

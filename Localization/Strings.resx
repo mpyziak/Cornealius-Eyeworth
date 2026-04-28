@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -50,13 +50,13 @@
 
   <!-- Menu -->
   <data name="MenuOptions" xml:space="preserve"><value>Options</value></data>
-  <data name="MenuTriggerTimes" xml:space="preserve"><value>Trigger times...</value></data>
+  <data name="MenuTriggerTimes" xml:space="preserve"><value>Settings...</value></data>
   <data name="MenuHelp" xml:space="preserve"><value>Help</value></data>
   <data name="MenuAbout" xml:space="preserve"><value>About...</value></data>
   <data name="MenuGitHub" xml:space="preserve"><value>GitHub...</value></data>
 
   <!-- Options dialog -->
-  <data name="OptionsDialogTitle" xml:space="preserve"><value>Options — Cornealius Eyeworth</value></data>
+  <data name="OptionsDialogTitle" xml:space="preserve"><value>Settings — Cornealius Eyeworth</value></data>
   <data name="OptionsInstruction" xml:space="preserve"><value>Minutes of each hour at which Cornealious shall&#10;remind you to rest your eyes (e.g. 20, 40, 55):</value></data>
   <data name="ButtonSave" xml:space="preserve"><value>Save</value></data>
   <data name="ButtonCancel" xml:space="preserve"><value>Cancel</value></data>
@@ -76,6 +76,11 @@
     <value>'{0}' is not a valid minute. Cornealious expects whole numbers between 0 and 59.</value>
     <comment>Format arg {0}: the invalid token entered by the user.</comment>
   </data>
+
+  <!-- Options: language -->
+  <data name="OptionsLanguageLabel" xml:space="preserve"><value>Language (requires restart):</value></data>
+  <data name="OptionsLanguageDefault" xml:space="preserve"><value>System default</value></data>
+  <data name="OptionsLanguageRestartNotice" xml:space="preserve"><value>The language change will take effect the next time Cornealius starts.</value></data>
 
   <!-- Fatal error -->
   <data name="FatalErrorTitle" xml:space="preserve"><value>Fatal Error</value></data>

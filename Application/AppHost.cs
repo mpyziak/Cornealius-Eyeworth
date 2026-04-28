@@ -1,3 +1,4 @@
+﻿using System.Globalization;
 using System.Windows.Forms;
 using CornealiusEyeworth.Configuration;
 using CornealiusEyeworth.Localization;
@@ -11,10 +12,6 @@ namespace CornealiusEyeworth.Application;
 /// <summary>
 /// Composes all application dependencies, wires up lifecycle events,
 /// and runs the WinForms message loop.
-/// <para>
-/// Keeping this logic here rather than in <c>Program.cs</c> ensures the
-/// entry point stays minimal and this class remains independently testable.
-/// </para>
 /// </summary>
 internal class AppHost
 {
@@ -24,9 +21,6 @@ internal class AppHost
     private readonly IMainFormControlFactory _mainFormControlFactory;
     private readonly IOptionsDialogControlFactory _optionsDialogControlFactory;
 
-    /// <summary>
-    /// Initialises the host with its required service dependencies.
-    /// </summary>
     public AppHost(
         IConfigRepository configRepository,
         INotificationService notificationService,
@@ -41,13 +35,19 @@ internal class AppHost
         _optionsDialogControlFactory = optionsDialogControlFactory;
     }
 
-    /// <summary>
-    /// Runs the application: starts the scheduler, shows the main form,
-    /// and enters the WinForms message loop.
-    /// </summary>
     public async Task RunAsync()
     {
         var config = _configRepository.Load();
+
+        // Apply language override before any UI is created.
+        if (!string.IsNullOrWhiteSpace(config.Language))
+        {
+            var culture = new CultureInfo(config.Language);
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            Thread.CurrentThread.CurrentUICulture = culture;
+            Thread.CurrentThread.CurrentCulture = culture;
+        }
 
         var schedulerCts = new CancellationTokenSource();
         Task schedulerTask = Task.CompletedTask;
@@ -88,9 +88,6 @@ internal class AppHost
         System.Windows.Forms.Application.Run(form);
     }
 
-    /// <summary>
-    /// Builds a fresh <see cref="MainFormViewModel"/> from the given <paramref name="config"/>.
-    /// </summary>
     private static MainFormViewModel BuildViewModel(Config config) => new(
         ScheduleDescription: string.Format(Strings.ScheduleDescription, string.Join(", ", config.MinutesOfHour)),
         NextTrigger: new NextTriggerProvider(config).GetNext()
