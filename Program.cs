@@ -7,29 +7,46 @@ try
     Application.SetCompatibleTextRenderingDefault(false);
     Application.SetColorMode(SystemColorMode.System);
 
-    var config = new ConfigLoader().Load();
+    IConfigRepository configRepository = new JsonConfigRepository();
+    var config = configRepository.Load();
     var notificationService = new NotificationService();
+    var controlFactory = new MainFormControlFactory();
+    IMinutesInputParser minutesInputParser = new MinutesInputParser();
+    var optionsDialogControlFactory = new OptionsDialogControlFactory();
 
-    INextTriggerProvider nextTriggerProvider = new NextTriggerProvider(config);
-    var viewModel = new MainFormViewModel(
-        ScheduleDescription: $"Speaks out at minutes: {string.Join(", ", config.MinutesOfHour)} of every hour",
-        NextTrigger: nextTriggerProvider.GetNext()
+    MainFormViewModel BuildViewModel(Config c) => new(
+        ScheduleDescription: $"Speaks out at minutes: {string.Join(", ", c.MinutesOfHour)} of every hour",
+        NextTrigger: new NextTriggerProvider(c).GetNext()
     );
-    var form = new MainForm(viewModel, new MainFormControlFactory());
 
-    using var cts = new CancellationTokenSource();
+    var form = new MainForm(BuildViewModel(config), controlFactory, configRepository, minutesInputParser, optionsDialogControlFactory);
 
-    form.FormClosed += (_, _) => cts.Cancel();
+    var schedulerCts = new CancellationTokenSource();
+    Task schedulerTask = Task.CompletedTask;
 
-    var schedulerTask = Task.Run(() =>
-        new SchedulerService(config, notificationService, form.NotifyFired)
-            .RunAsync(cts.Token));
+    async Task RestartScheduler(Config c)
+    {
+        await schedulerCts.CancelAsync();
+        await schedulerTask;
+        schedulerCts = new CancellationTokenSource();
+        schedulerTask = new SchedulerService(c, notificationService, form.NotifyFired)
+            .RunAsync(schedulerCts.Token);
+    }
+
+    form.ConfigSaved += updatedConfig =>
+        Task.Run(() => RestartScheduler(updatedConfig));
+
+    form.FormClosed += async (_, _) =>
+    {
+        await schedulerCts.CancelAsync();
+        await schedulerTask;
+        Environment.Exit(0);
+    };
 
     notificationService.SendStartupNotification();
-    Application.Run(form);
+    await RestartScheduler(config);
 
-    cts.Cancel();
-    await schedulerTask;
+    Application.Run(form);
 }
 catch (Exception ex)
 {
@@ -38,4 +55,5 @@ catch (Exception ex)
         "Fatal Error",
         MessageBoxButtons.OK,
         MessageBoxIcon.Error);
+    Environment.Exit(1);
 }

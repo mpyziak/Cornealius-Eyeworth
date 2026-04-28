@@ -1,4 +1,4 @@
-using Quartz;
+﻿using Quartz;
 using Quartz.Impl;
 using Quartz.Spi;
 
@@ -25,7 +25,7 @@ class SchedulerService(Config config, NotificationService notificationService, A
         try { await Task.Delay(Timeout.Infinite, cancellationToken); }
         catch (OperationCanceledException) { }
 
-        await scheduler.Shutdown();
+        await scheduler.Shutdown(waitForJobsToComplete: false);
     }
 
     private static ITrigger BuildCronTrigger(int[] minutes)
