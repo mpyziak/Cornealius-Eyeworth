@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="AppName" xml:space="preserve"><value>Cornealius Eyeworth</value></data>
+  <data name="AppTitle" xml:space="preserve"><value>&#x1F9FF;  Cornealius Eyeworth</value></data>
+  <data name="GitHubUrl" xml:space="preserve"><value>https://github.com/mpyziak/Cornealius-Eyeworth</value></data>
+
+  <data name="StatusServing" xml:space="preserve"><value>&#x25CF; Im Dienst</value></data>
+  <data name="ScheduleDescription" xml:space="preserve"><value>Erinnert in Minute: {0} jeder Stunde</value></data>
+  <data name="NextTrigger" xml:space="preserve"><value>N&#228;chste Erinnerung: {0:HH\:mm}</value></data>
+
+  <data name="MenuOptions" xml:space="preserve"><value>Optionen</value></data>
+  <data name="MenuTriggerTimes" xml:space="preserve"><value>Erinnerungszeiten...</value></data>
+  <data name="MenuHelp" xml:space="preserve"><value>Hilfe</value></data>
+  <data name="MenuAbout" xml:space="preserve"><value>&#220;ber...</value></data>
+  <data name="MenuGitHub" xml:space="preserve"><value>GitHub...</value></data>
+
+  <data name="OptionsDialogTitle" xml:space="preserve"><value>Optionen &#x2014; Cornealius Eyeworth</value></data>
+  <data name="OptionsInstruction" xml:space="preserve"><value>Minuten jeder Stunde, in denen Korn&#228;lius&#10;Sie an die Augenpause erinnern soll (z. B. 20, 40, 55):</value></data>
+  <data name="ButtonSave" xml:space="preserve"><value>Speichern</value></data>
+  <data name="ButtonCancel" xml:space="preserve"><value>Abbrechen</value></data>
+
+  <data name="AboutDialogTitle" xml:space="preserve"><value>&#220;ber &#x2014; Cornealius Eyeworth</value></data>
+  <data name="AboutDescription" xml:space="preserve"><value>Ein distinguierter Augenbutler, der Sie&#10;in regelm&#228;&#223;igen Abst&#228;nden an die Augenpause erinnert.&#10;&#10;Der 20-20-20-Regel folgend, mit Stil.</value></data>
+  <data name="AboutVersion" xml:space="preserve"><value>Version 1.0  &#x2014;  &#169; 2026 mpyziak</value></data>
+  <data name="ButtonClose" xml:space="preserve"><value>Schlie&#223;en</value></data>
+
+  <data name="NotificationOnDuty" xml:space="preserve"><value>Korn&#228;lius ist im Dienst.</value></data>
+
+  <data name="ParseErrorNoMinutes" xml:space="preserve"><value>Korn&#228;lius besteht auf mindestens einer Minute. Er hat Anspr&#252;che.</value></data>
+  <data name="ParseErrorInvalidMinute" xml:space="preserve"><value>&#x201E;{0}&#x201C; ist keine g&#252;ltige Minute. Korn&#228;lius erwartet ganze Zahlen zwischen 0 und 59.</value></data>
+
+  <data name="FatalErrorTitle" xml:space="preserve"><value>Schwerwiegender Fehler</value></data>
+  <data name="FatalErrorMessage" xml:space="preserve"><value>Cornealius Eyeworth konnte nicht gestartet werden:&#10;&#10;{0}&#10;&#10;{1}</value></data>
+</root>
