@@ -9,6 +9,9 @@ class MainForm : Form
     private readonly IMinutesInputParser _minutesInputParser;
     private readonly OptionsDialogControlFactory _optionsDialogControlFactory;
 
+    private readonly Label _scheduleLabel;
+    private readonly Label _nextTriggerLabel;
+
     public event Action<Config>? ConfigSaved;
 
     public MainForm(
@@ -31,13 +34,22 @@ class MainForm : Form
         ForeColor = SystemColors.WindowText;
         MainMenuStrip = controlFactory.CreateMenuStrip(OpenOptionsDialog, OpenAboutDialog, OpenGitHub);
 
+        _scheduleLabel = controlFactory.CreateScheduleLabel(viewModel.ScheduleDescription);
+        _nextTriggerLabel = controlFactory.CreateNextTriggerLabel(viewModel.NextTrigger);
+
         Controls.AddRange([
             MainMenuStrip,
             controlFactory.CreateTitleLabel(),
             controlFactory.CreateStatusLabel(),
-            controlFactory.CreateScheduleLabel(viewModel.ScheduleDescription),
-            controlFactory.CreateNextTriggerLabel(viewModel.NextTrigger)
+            _scheduleLabel,
+            _nextTriggerLabel
         ]);
+    }
+
+    public void UpdateViewModel(MainFormViewModel viewModel)
+    {
+        _scheduleLabel.Text = viewModel.ScheduleDescription;
+        _nextTriggerLabel.Text = $"Next trigger: {viewModel.NextTrigger:HH:mm}";
     }
 
     public void NotifyFired() { }

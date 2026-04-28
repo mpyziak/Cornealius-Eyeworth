@@ -34,7 +34,11 @@ try
     }
 
     form.ConfigSaved += updatedConfig =>
-        Task.Run(() => RestartScheduler(updatedConfig));
+        Task.Run(async () =>
+        {
+            await RestartScheduler(updatedConfig);
+            form.Invoke(() => form.UpdateViewModel(BuildViewModel(updatedConfig)));
+        });
 
     form.FormClosed += async (_, _) =>
     {
