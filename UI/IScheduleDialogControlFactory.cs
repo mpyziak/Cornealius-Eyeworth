@@ -2,12 +2,13 @@
 
 namespace CornealiusEyeworth.UI;
 
-internal interface IOptionsDialogControlFactory
+/// <summary>
+/// Factory that creates all WinForms controls used by <see cref="ScheduleDialog"/>.
+/// </summary>
+internal interface IScheduleDialogControlFactory
 {
     Label CreateInstructionLabel();
     TextBox CreateMinutesInput(string currentValue);
-    Label CreateLanguageLabel();
-    ComboBox CreateLanguageDropdown(string? currentLanguage);
     Button CreateSaveButton();
     Button CreateCancelButton();
 }

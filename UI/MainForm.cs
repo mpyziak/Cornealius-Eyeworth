@@ -1,4 +1,4 @@
-using System.Drawing;
+﻿using System.Drawing;
 using System.Windows.Forms;
 using CornealiusEyeworth.Configuration;
 using CornealiusEyeworth.Localization;
@@ -7,37 +7,33 @@ using CornealiusEyeworth.Parsing;
 namespace CornealiusEyeworth.UI;
 
 /// <summary>
-/// The application's main window. Displays the current schedule and next trigger
-/// time, and provides access to the Options and About dialogs via the menu strip.
+/// The application main window. Provides access to Schedule and Language dialogs
+/// via the Options menu, and About/GitHub via the Help menu.
 /// </summary>
 internal class MainForm : Form
 {
     private readonly IConfigRepository _configRepository;
     private readonly IMinutesInputParser _minutesInputParser;
-    private readonly IOptionsDialogControlFactory _optionsDialogControlFactory;
+    private readonly IScheduleDialogControlFactory _scheduleDialogControlFactory;
+    private readonly ILanguageDialogControlFactory _languageDialogControlFactory;
 
     private readonly Label _scheduleLabel;
     private readonly Label _nextTriggerLabel;
 
-    /// <summary>
-    /// Raised after the user saves new settings in the Options dialog.
-    /// The updated <see cref="Config"/> is passed to subscribers.
-    /// </summary>
     public event Action<Config>? ConfigSaved;
 
-    /// <summary>
-    /// Initialises the form with the given view-model and injected dependencies.
-    /// </summary>
     public MainForm(
         MainFormViewModel viewModel,
         IMainFormControlFactory controlFactory,
         IConfigRepository configRepository,
         IMinutesInputParser minutesInputParser,
-        IOptionsDialogControlFactory optionsDialogControlFactory)
+        IScheduleDialogControlFactory scheduleDialogControlFactory,
+        ILanguageDialogControlFactory languageDialogControlFactory)
     {
         _configRepository = configRepository;
         _minutesInputParser = minutesInputParser;
-        _optionsDialogControlFactory = optionsDialogControlFactory;
+        _scheduleDialogControlFactory = scheduleDialogControlFactory;
+        _languageDialogControlFactory = languageDialogControlFactory;
 
         Text = Strings.AppName;
         Size = new Size(400, 220);
@@ -46,7 +42,7 @@ internal class MainForm : Form
         StartPosition = FormStartPosition.CenterScreen;
         BackColor = SystemColors.Window;
         ForeColor = SystemColors.WindowText;
-        MainMenuStrip = controlFactory.CreateMenuStrip(OpenOptionsDialog, OpenAboutDialog, OpenGitHub);
+        MainMenuStrip = controlFactory.CreateMenuStrip(OpenScheduleDialog, OpenLanguageDialog, OpenAboutDialog, OpenGitHub);
 
         _scheduleLabel = controlFactory.CreateScheduleLabel(viewModel.ScheduleDescription);
         _nextTriggerLabel = controlFactory.CreateNextTriggerLabel(viewModel.NextTrigger);
@@ -60,20 +56,24 @@ internal class MainForm : Form
         ]);
     }
 
-    /// <summary>Refreshes the displayed schedule description and next trigger time.</summary>
     public void UpdateViewModel(MainFormViewModel viewModel)
     {
         _scheduleLabel.Text = viewModel.ScheduleDescription;
         _nextTriggerLabel.Text = string.Format(Strings.NextTrigger, viewModel.NextTrigger);
     }
 
-    /// <summary>Called by the scheduler each time a reminder fires.</summary>
     public void NotifyFired() { }
 
-    private void OpenOptionsDialog()
+    private void OpenScheduleDialog()
     {
-        var dialog = new OptionsDialog(_configRepository, _minutesInputParser, _optionsDialogControlFactory);
+        var dialog = new ScheduleDialog(_configRepository, _minutesInputParser, _scheduleDialogControlFactory);
         dialog.ConfigSaved += config => ConfigSaved?.Invoke(config);
+        dialog.ShowDialog(this);
+    }
+
+    private void OpenLanguageDialog()
+    {
+        var dialog = new LanguageDialog(_configRepository, _languageDialogControlFactory);
         dialog.ShowDialog(this);
     }
 

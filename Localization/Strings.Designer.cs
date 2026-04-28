@@ -43,12 +43,14 @@ namespace CornealiusEyeworth.Localization {
         internal static string StatusServing => ResourceManager.GetString("StatusServing", resourceCulture)!;
         internal static string ScheduleDescription => ResourceManager.GetString("ScheduleDescription", resourceCulture)!;
         internal static string NextTrigger => ResourceManager.GetString("NextTrigger", resourceCulture)!;
+        internal static string LanguageDialogTitle => ResourceManager.GetString("LanguageDialogTitle", resourceCulture)!;
+        internal static string MenuLanguage => ResourceManager.GetString("MenuLanguage", resourceCulture)!;
         internal static string MenuOptions => ResourceManager.GetString("MenuOptions", resourceCulture)!;
         internal static string MenuTriggerTimes => ResourceManager.GetString("MenuTriggerTimes", resourceCulture)!;
         internal static string MenuHelp => ResourceManager.GetString("MenuHelp", resourceCulture)!;
         internal static string MenuAbout => ResourceManager.GetString("MenuAbout", resourceCulture)!;
         internal static string MenuGitHub => ResourceManager.GetString("MenuGitHub", resourceCulture)!;
-        internal static string OptionsDialogTitle => ResourceManager.GetString("OptionsDialogTitle", resourceCulture)!;
+        internal static string ScheduleDialogTitle => ResourceManager.GetString("ScheduleDialogTitle", resourceCulture)!;
         internal static string OptionsInstruction => ResourceManager.GetString("OptionsInstruction", resourceCulture)!;
         internal static string ButtonSave => ResourceManager.GetString("ButtonSave", resourceCulture)!;
         internal static string ButtonCancel => ResourceManager.GetString("ButtonCancel", resourceCulture)!;

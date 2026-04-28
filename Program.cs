@@ -1,4 +1,4 @@
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 using CornealiusEyeworth.Application;
 using CornealiusEyeworth.Configuration;
 using CornealiusEyeworth.Localization;
@@ -13,11 +13,12 @@ Application.SetColorMode(SystemColorMode.System);
 try
 {
     await new AppHost(
-        configRepository:            new JsonConfigRepository(),
-        notificationService:         new NotificationService(),
-        minutesInputParser:          new MinutesInputParser(),
-        mainFormControlFactory:      new MainFormControlFactory(),
-        optionsDialogControlFactory: new OptionsDialogControlFactory()
+        configRepository:              new JsonConfigRepository(),
+        notificationService:           new NotificationService(),
+        minutesInputParser:            new MinutesInputParser(),
+        mainFormControlFactory:        new MainFormControlFactory(),
+        scheduleDialogControlFactory:  new ScheduleDialogControlFactory(),
+        languageDialogControlFactory:  new LanguageDialogControlFactory()
     ).RunAsync();
 }
 catch (Exception ex)

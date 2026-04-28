@@ -50,13 +50,13 @@
 
   <!-- Menu -->
   <data name="MenuOptions" xml:space="preserve"><value>Options</value></data>
-  <data name="MenuTriggerTimes" xml:space="preserve"><value>Settings...</value></data>
+  <data name="MenuTriggerTimes" xml:space="preserve"><value>Schedule...</value></data>
   <data name="MenuHelp" xml:space="preserve"><value>Help</value></data>
   <data name="MenuAbout" xml:space="preserve"><value>About...</value></data>
   <data name="MenuGitHub" xml:space="preserve"><value>GitHub...</value></data>
 
   <!-- Options dialog -->
-  <data name="OptionsDialogTitle" xml:space="preserve"><value>Settings — Cornealius Eyeworth</value></data>
+  <data name="ScheduleDialogTitle" xml:space="preserve"><value>Schedule — Cornealius Eyeworth</value></data>
   <data name="OptionsInstruction" xml:space="preserve"><value>Minutes of each hour at which Cornealious shall&#10;remind you to rest your eyes (e.g. 20, 40, 55):</value></data>
   <data name="ButtonSave" xml:space="preserve"><value>Save</value></data>
   <data name="ButtonCancel" xml:space="preserve"><value>Cancel</value></data>
@@ -76,6 +76,9 @@
     <value>'{0}' is not a valid minute. Cornealious expects whole numbers between 0 and 59.</value>
     <comment>Format arg {0}: the invalid token entered by the user.</comment>
   </data>
+
+  <data name="LanguageDialogTitle" xml:space="preserve"><value>Language &#x2014; Cornealius Eyeworth</value></data>
+  <data name="MenuLanguage" xml:space="preserve"><value>Language...</value></data>
 
   <!-- Options: language -->
   <data name="OptionsLanguageLabel" xml:space="preserve"><value>Language (requires restart):</value></data>

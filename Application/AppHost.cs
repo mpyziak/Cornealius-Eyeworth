@@ -19,20 +19,23 @@ internal class AppHost
     private readonly INotificationService _notificationService;
     private readonly IMinutesInputParser _minutesInputParser;
     private readonly IMainFormControlFactory _mainFormControlFactory;
-    private readonly IOptionsDialogControlFactory _optionsDialogControlFactory;
+    private readonly IScheduleDialogControlFactory _scheduleDialogControlFactory;
+    private readonly ILanguageDialogControlFactory _languageDialogControlFactory;
 
     public AppHost(
         IConfigRepository configRepository,
         INotificationService notificationService,
         IMinutesInputParser minutesInputParser,
         IMainFormControlFactory mainFormControlFactory,
-        IOptionsDialogControlFactory optionsDialogControlFactory)
+        IScheduleDialogControlFactory scheduleDialogControlFactory,
+        ILanguageDialogControlFactory languageDialogControlFactory)
     {
         _configRepository = configRepository;
         _notificationService = notificationService;
         _minutesInputParser = minutesInputParser;
         _mainFormControlFactory = mainFormControlFactory;
-        _optionsDialogControlFactory = optionsDialogControlFactory;
+        _scheduleDialogControlFactory = scheduleDialogControlFactory;
+        _languageDialogControlFactory = languageDialogControlFactory;
     }
 
     public async Task RunAsync()
@@ -57,7 +60,8 @@ internal class AppHost
             _mainFormControlFactory,
             _configRepository,
             _minutesInputParser,
-            _optionsDialogControlFactory);
+            _scheduleDialogControlFactory,
+            _languageDialogControlFactory);
 
         async Task RestartScheduler(Config c)
         {

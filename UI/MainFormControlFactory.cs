@@ -1,4 +1,4 @@
-using System.Drawing;
+﻿using System.Drawing;
 using System.Windows.Forms;
 using CornealiusEyeworth.Localization;
 
@@ -6,18 +6,20 @@ namespace CornealiusEyeworth.UI;
 
 /// <summary>
 /// Default WinForms control factory for <see cref="MainForm"/>.
-/// Creates controls with the standard Cornealius visual style.
 /// </summary>
 internal class MainFormControlFactory : IMainFormControlFactory
 {
-    /// <inheritdoc/>
-    public MenuStrip CreateMenuStrip(Action onOptionsClicked, Action onAboutClicked, Action onGitHubClicked)
+    public MenuStrip CreateMenuStrip(Action onScheduleClicked, Action onLanguageClicked, Action onAboutClicked, Action onGitHubClicked)
     {
-        var triggerTimesItem = new ToolStripMenuItem(Strings.MenuTriggerTimes);
-        triggerTimesItem.Click += (_, _) => onOptionsClicked();
+        var scheduleItem = new ToolStripMenuItem(Strings.MenuTriggerTimes);
+        scheduleItem.Click += (_, _) => onScheduleClicked();
+
+        var languageItem = new ToolStripMenuItem(Strings.MenuLanguage);
+        languageItem.Click += (_, _) => onLanguageClicked();
 
         var optionsItem = new ToolStripMenuItem(Strings.MenuOptions);
-        optionsItem.DropDownItems.Add(triggerTimesItem);
+        optionsItem.DropDownItems.Add(scheduleItem);
+        optionsItem.DropDownItems.Add(languageItem);
 
         var aboutItem = new ToolStripMenuItem(Strings.MenuAbout);
         aboutItem.Click += (_, _) => onAboutClicked();
@@ -40,7 +42,6 @@ internal class MainFormControlFactory : IMainFormControlFactory
         return menu;
     }
 
-    /// <inheritdoc/>
     public Label CreateTitleLabel() => new()
     {
         Text = Strings.AppTitle,
@@ -51,7 +52,6 @@ internal class MainFormControlFactory : IMainFormControlFactory
         BackColor = Color.Transparent
     };
 
-    /// <inheritdoc/>
     public Label CreateStatusLabel() => new()
     {
         Text = Strings.StatusServing,
@@ -62,7 +62,6 @@ internal class MainFormControlFactory : IMainFormControlFactory
         BackColor = Color.Transparent
     };
 
-    /// <inheritdoc/>
     public Label CreateScheduleLabel(string scheduleDescription) => new()
     {
         Text = scheduleDescription,
@@ -73,7 +72,6 @@ internal class MainFormControlFactory : IMainFormControlFactory
         BackColor = Color.Transparent
     };
 
-    /// <inheritdoc/>
     public Label CreateNextTriggerLabel(DateTime nextTrigger) => new()
     {
         Text = string.Format(Strings.NextTrigger, nextTrigger),
