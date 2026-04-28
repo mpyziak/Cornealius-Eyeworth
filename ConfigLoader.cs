@@ -6,7 +6,8 @@ class ConfigLoader
 {
     public Config Load()
     {
-        var configPath = Path.Combine(AppContext.BaseDirectory, "config.json");
+        var exeDir = Path.GetDirectoryName(Environment.ProcessPath)!;
+        var configPath = Path.Combine(exeDir, "config.json");
         return JsonSerializer.Deserialize<Config>(File.ReadAllText(configPath))!;
     }
 }
