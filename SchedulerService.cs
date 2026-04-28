@@ -4,14 +4,14 @@ using Quartz.Spi;
 
 namespace CornealiusEyeworth;
 
-class SchedulerService(Config config, NotificationService notificationService)
+class SchedulerService(Config config, NotificationService notificationService, Action? onJobFired = null)
 {
     public async Task RunAsync(CancellationToken cancellationToken)
     {
         var factory = new StdSchedulerFactory();
         var scheduler = await factory.GetScheduler(cancellationToken);
 
-        scheduler.JobFactory = new EyeworthJobFactory(notificationService, config);
+        scheduler.JobFactory = new EyeworthJobFactory(notificationService, config, onJobFired);
 
         var job = JobBuilder.Create<EyeworthJob>()
             .WithIdentity(EyeworthJob.Key)
@@ -22,18 +22,14 @@ class SchedulerService(Config config, NotificationService notificationService)
         await scheduler.ScheduleJob(job, trigger, cancellationToken);
         await scheduler.Start(cancellationToken);
 
-        Console.WriteLine("Cornealius Eyeworth is on duty. Press Ctrl+C to dismiss him.");
-        Console.WriteLine($"Scheduled for minutes: {string.Join(", ", config.MinutesOfHour)}");
+        try { await Task.Delay(Timeout.Infinite, cancellationToken); }
+        catch (OperationCanceledException) { }
 
-        await Task.Delay(Timeout.Infinite, cancellationToken);
-
-        await scheduler.Shutdown(cancellationToken);
+        await scheduler.Shutdown();
     }
 
     private static ITrigger BuildCronTrigger(int[] minutes)
     {
-        // Build a cron expression that fires at each specified minute of every hour
-        // e.g. minutes [20, 40, 55] => "0 20,40,55 * * * ?"
         var minuteList = string.Join(",", minutes);
         var cron = $"0 {minuteList} * * * ?";
 
@@ -44,10 +40,10 @@ class SchedulerService(Config config, NotificationService notificationService)
     }
 }
 
-class EyeworthJobFactory(NotificationService notificationService, Config config) : IJobFactory
+class EyeworthJobFactory(NotificationService notificationService, Config config, Action? onJobFired) : IJobFactory
 {
     public IJob NewJob(TriggerFiredBundle bundle, IScheduler scheduler) =>
-        new EyeworthJob(notificationService, config);
+        new EyeworthJob(notificationService, config, onJobFired);
 
     public void ReturnJob(IJob job) { }
 }
