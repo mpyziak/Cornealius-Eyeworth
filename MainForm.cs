@@ -6,7 +6,6 @@ class MainForm : Form
 {
     private readonly Label _statusLabel;
     private readonly Label _scheduleLabel;
-    private readonly Label _lastFiredLabel;
 
     public MainForm(Config config)
     {
@@ -30,7 +29,7 @@ class MainForm : Form
 
         _statusLabel = new Label
         {
-            Text = "● Running",
+            Text = "● Serving",
             Font = new System.Drawing.Font("Segoe UI", 10f),
             AutoSize = true,
             Location = new System.Drawing.Point(22, 58),
@@ -41,7 +40,7 @@ class MainForm : Form
         var minuteList = string.Join(", ", config.MinutesOfHour);
         _scheduleLabel = new Label
         {
-            Text = $"Triggers at minutes: {minuteList} of every hour",
+            Text = $"Speaks out at minutes: {minuteList} of every hour",
             Font = new System.Drawing.Font("Segoe UI", 9.5f),
             AutoSize = true,
             Location = new System.Drawing.Point(22, 90),
@@ -49,29 +48,13 @@ class MainForm : Form
             BackColor = System.Drawing.Color.Transparent
         };
 
-        _lastFiredLabel = new Label
-        {
-            Text = "Last notification: —",
-            Font = new System.Drawing.Font("Segoe UI", 9f, System.Drawing.FontStyle.Italic),
-            AutoSize = true,
-            Location = new System.Drawing.Point(22, 118),
-            ForeColor = System.Drawing.Color.DarkGray,
-            BackColor = System.Drawing.Color.Transparent
-        };
-
         var nextLabel = BuildNextFiresLabel(config.MinutesOfHour);
-        nextLabel.Location = new System.Drawing.Point(22, 148);
+        nextLabel.Location = new System.Drawing.Point(22, 118);
 
-        Controls.AddRange([titleLabel, _statusLabel, _scheduleLabel, _lastFiredLabel, nextLabel]);
+        Controls.AddRange([titleLabel, _statusLabel, _scheduleLabel, nextLabel]);
     }
 
-    public void NotifyFired()
-    {
-        if (InvokeRequired)
-            Invoke(NotifyFired);
-        else
-            _lastFiredLabel.Text = $"Last notification: {DateTime.Now:HH:mm:ss}";
-    }
+    public void NotifyFired() { }
 
     private static Label BuildNextFiresLabel(int[] minutes)
     {
