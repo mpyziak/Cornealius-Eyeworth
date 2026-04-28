@@ -1,44 +1,15 @@
-﻿using System.Text.Json;
-using Microsoft.Toolkit.Uwp.Notifications;
+using CornealiusEyeworth;
 
-var configPath = Path.Combine(AppContext.BaseDirectory, "config.json");
-var config = JsonSerializer.Deserialize<Config>(File.ReadAllText(configPath))!;
+var config = new ConfigLoader().Load();
+var notificationService = new NotificationService();
+var schedulerService = new SchedulerService(config, notificationService);
 
-new ToastContentBuilder()
-    .AddText("Cornealius Eyeworth")
-    .AddText("Cornealius is on duty.")
-    .Show();
-
-Console.WriteLine("Cornealius Eyeworth is on duty. Press Ctrl+C to dismiss him.");
-
-while (true)
+using var cts = new CancellationTokenSource();
+Console.CancelKeyPress += (_, e) =>
 {
-    var now = DateTime.Now;
-    var next = GetNextTrigger(now, config.MinutesOfHour);
-    Console.WriteLine($"Next notification at {next:HH:mm}");
-    await Task.Delay(next - now);
+    e.Cancel = true;
+    cts.Cancel();
+};
 
-    new ToastContentBuilder()
-        .AddText("Cornealius Eyeworth")
-        .AddText(config.NotificationMessage)
-        .Show();
-}
-
-static DateTime GetNextTrigger(DateTime now, int[] minutes)
-{
-    var candidate = minutes
-        .Select(m => new DateTime(now.Year, now.Month, now.Day, now.Hour, m, 0))
-        .Where(t => t > now)
-        .OrderBy(t => t)
-        .FirstOrDefault();
-
-    if (candidate == default)
-    {
-        var nextHour = now.AddHours(1);
-        candidate = new DateTime(nextHour.Year, nextHour.Month, nextHour.Day, nextHour.Hour, minutes.Min(), 0);
-    }
-
-    return candidate;
-}
-
-record Config(string NotificationMessage, int[] MinutesOfHour);
+notificationService.SendStartupNotification();
+await schedulerService.RunAsync(cts.Token);
