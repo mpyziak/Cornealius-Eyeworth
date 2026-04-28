@@ -1,13 +1,19 @@
-﻿using System.Drawing;
+using System.Drawing;
 using System.Windows.Forms;
+using CornealiusEyeworth.Localization;
 
-namespace CornealiusEyeworth;
+namespace CornealiusEyeworth.UI;
 
-class AboutDialog : Form
+/// <summary>
+/// Modal dialog that displays application information — name, description,
+/// version, and copyright.
+/// </summary>
+internal class AboutDialog : Form
 {
+    /// <summary>Initialises and lays out all controls for the About dialog.</summary>
     public AboutDialog()
     {
-        Text = "About — Cornealius Eyeworth";
+        Text = Strings.AboutDialogTitle;
         Size = new Size(360, 240);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
@@ -18,7 +24,7 @@ class AboutDialog : Form
 
         var titleLabel = new Label
         {
-            Text = "\U0001F441\uFE0F  Cornealius Eyeworth",
+            Text = Strings.AppTitle,
             Font = new Font("Segoe UI", 13f, FontStyle.Bold),
             AutoSize = true,
             Location = new Point(20, 20),
@@ -28,7 +34,7 @@ class AboutDialog : Form
 
         var descLabel = new Label
         {
-            Text = "A distinguished ocular butler who reminds you\nto rest your eyes at regular intervals.\n\nFollowing the 20-20-20 Rule, with decorum.",
+            Text = Strings.AboutDescription,
             Font = new Font("Segoe UI", 9.5f),
             AutoSize = true,
             Location = new Point(20, 66),
@@ -38,7 +44,7 @@ class AboutDialog : Form
 
         var versionLabel = new Label
         {
-            Text = "Version 1.0  —  \u00A9 2026 mpyziak",
+            Text = Strings.AboutVersion,
             Font = new Font("Segoe UI", 8.5f),
             AutoSize = true,
             Location = new Point(20, 158),
@@ -48,7 +54,7 @@ class AboutDialog : Form
 
         var okButton = new Button
         {
-            Text = "Close",
+            Text = Strings.ButtonClose,
             Location = new Point(256, 150),
             Size = new Size(72, 30),
             Font = new Font("Segoe UI", 9.5f),

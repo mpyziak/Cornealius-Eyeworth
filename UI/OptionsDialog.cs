@@ -1,28 +1,43 @@
-﻿using System.Windows.Forms;
+using System.Windows.Forms;
+using CornealiusEyeworth.Configuration;
+using CornealiusEyeworth.Localization;
+using CornealiusEyeworth.Parsing;
 
-namespace CornealiusEyeworth;
+namespace CornealiusEyeworth.UI;
 
-class OptionsDialog : Form
+/// <summary>
+/// Modal dialog that allows the user to edit the minutes-of-the-hour
+/// at which reminders are scheduled. Validates input before persisting.
+/// </summary>
+internal class OptionsDialog : Form
 {
     private readonly IConfigRepository _configRepository;
     private readonly IMinutesInputParser _parser;
     private readonly TextBox _minutesInput;
 
+    /// <summary>Raised after the user successfully saves new settings.</summary>
     public event Action<Config>? ConfigSaved;
 
-    public OptionsDialog(IConfigRepository configRepository, IMinutesInputParser parser, OptionsDialogControlFactory controlFactory)
+    /// <summary>
+    /// Initialises the dialog with its required dependencies and pre-populates
+    /// the minutes input from the current persisted configuration.
+    /// </summary>
+    public OptionsDialog(
+        IConfigRepository configRepository,
+        IMinutesInputParser parser,
+        IOptionsDialogControlFactory controlFactory)
     {
         _configRepository = configRepository;
         _parser = parser;
 
-        Text = "Options — Cornealius Eyeworth";
+        Text = Strings.OptionsDialogTitle;
         Size = new System.Drawing.Size(320, 200);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterParent;
-        BackColor = SystemColors.Window;
-        ForeColor = SystemColors.WindowText;
+        BackColor = System.Drawing.SystemColors.Window;
+        ForeColor = System.Drawing.SystemColors.WindowText;
 
         var currentConfig = _configRepository.Load();
         _minutesInput = controlFactory.CreateMinutesInput(string.Join(", ", currentConfig.MinutesOfHour));
@@ -44,7 +59,7 @@ class OptionsDialog : Form
 
         if (!result.IsSuccess)
         {
-            MessageBox.Show(result.ErrorMessage, "Cornealius Eyeworth", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show(result.ErrorMessage, Strings.AppName, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             DialogResult = DialogResult.None;
             return;
         }

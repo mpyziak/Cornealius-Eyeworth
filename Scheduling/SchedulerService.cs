@@ -1,11 +1,22 @@
-﻿using Quartz;
+using CornealiusEyeworth.Configuration;
+using CornealiusEyeworth.Notifications;
+using Quartz;
 using Quartz.Impl;
-using Quartz.Spi;
 
-namespace CornealiusEyeworth;
+namespace CornealiusEyeworth.Scheduling;
 
-class SchedulerService(Config config, NotificationService notificationService, Action? onJobFired = null)
+/// <summary>
+/// Starts a Quartz.NET scheduler that fires <see cref="EyeworthJob"/> at the
+/// minutes-of-the-hour defined in <see cref="Config"/>.
+/// Create a new instance whenever the configuration changes, and cancel the
+/// previous instance's <see cref="CancellationToken"/> before doing so.
+/// </summary>
+internal class SchedulerService(Config config, INotificationService notificationService, Action? onJobFired = null)
 {
+    /// <summary>
+    /// Runs the scheduler until <paramref name="cancellationToken"/> is cancelled,
+    /// then shuts down cleanly.
+    /// </summary>
     public async Task RunAsync(CancellationToken cancellationToken)
     {
         var factory = new StdSchedulerFactory();
@@ -28,6 +39,10 @@ class SchedulerService(Config config, NotificationService notificationService, A
         await scheduler.Shutdown(waitForJobsToComplete: false);
     }
 
+    /// <summary>
+    /// Builds a Quartz cron trigger that fires at the given
+    /// <paramref name="minutes"/> of every hour, every day.
+    /// </summary>
     private static ITrigger BuildCronTrigger(int[] minutes)
     {
         var minuteList = string.Join(",", minutes);
@@ -38,12 +53,4 @@ class SchedulerService(Config config, NotificationService notificationService, A
             .WithCronSchedule(cron)
             .Build();
     }
-}
-
-class EyeworthJobFactory(NotificationService notificationService, Config config, Action? onJobFired) : IJobFactory
-{
-    public IJob NewJob(TriggerFiredBundle bundle, IScheduler scheduler) =>
-        new EyeworthJob(notificationService, config, onJobFired);
-
-    public void ReturnJob(IJob job) { }
 }

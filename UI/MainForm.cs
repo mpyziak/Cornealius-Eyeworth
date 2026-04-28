@@ -1,32 +1,46 @@
-﻿using System.Drawing;
+using System.Drawing;
 using System.Windows.Forms;
+using CornealiusEyeworth.Configuration;
+using CornealiusEyeworth.Localization;
+using CornealiusEyeworth.Parsing;
 
-namespace CornealiusEyeworth;
+namespace CornealiusEyeworth.UI;
 
-class MainForm : Form
+/// <summary>
+/// The application's main window. Displays the current schedule and next trigger
+/// time, and provides access to the Options and About dialogs via the menu strip.
+/// </summary>
+internal class MainForm : Form
 {
     private readonly IConfigRepository _configRepository;
     private readonly IMinutesInputParser _minutesInputParser;
-    private readonly OptionsDialogControlFactory _optionsDialogControlFactory;
+    private readonly IOptionsDialogControlFactory _optionsDialogControlFactory;
 
     private readonly Label _scheduleLabel;
     private readonly Label _nextTriggerLabel;
 
+    /// <summary>
+    /// Raised after the user saves new settings in the Options dialog.
+    /// The updated <see cref="Config"/> is passed to subscribers.
+    /// </summary>
     public event Action<Config>? ConfigSaved;
 
+    /// <summary>
+    /// Initialises the form with the given view-model and injected dependencies.
+    /// </summary>
     public MainForm(
         MainFormViewModel viewModel,
-        MainFormControlFactory controlFactory,
+        IMainFormControlFactory controlFactory,
         IConfigRepository configRepository,
         IMinutesInputParser minutesInputParser,
-        OptionsDialogControlFactory optionsDialogControlFactory)
+        IOptionsDialogControlFactory optionsDialogControlFactory)
     {
         _configRepository = configRepository;
         _minutesInputParser = minutesInputParser;
         _optionsDialogControlFactory = optionsDialogControlFactory;
 
-        Text = "Cornealius Eyeworth";
-        Size = new Size(400, 248);
+        Text = Strings.AppName;
+        Size = new Size(400, 220);
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox = false;
         StartPosition = FormStartPosition.CenterScreen;
@@ -46,12 +60,14 @@ class MainForm : Form
         ]);
     }
 
+    /// <summary>Refreshes the displayed schedule description and next trigger time.</summary>
     public void UpdateViewModel(MainFormViewModel viewModel)
     {
         _scheduleLabel.Text = viewModel.ScheduleDescription;
-        _nextTriggerLabel.Text = $"Next trigger: {viewModel.NextTrigger:HH:mm}";
+        _nextTriggerLabel.Text = string.Format(Strings.NextTrigger, viewModel.NextTrigger);
     }
 
+    /// <summary>Called by the scheduler each time a reminder fires.</summary>
     public void NotifyFired() { }
 
     private void OpenOptionsDialog()
@@ -66,7 +82,7 @@ class MainForm : Form
     private static void OpenGitHub() =>
         System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
         {
-            FileName = "https://github.com/mpyziak/Cornealius-Eyeworth",
+            FileName = Strings.GitHubUrl,
             UseShellExecute = true
         });
 }

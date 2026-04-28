@@ -1,13 +1,19 @@
-﻿using System.Drawing;
+using System.Drawing;
 using System.Windows.Forms;
+using CornealiusEyeworth.Localization;
 
-namespace CornealiusEyeworth;
+namespace CornealiusEyeworth.UI;
 
-class OptionsDialogControlFactory
+/// <summary>
+/// Default WinForms control factory for <see cref="OptionsDialog"/>.
+/// Creates controls with the standard Cornealius visual style.
+/// </summary>
+internal class OptionsDialogControlFactory : IOptionsDialogControlFactory
 {
+    /// <inheritdoc/>
     public Label CreateInstructionLabel() => new()
     {
-        Text = "Minutes of each hour at which Cornealious shall\nremind you to rest your eyes (e.g. 20, 40, 55):",
+        Text = Strings.OptionsInstruction,
         Font = new Font("Segoe UI", 9.5f),
         AutoSize = true,
         Location = new Point(16, 16),
@@ -15,6 +21,7 @@ class OptionsDialogControlFactory
         BackColor = Color.Transparent
     };
 
+    /// <inheritdoc/>
     public TextBox CreateMinutesInput(string currentValue) => new()
     {
         Text = currentValue,
@@ -26,11 +33,12 @@ class OptionsDialogControlFactory
         BorderStyle = BorderStyle.FixedSingle
     };
 
+    /// <inheritdoc/>
     public Button CreateSaveButton()
     {
         var btn = new Button
         {
-            Text = "Save",
+            Text = Strings.ButtonSave,
             Location = new Point(128, 116),
             Size = new Size(80, 30),
             Font = new Font("Segoe UI", 9.5f),
@@ -43,11 +51,12 @@ class OptionsDialogControlFactory
         return btn;
     }
 
+    /// <inheritdoc/>
     public Button CreateCancelButton()
     {
         var btn = new Button
         {
-            Text = "Cancel",
+            Text = Strings.ButtonCancel,
             Location = new Point(216, 116),
             Size = new Size(72, 30),
             Font = new Font("Segoe UI", 9.5f),
