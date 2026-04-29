@@ -64,6 +64,13 @@ namespace CornealiusEyeworth.Localization {
         internal static string OptionsLanguageLabel => ResourceManager.GetString("OptionsLanguageLabel", resourceCulture)!;
         internal static string OptionsLanguageDefault => ResourceManager.GetString("OptionsLanguageDefault", resourceCulture)!;
         internal static string OptionsLanguageRestartNotice => ResourceManager.GetString("OptionsLanguageRestartNotice", resourceCulture)!;
+        internal static string ScheduleDescriptionCron => ResourceManager.GetString("ScheduleDescriptionCron", resourceCulture)!;
+        internal static string ScheduleDescriptionSimple => ResourceManager.GetString("ScheduleDescriptionSimple", resourceCulture)!;
+        internal static string ScheduleSimpleRadio => ResourceManager.GetString("ScheduleSimpleRadio", resourceCulture)!;
+        internal static string ScheduleAdvancedRadio => ResourceManager.GetString("ScheduleAdvancedRadio", resourceCulture)!;
+        internal static string ScheduleCronInstruction => ResourceManager.GetString("ScheduleCronInstruction", resourceCulture)!;
+        internal static string ParseErrorCronEmpty => ResourceManager.GetString("ParseErrorCronEmpty", resourceCulture)!;
+        internal static string ParseErrorCronInvalid => ResourceManager.GetString("ParseErrorCronInvalid", resourceCulture)!;
         internal static string FatalErrorTitle => ResourceManager.GetString("FatalErrorTitle", resourceCulture)!;
         internal static string FatalErrorMessage => ResourceManager.GetString("FatalErrorMessage", resourceCulture)!;
     }

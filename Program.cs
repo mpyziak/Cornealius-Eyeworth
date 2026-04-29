@@ -13,12 +13,12 @@ Application.SetColorMode(SystemColorMode.System);
 try
 {
     await new AppHost(
-        configRepository:              new JsonConfigRepository(),
-        notificationService:           new NotificationService(),
-        minutesInputParser:            new MinutesInputParser(),
-        mainFormControlFactory:        new MainFormControlFactory(),
-        scheduleDialogControlFactory:  new ScheduleDialogControlFactory(),
-        languageDialogControlFactory:  new LanguageDialogControlFactory()
+        configRepository:             new JsonConfigRepository(),
+        notificationService:          new NotificationService(),
+        cronParser:                   new CronExpressionParser(),
+        mainFormControlFactory:       new MainFormControlFactory(),
+        scheduleDialogControlFactory: new ScheduleDialogControlFactory(),
+        languageDialogControlFactory: new LanguageDialogControlFactory()
     ).RunAsync();
 }
 catch (Exception ex)

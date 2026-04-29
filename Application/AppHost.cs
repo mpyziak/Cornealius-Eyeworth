@@ -9,15 +9,11 @@ using CornealiusEyeworth.UI;
 
 namespace CornealiusEyeworth.Application;
 
-/// <summary>
-/// Composes all application dependencies, wires up lifecycle events,
-/// and runs the WinForms message loop.
-/// </summary>
 internal class AppHost
 {
     private readonly IConfigRepository _configRepository;
     private readonly INotificationService _notificationService;
-    private readonly IMinutesInputParser _minutesInputParser;
+    private readonly ICronExpressionParser _cronParser;
     private readonly IMainFormControlFactory _mainFormControlFactory;
     private readonly IScheduleDialogControlFactory _scheduleDialogControlFactory;
     private readonly ILanguageDialogControlFactory _languageDialogControlFactory;
@@ -25,14 +21,14 @@ internal class AppHost
     public AppHost(
         IConfigRepository configRepository,
         INotificationService notificationService,
-        IMinutesInputParser minutesInputParser,
+        ICronExpressionParser cronParser,
         IMainFormControlFactory mainFormControlFactory,
         IScheduleDialogControlFactory scheduleDialogControlFactory,
         ILanguageDialogControlFactory languageDialogControlFactory)
     {
         _configRepository = configRepository;
         _notificationService = notificationService;
-        _minutesInputParser = minutesInputParser;
+        _cronParser = cronParser;
         _mainFormControlFactory = mainFormControlFactory;
         _scheduleDialogControlFactory = scheduleDialogControlFactory;
         _languageDialogControlFactory = languageDialogControlFactory;
@@ -42,7 +38,6 @@ internal class AppHost
     {
         var config = _configRepository.Load();
 
-        // Apply language override before any UI is created.
         if (!string.IsNullOrWhiteSpace(config.Language))
         {
             var culture = new CultureInfo(config.Language);
@@ -59,7 +54,7 @@ internal class AppHost
             BuildViewModel(config),
             _mainFormControlFactory,
             _configRepository,
-            _minutesInputParser,
+            _cronParser,
             _scheduleDialogControlFactory,
             _languageDialogControlFactory);
 
@@ -93,7 +88,7 @@ internal class AppHost
     }
 
     private static MainFormViewModel BuildViewModel(Config config) => new(
-        ScheduleDescription: string.Format(Strings.ScheduleDescription, string.Join(", ", config.MinutesOfHour)),
+        ScheduleDescription: CronDescriber.Describe(config.CronExpression),
         NextTrigger: new NextTriggerProvider(config).GetNext()
     );
 }

@@ -6,14 +6,10 @@ using CornealiusEyeworth.Parsing;
 
 namespace CornealiusEyeworth.UI;
 
-/// <summary>
-/// The application main window. Provides access to Schedule and Language dialogs
-/// via the Options menu, and About/GitHub via the Help menu.
-/// </summary>
 internal class MainForm : Form
 {
     private readonly IConfigRepository _configRepository;
-    private readonly IMinutesInputParser _minutesInputParser;
+    private readonly ICronExpressionParser _cronParser;
     private readonly IScheduleDialogControlFactory _scheduleDialogControlFactory;
     private readonly ILanguageDialogControlFactory _languageDialogControlFactory;
 
@@ -26,12 +22,12 @@ internal class MainForm : Form
         MainFormViewModel viewModel,
         IMainFormControlFactory controlFactory,
         IConfigRepository configRepository,
-        IMinutesInputParser minutesInputParser,
+        ICronExpressionParser cronParser,
         IScheduleDialogControlFactory scheduleDialogControlFactory,
         ILanguageDialogControlFactory languageDialogControlFactory)
     {
         _configRepository = configRepository;
-        _minutesInputParser = minutesInputParser;
+        _cronParser = cronParser;
         _scheduleDialogControlFactory = scheduleDialogControlFactory;
         _languageDialogControlFactory = languageDialogControlFactory;
 
@@ -44,7 +40,7 @@ internal class MainForm : Form
         ForeColor = SystemColors.WindowText;
         MainMenuStrip = controlFactory.CreateMenuStrip(OpenScheduleDialog, OpenLanguageDialog, OpenAboutDialog, OpenGitHub);
 
-        _scheduleLabel = controlFactory.CreateScheduleLabel(viewModel.ScheduleDescription);
+        _scheduleLabel    = controlFactory.CreateScheduleLabel(viewModel.ScheduleDescription);
         _nextTriggerLabel = controlFactory.CreateNextTriggerLabel(viewModel.NextTrigger);
 
         Controls.AddRange([
@@ -58,7 +54,7 @@ internal class MainForm : Form
 
     public void UpdateViewModel(MainFormViewModel viewModel)
     {
-        _scheduleLabel.Text = viewModel.ScheduleDescription;
+        _scheduleLabel.Text    = viewModel.ScheduleDescription;
         _nextTriggerLabel.Text = string.Format(Strings.NextTrigger, viewModel.NextTrigger);
     }
 
@@ -66,7 +62,7 @@ internal class MainForm : Form
 
     private void OpenScheduleDialog()
     {
-        var dialog = new ScheduleDialog(_configRepository, _minutesInputParser, _scheduleDialogControlFactory);
+        var dialog = new ScheduleDialog(_configRepository, _cronParser, _scheduleDialogControlFactory);
         dialog.ConfigSaved += config => ConfigSaved?.Invoke(config);
         dialog.ShowDialog(this);
     }

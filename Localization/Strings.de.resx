@@ -10,7 +10,7 @@
   <data name="GitHubUrl" xml:space="preserve"><value>https://github.com/mpyziak/Cornealius-Eyeworth</value></data>
 
   <data name="StatusServing" xml:space="preserve"><value>&#x25CF; Im Dienst</value></data>
-  <data name="ScheduleDescription" xml:space="preserve"><value>Erinnert in Minute: {0} jeder Stunde</value></data>
+  <data name="ScheduleDescription" xml:space="preserve"><value>Zeitplan: {0}</value></data>
   <data name="NextTrigger" xml:space="preserve"><value>N&#228;chste Erinnerung: {0:HH\:mm}</value></data>
 
   <data name="MenuOptions" xml:space="preserve"><value>Optionen</value></data>
@@ -40,6 +40,14 @@
   <data name="OptionsLanguageLabel" xml:space="preserve"><value>Sprache (erfordert Neustart):</value></data>
   <data name="OptionsLanguageDefault" xml:space="preserve"><value>Systemstandard</value></data>
   <data name="OptionsLanguageRestartNotice" xml:space="preserve"><value>Die Sprach&#228;nderung wird beim n&#228;chsten Start wirksam.</value></data>
+
+  <data name="ScheduleDescriptionCron" xml:space="preserve"><value>CRON: {0}</value></data>
+  <data name="ScheduleDescriptionSimple" xml:space="preserve"><value>Minuten {0} jeder Stunde</value></data>
+  <data name="ScheduleSimpleRadio" xml:space="preserve"><value>Einfach &#x2014; Minuten jeder Stunde</value></data>
+  <data name="ScheduleAdvancedRadio" xml:space="preserve"><value>Erweitert &#x2014; CRON-Ausdruck</value></data>
+  <data name="ScheduleCronInstruction" xml:space="preserve"><value>Quartz-CRON-Ausdruck (z. B. "0 20,40,55 * * * ?"):</value></data>
+  <data name="ParseErrorCronEmpty" xml:space="preserve"><value>Korn&#228;lius erwartet einen CRON-Ausdruck. Stille ist kein Zeitplan.</value></data>
+  <data name="ParseErrorCronInvalid" xml:space="preserve"><value>&#x201E;{0}&#x201C; ist kein g&#252;ltiger Quartz-CRON-Ausdruck.</value></data>
 
   <data name="FatalErrorTitle" xml:space="preserve"><value>Schwerwiegender Fehler</value></data>
   <data name="FatalErrorMessage" xml:space="preserve"><value>Cornealius Eyeworth konnte nicht gestartet werden:&#10;&#10;{0}&#10;&#10;{1}</value></data>

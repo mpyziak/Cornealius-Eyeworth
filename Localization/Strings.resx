@@ -40,7 +40,7 @@
   <!-- Main window -->
   <data name="StatusServing" xml:space="preserve"><value>● Serving</value></data>
   <data name="ScheduleDescription" xml:space="preserve">
-    <value>Speaks out at minutes: {0} of every hour</value>
+    <value>Schedule: {0}</value>
     <comment>Format arg {0}: comma-separated list of minutes.</comment>
   </data>
   <data name="NextTrigger" xml:space="preserve">
@@ -84,6 +84,21 @@
   <data name="OptionsLanguageLabel" xml:space="preserve"><value>Language (requires restart):</value></data>
   <data name="OptionsLanguageDefault" xml:space="preserve"><value>System default</value></data>
   <data name="OptionsLanguageRestartNotice" xml:space="preserve"><value>The language change will take effect the next time Cornealius starts.</value></data>
+
+  <!-- Schedule dialog -->
+  <data name="ScheduleDescriptionCron" xml:space="preserve">
+    <value>CRON: {0}</value>
+    <comment>Format arg {0}: raw Quartz CRON expression, shown when it cannot be simplified.</comment>
+  </data>
+  <data name="ScheduleDescriptionSimple" xml:space="preserve">
+    <value>Minutes {0} past every hour</value>
+    <comment>Format arg {0}: comma-separated list of minutes, e.g. "20, 40, 55"</comment>
+  </data>
+  <data name="ScheduleSimpleRadio" xml:space="preserve"><value>Simple — minutes of each hour</value></data>
+  <data name="ScheduleAdvancedRadio" xml:space="preserve"><value>Advanced — CRON expression</value></data>
+  <data name="ScheduleCronInstruction" xml:space="preserve"><value>Quartz CRON (e.g. "0 20,40,55 * * * ?"):</value></data>
+  <data name="ParseErrorCronEmpty" xml:space="preserve"><value>Cornealious requires a CRON expression. Silence is not a schedule.</value></data>
+  <data name="ParseErrorCronInvalid" xml:space="preserve"><value>'"'{0}'"' is not a valid Quartz CRON expression.</value></data>
 
   <!-- Fatal error -->
   <data name="FatalErrorTitle" xml:space="preserve"><value>Fatal Error</value></data>

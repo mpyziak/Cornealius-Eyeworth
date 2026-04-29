@@ -4,17 +4,18 @@ using CornealiusEyeworth.Localization;
 
 namespace CornealiusEyeworth.UI;
 
-/// <summary>
-/// Default WinForms control factory for <see cref="LanguageDialog"/>.
-/// </summary>
 internal class LanguageDialogControlFactory : ILanguageDialogControlFactory
 {
+    private const int Left = 16;
+    private const int Width = 272;
+
     public Label CreateInstructionLabel() => new()
     {
         Text = Strings.OptionsLanguageLabel,
         Font = new Font("Segoe UI", 9.5f),
-        AutoSize = true,
-        Location = new Point(16, 16),
+        AutoSize = false,
+        Size = new Size(Width, 20),
+        Location = new Point(Left, 16),
         ForeColor = SystemColors.WindowText,
         BackColor = Color.Transparent
     };
@@ -24,8 +25,8 @@ internal class LanguageDialogControlFactory : ILanguageDialogControlFactory
         var combo = new ComboBox
         {
             Font = new Font("Segoe UI", 9.5f),
-            Location = new Point(16, 44),
-            Size = new Size(272, 28),
+            Location = new Point(Left, 40),
+            Size = new Size(Width, 26),
             DropDownStyle = ComboBoxStyle.DropDownList,
             BackColor = SystemColors.Window,
             ForeColor = SystemColors.WindowText
@@ -48,8 +49,8 @@ internal class LanguageDialogControlFactory : ILanguageDialogControlFactory
         var btn = new Button
         {
             Text = Strings.ButtonSave,
-            Location = new Point(128, 88),
-            Size = new Size(80, 30),
+            Location = new Point(116, 82),
+            Size = new Size(80, 28),
             Font = new Font("Segoe UI", 9.5f),
             BackColor = SystemColors.Highlight,
             ForeColor = SystemColors.HighlightText,
@@ -65,8 +66,8 @@ internal class LanguageDialogControlFactory : ILanguageDialogControlFactory
         var btn = new Button
         {
             Text = Strings.ButtonCancel,
-            Location = new Point(216, 88),
-            Size = new Size(72, 30),
+            Location = new Point(204, 82),
+            Size = new Size(80, 28),
             Font = new Font("Segoe UI", 9.5f),
             BackColor = SystemColors.Control,
             ForeColor = SystemColors.ControlText,
