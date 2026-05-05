@@ -7,10 +7,10 @@ namespace CornealiusEyeworth.UI;
 /// </summary>
 internal interface IScheduleDialogControlFactory
 {
-    RadioButton CreateSimpleRadio();
     Label CreateSimpleInstructionLabel();
     TextBox CreateMinutesInput(string currentValue);
-    RadioButton CreateAdvancedRadio();
+    LinkLabel CreateStandardToggle();
+    LinkLabel CreateAdvancedToggle();
     Label CreateAdvancedInstructionLabel();
     TextBox CreateCronInput(string currentValue);
     Button CreateSaveButton();

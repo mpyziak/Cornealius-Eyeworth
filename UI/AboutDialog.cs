@@ -5,7 +5,7 @@ using CornealiusEyeworth.Localization;
 namespace CornealiusEyeworth.UI;
 
 /// <summary>
-/// Modal dialog that displays application information — name, description,
+/// Modal dialog that displays application information - name, description,
 /// version, and copyright.
 /// </summary>
 internal class AboutDialog : Form
@@ -13,8 +13,11 @@ internal class AboutDialog : Form
     /// <summary>Initialises and lays out all controls for the About dialog.</summary>
     public AboutDialog()
     {
+        const int clientW   = 400;
+        const int margin    = 20;
+        const int labelW    = clientW - margin * 2;
+
         Text = Strings.AboutDialogTitle;
-        Size = new Size(360, 240);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -27,7 +30,7 @@ internal class AboutDialog : Form
             Text = Strings.AppTitle,
             Font = new Font("Segoe UI", 13f, FontStyle.Bold),
             AutoSize = true,
-            Location = new Point(20, 20),
+            Location = new Point(margin, 20),
             ForeColor = SystemColors.Highlight,
             BackColor = Color.Transparent
         };
@@ -37,26 +40,31 @@ internal class AboutDialog : Form
             Text = Strings.AboutDescription,
             Font = new Font("Segoe UI", 9.5f),
             AutoSize = true,
-            Location = new Point(20, 66),
+            MaximumSize = new Size(labelW, 0),
+            Location = new Point(margin, 60),
             ForeColor = SystemColors.WindowText,
             BackColor = Color.Transparent
         };
+
+        // Position version and button below the auto-sized description
+        int descBottom = descLabel.GetPreferredSize(new Size(labelW, 0)).Height + 60 + 10;
 
         var versionLabel = new Label
         {
             Text = Strings.AboutVersion,
             Font = new Font("Segoe UI", 8.5f),
             AutoSize = true,
-            Location = new Point(20, 158),
+            Location = new Point(margin, descBottom),
             ForeColor = SystemColors.GrayText,
             BackColor = Color.Transparent
         };
 
+        int buttonY = descBottom + 24;
         var okButton = new Button
         {
             Text = Strings.ButtonClose,
-            Location = new Point(256, 150),
-            Size = new Size(72, 30),
+            Location = new Point(clientW - margin - 88, buttonY),
+            Size = new Size(88, 30),
             Font = new Font("Segoe UI", 9.5f),
             BackColor = SystemColors.Highlight,
             ForeColor = SystemColors.HighlightText,
@@ -64,6 +72,8 @@ internal class AboutDialog : Form
             DialogResult = DialogResult.OK
         };
         okButton.FlatAppearance.BorderSize = 0;
+
+        ClientSize = new Size(clientW, buttonY + 30 + margin);
 
         AcceptButton = okButton;
         CancelButton = okButton;

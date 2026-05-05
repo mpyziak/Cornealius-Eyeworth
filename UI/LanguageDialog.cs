@@ -21,7 +21,10 @@ internal class LanguageDialog : Form
         _configRepository = configRepository;
 
         Text = Strings.LanguageDialogTitle;
-        Size = new System.Drawing.Size(304, 160);
+        AutoSize = true;
+        AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        MinimumSize = new System.Drawing.Size(260, 0);
+        Padding = new System.Windows.Forms.Padding(0, 0, 16, 12);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;

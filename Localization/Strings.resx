@@ -48,7 +48,7 @@
     <value>Cornealius Eyeworth</value>
   </data>
   <data name="AppTitle" xml:space="preserve">
-    <value>👁️  Cornealius Eyeworth</value>
+    <value>👁️ Cornealius Eyeworth</value>
   </data>
   <data name="GitHubUrl" xml:space="preserve">
     <value>https://github.com/mpyziak/Cornealius-Eyeworth</value>
@@ -89,10 +89,10 @@
 
   <!-- Options dialog -->
   <data name="ScheduleDialogTitle" xml:space="preserve">
-    <value>Schedule — Cornealius Eyeworth</value>
+    <value>Schedule - Cornealius Eyeworth</value>
   </data>
   <data name="OptionsInstruction" xml:space="preserve">
-    <value>Minutes of each hour at which Cornealious shall&#10;remind you to rest your eyes (e.g. 20, 40, 55):</value>
+    <value>Minutes of each hour at which Cornealious shall remind you to rest your eyes (e.g.&#160;20,&#160;40,&#160;55):</value>
   </data>
   <data name="ButtonSave" xml:space="preserve">
     <value>Save</value>
@@ -103,13 +103,13 @@
 
   <!-- About dialog -->
   <data name="AboutDialogTitle" xml:space="preserve">
-    <value>About — Cornealius Eyeworth</value>
+    <value>About - Cornealius Eyeworth</value>
   </data>
   <data name="AboutDescription" xml:space="preserve">
-    <value>A distinguished ocular butler who reminds you&#10;to rest your eyes at regular intervals.&#10;&#10;Following the 20-20-20 Rule, with decorum.</value>
+    <value>A distinguished ocular butler who reminds you to rest your eyes at regular intervals.  Following the 20-20-20 Rule, with decorum.</value>
   </data>
   <data name="AboutVersion" xml:space="preserve">
-    <value>Version 1.0  —  © 2026 mpyziak</value>
+    <value>Version 1.0  -  © 2026 mpyziak</value>
   </data>
   <data name="ButtonClose" xml:space="preserve">
     <value>Close</value>
@@ -130,10 +130,10 @@
 
   <!-- Input parsing errors -->
   <data name="ParseErrorNoMinutes" xml:space="preserve">
-    <value>Cornealious insists on at least one minute. He has standards.</value>
+    <value>Cornealius insists on at least one minute. He has standards.</value>
   </data>
   <data name="ParseErrorInvalidMinute" xml:space="preserve">
-    <value>'{0}' is not a valid minute. Cornealious expects whole numbers between 0 and 59.</value>
+    <value>'{0}' is not a valid minute. Cornealius expects whole numbers between 0 and 59.</value>
     <comment>Format arg {0}: the invalid token entered by the user.</comment>
   </data>
 
@@ -155,20 +155,26 @@
   <!-- Schedule dialog -->
   <data name="ScheduleDescriptionCron" xml:space="preserve">
     <value>CRON: {0}</value>
-    <comment>Format arg {0}: raw Quartz CRON expression, shown when it cannot be simplified.</comment>
+    <comment>Format arg {0}: raw CRON expression, shown when it cannot be simplified.</comment>
   </data>
   <data name="ScheduleDescriptionSimple" xml:space="preserve">
     <value>Minutes {0} past every hour</value>
     <comment>Format arg {0}: comma-separated list of minutes, e.g. "20, 40, 55"</comment>
   </data>
+  <data name="ScheduleStandardToggle" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="ScheduleAdvancedToggle" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
   <data name="ScheduleSimpleRadio" xml:space="preserve">
-    <value>Simple — minutes of each hour</value>
+    <value>Simple: minutes of each hour</value>
   </data>
   <data name="ScheduleAdvancedRadio" xml:space="preserve">
-    <value>Advanced — CRON expression</value>
+    <value>Advanced: CRON expression</value>
   </data>
   <data name="ScheduleCronInstruction" xml:space="preserve">
-    <value>Quartz CRON (e.g. "0 20,40,55 * * * ?"):</value>
+    <value>CRON (e.g. "0 20,40,55 * * * ?"):</value>
   </data>
   <data name="ParseErrorCronEmpty" xml:space="preserve">
     <value>Cornealious requires a CRON expression. Silence is not a schedule.</value>
@@ -182,7 +188,7 @@
     <value>Fatal Error</value>
   </data>
   <data name="FatalErrorMessage" xml:space="preserve">
-    <value>Cornealius Eyeworth failed to start:&#10;&#10;{0}&#10;&#10;{1}</value>
+    <value>Cornealius Eyeworth failed to start:  {0}  {1}</value>
     <comment>Format args: {0} = ex.Message, {1} = ex.StackTrace.</comment>
   </data>
 </root>

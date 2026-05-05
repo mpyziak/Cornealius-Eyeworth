@@ -17,20 +17,20 @@
     <value>Cornealius Eyeworth</value>
   </data>
   <data name="AppTitle" xml:space="preserve">
-    <value>&#x1F9FF;  Cornealius Eyeworth</value>
+    <value>👁️ Cornealius Eyeworth</value>
   </data>
   <data name="GitHubUrl" xml:space="preserve">
     <value>https://github.com/mpyziak/Cornealius-Eyeworth</value>
   </data>
 
   <data name="StatusServing" xml:space="preserve">
-    <value>&#x25CF; Im Dienst</value>
+    <value>● Im Dienst</value>
   </data>
   <data name="ScheduleDescription" xml:space="preserve">
     <value>Zeitplan: {0}</value>
   </data>
   <data name="NextTrigger" xml:space="preserve">
-    <value>N&#228;chste Erinnerung: {0:HH\:mm}</value>
+    <value>Nächste Erinnerung: {0:HH\:mm}</value>
   </data>
 
   <data name="MenuOptions" xml:space="preserve">
@@ -46,17 +46,17 @@
     <value>Hilfe &#160;❓</value>
   </data>
   <data name="MenuAbout" xml:space="preserve">
-    <value>&#220;ber... &#160;ℹ️</value>
+    <value>Über... &#160;ℹ️</value>
   </data>
   <data name="MenuGitHub" xml:space="preserve">
     <value>GitHub... &#160;📄</value>
   </data>
 
   <data name="ScheduleDialogTitle" xml:space="preserve">
-    <value>Zeitplan &#x2014; Cornealius Eyeworth</value>
+    <value>Zeitplan - Cornealius Eyeworth</value>
   </data>
   <data name="OptionsInstruction" xml:space="preserve">
-    <value>Minuten jeder Stunde, in denen Korn&#228;lius&#10;Sie an die Augenpause erinnern soll (z. B. 20, 40, 55):</value>
+    <value>Minuten jeder Stunde, in denen Cornealius Sie an die Augenpause erinnern soll (z.B.&#160;20,&#160;40,&#160;55):</value>
   </data>
   <data name="ButtonSave" xml:space="preserve">
     <value>Speichern</value>
@@ -66,37 +66,37 @@
   </data>
 
   <data name="AboutDialogTitle" xml:space="preserve">
-    <value>&#220;ber &#x2014; Cornealius Eyeworth</value>
+    <value>Über - Cornealius Eyeworth</value>
   </data>
   <data name="AboutDescription" xml:space="preserve">
-    <value>Ein distinguierter Augenbutler, der Sie&#10;in regelm&#228;&#223;igen Abst&#228;nden an die Augenpause erinnert.&#10;&#10;Der 20-20-20-Regel folgend, mit Stil.</value>
+    <value>Ein distinguierter Augenbutler, der Sie in regelmäßigen Abständen an die Augenpause erinnert.  Der 20-20-20-Regel folgend, mit Stil.</value>
   </data>
   <data name="AboutVersion" xml:space="preserve">
-    <value>Version 1.0  &#x2014;  &#169; 2026 mpyziak</value>
+    <value>Version 1.0  -  © 2026 mpyziak</value>
   </data>
   <data name="ButtonClose" xml:space="preserve">
-    <value>Schlie&#223;en</value>
+    <value>Schließen</value>
   </data>
 
   <data name="NotificationOnDuty" xml:space="preserve">
-    <value>Korn&#228;lius ist im Dienst.</value>
+    <value>Cornealius ist im Dienst.</value>
   </data>
   <data name="NotificationReminders" xml:space="preserve">
-    <value>Ihre Augen verdienen eine Pause.|Ein Moment der Erholung f&#252;r Ihre m&#252;den Augen.|Die 20-20-20-Regel erwartet Ihr.</value>
+    <value>Ihre Augen verdienen eine Pause.|Ein Moment der Erholung für Ihre müden Augen.|Die 20-20-20-Regel erwartet Ihr.</value>
   </data>
   <data name="NotificationQuips" xml:space="preserve">
-    <value>Das menschliche Auge wurde nicht f&#252;r ewiges Bildschirmstarren geschaffen.|Blinzeln ist kostenlos. Nutzen Sie es reichlich.|Selbst das feinste Monokel bedarf gelegentlicher Pflege.|Fernsicht: ein Luxus, den Ihre Augen wirklich verdienen.|Auch Ihre Fokusmuskulatur braucht Dehnung.|20 Meter ins Nichts &#x2014; ein Tonikum f&#252;r die &#252;berarbeitete Netzhaut.|Korn&#228;lius erinnert Sie: Bildschirme sind verg&#228;nglich, die Sehkraft soll nicht.|Ein Blick in die Ferne kostet nur einen Moment.|Ihre Augen haben Ihnen gut gedient. Erwidern Sie die Gunst.</value>
+    <value>Das menschliche Auge wurde nicht für ewiges Bildschirmstarren geschaffen.|Blinzeln ist kostenlos. Nutzen Sie es reichlich.|Selbst das feinste Monokel bedarf gelegentlicher Pflege.|Fernsicht: ein Luxus, den Ihre Augen wirklich verdienen.|Auch Ihre Fokusmuskulatur braucht Dehnung.|20 Meter ins Nichts - ein Tonikum für die überarbeitete Netzhaut.|Cornealius erinnert Sie: Bildschirme sind vergänglich, die Sehkraft soll nicht.|Ein Blick in die Ferne kostet nur einen Moment.|Ihre Augen haben Ihnen gut gedient. Erwidern Sie die Gunst.</value>
   </data>
 
   <data name="ParseErrorNoMinutes" xml:space="preserve">
-    <value>Korn&#228;lius besteht auf mindestens einer Minute. Er hat Anspr&#252;che.</value>
+    <value>Cornealius besteht auf mindestens einer Minute. Er hat Ansprüche.</value>
   </data>
   <data name="ParseErrorInvalidMinute" xml:space="preserve">
-    <value>&#x201E;{0}&#x201C; ist keine g&#252;ltige Minute. Korn&#228;lius erwartet ganze Zahlen zwischen 0 und 59.</value>
+    <value>„{0}" ist keine gültige Minute. Cornealius erwartet ganze Zahlen zwischen 0 und 59.</value>
   </data>
 
   <data name="LanguageDialogTitle" xml:space="preserve">
-    <value>Sprache &#x2014; Cornealius Eyeworth</value>
+    <value>Sprache - Cornealius Eyeworth</value>
   </data>
 
   <data name="OptionsLanguageLabel" xml:space="preserve">
@@ -106,7 +106,7 @@
     <value>Systemstandard</value>
   </data>
   <data name="OptionsLanguageRestartNotice" xml:space="preserve">
-    <value>Die Sprach&#228;nderung wird beim n&#228;chsten Start wirksam.</value>
+    <value>Die Sprachänderung wird beim nächsten Start wirksam.</value>
   </data>
 
   <data name="ScheduleDescriptionCron" xml:space="preserve">
@@ -115,26 +115,32 @@
   <data name="ScheduleDescriptionSimple" xml:space="preserve">
     <value>Minuten {0} jeder Stunde</value>
   </data>
+  <data name="ScheduleStandardToggle" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="ScheduleAdvancedToggle" xml:space="preserve">
+    <value>Erweitert</value>
+  </data>
   <data name="ScheduleSimpleRadio" xml:space="preserve">
-    <value>Einfach &#x2014; Minuten jeder Stunde</value>
+    <value>Einfach: Minuten jeder Stunde</value>
   </data>
   <data name="ScheduleAdvancedRadio" xml:space="preserve">
-    <value>Erweitert &#x2014; CRON-Ausdruck</value>
+    <value>Erweitert: CRON-Ausdruck</value>
   </data>
   <data name="ScheduleCronInstruction" xml:space="preserve">
-    <value>Quartz-CRON-Ausdruck (z. B. "0 20,40,55 * * * ?"):</value>
+    <value>CRON-Ausdruck (z. B. "0 20,40,55 * * * ?"):</value>
   </data>
   <data name="ParseErrorCronEmpty" xml:space="preserve">
-    <value>Korn&#228;lius erwartet einen CRON-Ausdruck. Stille ist kein Zeitplan.</value>
+    <value>Cornealius erwartet einen Ausdruck. Stille ist kein Zeitplan.</value>
   </data>
   <data name="ParseErrorCronInvalid" xml:space="preserve">
-    <value>&#x201E;{0}&#x201C; ist kein g&#252;ltiger Quartz-CRON-Ausdruck.</value>
+    <value>„{0}" ist kein gültiger CRON-Ausdruck im Quartz-Format.</value>
   </data>
 
   <data name="FatalErrorTitle" xml:space="preserve">
     <value>Schwerwiegender Fehler</value>
   </data>
   <data name="FatalErrorMessage" xml:space="preserve">
-    <value>Cornealius Eyeworth konnte nicht gestartet werden:&#10;&#10;{0}&#10;&#10;{1}</value>
+    <value>Cornealius Eyeworth konnte nicht gestartet werden:  {0}  {1}</value>
   </data>
 </root>
