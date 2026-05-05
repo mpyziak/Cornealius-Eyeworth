@@ -7,7 +7,7 @@ namespace CornealiusEyeworth.UI;
 /// </summary>
 internal interface IMainFormControlFactory
 {
-    MenuStrip CreateMenuStrip(Action onScheduleClicked, Action onLanguageClicked, Action onAboutClicked, Action onGitHubClicked);
+    MenuStrip CreateMenuStrip(Action onScheduleClicked, Action onLanguageClicked, Action onAboutClicked, Action onGitHubClicked, Action onHelpClicked);
     Label CreateTitleLabel();
     Label CreateStatusLabel();
     Label CreateScheduleLabel(string scheduleDescription);

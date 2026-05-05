@@ -9,7 +9,7 @@ namespace CornealiusEyeworth.UI;
 /// </summary>
 internal class MainFormControlFactory : IMainFormControlFactory
 {
-    public MenuStrip CreateMenuStrip(Action onScheduleClicked, Action onLanguageClicked, Action onAboutClicked, Action onGitHubClicked)
+    public MenuStrip CreateMenuStrip(Action onScheduleClicked, Action onLanguageClicked, Action onAboutClicked, Action onGitHubClicked, Action onHelpClicked)
     {
         var scheduleItem = new ToolStripMenuItem(Strings.MenuTriggerTimes);
         scheduleItem.Click += (_, _) => onScheduleClicked();
@@ -24,10 +24,14 @@ internal class MainFormControlFactory : IMainFormControlFactory
         var aboutItem = new ToolStripMenuItem(Strings.MenuAbout);
         aboutItem.Click += (_, _) => onAboutClicked();
 
+        var howToUseItem = new ToolStripMenuItem(Strings.MenuHowToUse);
+        howToUseItem.Click += (_, _) => onHelpClicked();
+
         var gitHubItem = new ToolStripMenuItem(Strings.MenuGitHub);
         gitHubItem.Click += (_, _) => onGitHubClicked();
 
         var helpItem = new ToolStripMenuItem(Strings.MenuHelp);
+        helpItem.DropDownItems.Add(howToUseItem);
         helpItem.DropDownItems.Add(aboutItem);
         helpItem.DropDownItems.Add(gitHubItem);
 

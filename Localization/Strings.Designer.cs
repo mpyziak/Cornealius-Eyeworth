@@ -49,6 +49,7 @@ namespace CornealiusEyeworth.Localization {
         internal static string MenuTriggerTimes => ResourceManager.GetString("MenuTriggerTimes", resourceCulture)!;
         internal static string MenuHelp => ResourceManager.GetString("MenuHelp", resourceCulture)!;
         internal static string MenuAbout => ResourceManager.GetString("MenuAbout", resourceCulture)!;
+        internal static string MenuHowToUse => ResourceManager.GetString("MenuHowToUse", resourceCulture)!;
         internal static string MenuGitHub => ResourceManager.GetString("MenuGitHub", resourceCulture)!;
         internal static string ScheduleDialogTitle => ResourceManager.GetString("ScheduleDialogTitle", resourceCulture)!;
         internal static string OptionsInstruction => ResourceManager.GetString("OptionsInstruction", resourceCulture)!;
@@ -58,6 +59,8 @@ namespace CornealiusEyeworth.Localization {
         internal static string AboutDescription => ResourceManager.GetString("AboutDescription", resourceCulture)!;
         internal static string AboutVersion => ResourceManager.GetString("AboutVersion", resourceCulture)!;
         internal static string ButtonClose => ResourceManager.GetString("ButtonClose", resourceCulture)!;
+        internal static string HelpDialogTitle => ResourceManager.GetString("HelpDialogTitle", resourceCulture)!;
+        internal static string HelpBody => ResourceManager.GetString("HelpBody", resourceCulture)!;
         internal static string NotificationOnDuty => ResourceManager.GetString("NotificationOnDuty", resourceCulture)!;
         internal static string NotificationReminders => ResourceManager.GetString("NotificationReminders", resourceCulture)!;
         internal static string NotificationQuips => ResourceManager.GetString("NotificationQuips", resourceCulture)!;

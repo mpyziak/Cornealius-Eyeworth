@@ -1,9 +1,9 @@
-﻿using System.Windows.Forms;
+using System.Windows.Forms;
 using CornealiusEyeworth.Configuration;
 using CornealiusEyeworth.Localization;
 using CornealiusEyeworth.Parsing;
 
-namespace CornealiusEyeworth.UI;
+namespace CornealiusEyeworth.UI.Options;
 
 /// <summary>
 /// Modal dialog for editing the reminder schedule.

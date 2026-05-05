@@ -78,10 +78,13 @@
     <value>Schedule... &#160;⏰</value>
   </data>
   <data name="MenuHelp" xml:space="preserve">
-    <value>Help &#160;❓</value>
+    <value>Help &#160;📖</value>
   </data>
   <data name="MenuAbout" xml:space="preserve">
     <value>About... &#160;ℹ️</value>
+  </data>
+  <data name="MenuHowToUse" xml:space="preserve">
+    <value>How to use... &#160;❓</value>
   </data>
   <data name="MenuGitHub" xml:space="preserve">
     <value>GitHub... &#160;📄</value>
@@ -113,6 +116,24 @@
   </data>
   <data name="ButtonClose" xml:space="preserve">
     <value>Close</value>
+  </data>
+
+  <!-- Help dialog -->
+  <data name="HelpDialogTitle" xml:space="preserve">
+    <value>How to use - Cornealius Eyeworth</value>
+  </data>
+  <data name="HelpBody" xml:space="preserve">
+    <value>Cornealius Eyeworth is your personal ocular butler. Once running, he discreetly watches the clock and delivers short, unintrusive toast notifications reminding you to practise basic eye hygiene — look away from your screen, blink, and let your eyes rest.
+
+You are in full control:
+
+• Schedule  (Options › Schedule)
+  Choose the minutes of each hour at which Cornealius shall ring his bell. For example, entering 20, 40 will remind you at XX:20 and XX:40 every hour.  Advanced users may enter a CRON expression directly.
+
+• Language  (Options › Language)
+  Switch the interface language. A restart is required for the change to take effect.
+
+Cornealius runs quietly in the background. Simply leave the window open (minimising is fine) and he will do the rest — with considerable decorum.</value>
   </data>
 
   <!-- Notifications -->

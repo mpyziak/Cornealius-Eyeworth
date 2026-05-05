@@ -43,10 +43,13 @@
     <value>Harmonogram... &#160;⏰</value>
   </data>
   <data name="MenuHelp" xml:space="preserve">
-    <value>Pomoc &#160;❓</value>
+    <value>Pomoc &#160;📖</value>
   </data>
   <data name="MenuAbout" xml:space="preserve">
     <value>O programie... &#160;ℹ️</value>
+  </data>
+  <data name="MenuHowToUse" xml:space="preserve">
+    <value>Jak używać... &#160;❓</value>
   </data>
   <data name="MenuGitHub" xml:space="preserve">
     <value>GitHub... &#160;📄</value>
@@ -76,6 +79,23 @@
   </data>
   <data name="ButtonClose" xml:space="preserve">
     <value>Zamknij</value>
+  </data>
+
+  <data name="HelpDialogTitle" xml:space="preserve">
+    <value>Jak używać - Cornealius Eyeworth</value>
+  </data>
+  <data name="HelpBody" xml:space="preserve">
+    <value>Cornealius Eyeworth to Twój osobisty kamerdyner oka. Po uruchomieniu dyskretnie śledzi zegar i wyświetla krótkie, nieuciążliwe powiadomienia przypominające o podstawowej higienie wzroku — oderwij wzrok od ekranu, mrugnij i daj oczom odpocząć.
+
+Masz pełną kontrolę:
+
+• Harmonogram  (Opcje › Harmonogram)
+  Wybierz minuty każdej godziny, w których Cornealius zadzwoni swoim dzwonkiem. Na przykład wpisanie 20, 40 przypomni Ci o XX:20 i XX:40 każdej godziny.  Zaawansowani użytkownicy mogą wpisać wyrażenie CRON bezpośrednio.
+
+• Język  (Opcje › Język)
+  Zmień język interfejsu. Wymagane jest ponowne uruchomienie, aby zmiana weszła w życie.
+
+Cornealius działa cicho w tle. Wystarczy pozostawić okno otwarte (minimalizacja jest w porządku), a on zrobi resztę — z dużą klasą.</value>
   </data>
 
   <data name="NotificationOnDuty" xml:space="preserve">

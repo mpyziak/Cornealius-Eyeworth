@@ -6,6 +6,7 @@ using CornealiusEyeworth.Notifications;
 using CornealiusEyeworth.Parsing;
 using CornealiusEyeworth.Scheduling;
 using CornealiusEyeworth.UI;
+using CornealiusEyeworth.UI.Options;
 
 namespace CornealiusEyeworth.Application;
 

@@ -1,8 +1,8 @@
-﻿using System.Drawing;
+using System.Drawing;
 using System.Windows.Forms;
 using CornealiusEyeworth.Localization;
 
-namespace CornealiusEyeworth.UI;
+namespace CornealiusEyeworth.UI.Options;
 
 internal class ScheduleDialogControlFactory : IScheduleDialogControlFactory
 {

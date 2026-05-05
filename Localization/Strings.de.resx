@@ -43,10 +43,13 @@
     <value>Zeitplan... &#160;⏰</value>
   </data>
   <data name="MenuHelp" xml:space="preserve">
-    <value>Hilfe &#160;❓</value>
+    <value>Hilfe &#160;📖</value>
   </data>
   <data name="MenuAbout" xml:space="preserve">
     <value>Über... &#160;ℹ️</value>
+  </data>
+  <data name="MenuHowToUse" xml:space="preserve">
+    <value>Verwendung... &#160;❓</value>
   </data>
   <data name="MenuGitHub" xml:space="preserve">
     <value>GitHub... &#160;📄</value>
@@ -76,6 +79,23 @@
   </data>
   <data name="ButtonClose" xml:space="preserve">
     <value>Schließen</value>
+  </data>
+
+  <data name="HelpDialogTitle" xml:space="preserve">
+    <value>Verwendung - Cornealius Eyeworth</value>
+  </data>
+  <data name="HelpBody" xml:space="preserve">
+    <value>Cornealius Eyeworth ist Ihr persönlicher Augenbutler. Einmal gestartet, beobachtet er diskret die Uhr und liefert kurze, unaufdringliche Toast-Benachrichtigungen, die Sie an grundlegende Augenhygiene erinnern — schauen Sie vom Bildschirm weg, blinzeln Sie und lassen Sie Ihre Augen ausruhen.
+
+Sie haben die volle Kontrolle:
+
+• Zeitplan  (Optionen › Zeitplan)
+  Wählen Sie die Minuten jeder Stunde, zu denen Cornealius seine Glocke läutet. Zum Beispiel erinnert Sie die Eingabe von 20, 40 jede Stunde um XX:20 und XX:40.  Fortgeschrittene Benutzer können direkt einen CRON-Ausdruck eingeben.
+
+• Sprache  (Optionen › Sprache)
+  Wechseln Sie die Oberflächensprache. Ein Neustart ist erforderlich, damit die Änderung wirksam wird.
+
+Cornealius läuft still im Hintergrund. Lassen Sie das Fenster einfach offen (Minimieren ist in Ordnung) und er erledigt den Rest — mit beachtlichem Stil.</value>
   </data>
 
   <data name="NotificationOnDuty" xml:space="preserve">
