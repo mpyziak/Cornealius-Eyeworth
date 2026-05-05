@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xsd:schema id="root"
+    xmlns=""
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
         <xsd:choice maxOccurs="unbounded">
@@ -27,18 +30,34 @@
       </xsd:complexType>
     </xsd:element>
   </xsd:schema>
-  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
-  <resheader name="version"><value>2.0</value></resheader>
-  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
 
   <!-- Application -->
-  <data name="AppName" xml:space="preserve"><value>Cornealius Eyeworth</value></data>
-  <data name="AppTitle" xml:space="preserve"><value>👁️  Cornealius Eyeworth</value></data>
-  <data name="GitHubUrl" xml:space="preserve"><value>https://github.com/mpyziak/Cornealius-Eyeworth</value></data>
+  <data name="AppName" xml:space="preserve">
+    <value>Cornealius Eyeworth</value>
+  </data>
+  <data name="AppTitle" xml:space="preserve">
+    <value>👁️  Cornealius Eyeworth</value>
+  </data>
+  <data name="GitHubUrl" xml:space="preserve">
+    <value>https://github.com/mpyziak/Cornealius-Eyeworth</value>
+  </data>
 
   <!-- Main window -->
-  <data name="StatusServing" xml:space="preserve"><value>● Serving</value></data>
+  <data name="StatusServing" xml:space="preserve">
+    <value>● Serving</value>
+  </data>
   <data name="ScheduleDescription" xml:space="preserve">
     <value>Schedule: {0}</value>
     <comment>Format arg {0}: comma-separated list of minutes.</comment>
@@ -49,26 +68,57 @@
   </data>
 
   <!-- Menu -->
-  <data name="MenuOptions" xml:space="preserve"><value>Options</value></data>
-  <data name="MenuTriggerTimes" xml:space="preserve"><value>Schedule...</value></data>
-  <data name="MenuHelp" xml:space="preserve"><value>Help</value></data>
-  <data name="MenuAbout" xml:space="preserve"><value>About...</value></data>
-  <data name="MenuGitHub" xml:space="preserve"><value>GitHub...</value></data>
+  <data name="MenuOptions" xml:space="preserve">
+    <value>Options &#160;⚙️</value>
+  </data>
+  <data name="MenuLanguage" xml:space="preserve">
+    <value>Language... &#160;🌐</value>
+  </data>
+  <data name="MenuTriggerTimes" xml:space="preserve">
+    <value>Schedule... &#160;⏰</value>
+  </data>
+  <data name="MenuHelp" xml:space="preserve">
+    <value>Help &#160;❓</value>
+  </data>
+  <data name="MenuAbout" xml:space="preserve">
+    <value>About... &#160;ℹ️</value>
+  </data>
+  <data name="MenuGitHub" xml:space="preserve">
+    <value>GitHub... &#160;📄</value>
+  </data>
 
   <!-- Options dialog -->
-  <data name="ScheduleDialogTitle" xml:space="preserve"><value>Schedule — Cornealius Eyeworth</value></data>
-  <data name="OptionsInstruction" xml:space="preserve"><value>Minutes of each hour at which Cornealious shall&#10;remind you to rest your eyes (e.g. 20, 40, 55):</value></data>
-  <data name="ButtonSave" xml:space="preserve"><value>Save</value></data>
-  <data name="ButtonCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="ScheduleDialogTitle" xml:space="preserve">
+    <value>Schedule — Cornealius Eyeworth</value>
+  </data>
+  <data name="OptionsInstruction" xml:space="preserve">
+    <value>Minutes of each hour at which Cornealious shall&#10;remind you to rest your eyes (e.g. 20, 40, 55):</value>
+  </data>
+  <data name="ButtonSave" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="ButtonCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
 
   <!-- About dialog -->
-  <data name="AboutDialogTitle" xml:space="preserve"><value>About — Cornealius Eyeworth</value></data>
-  <data name="AboutDescription" xml:space="preserve"><value>A distinguished ocular butler who reminds you&#10;to rest your eyes at regular intervals.&#10;&#10;Following the 20-20-20 Rule, with decorum.</value></data>
-  <data name="AboutVersion" xml:space="preserve"><value>Version 1.0  —  © 2026 mpyziak</value></data>
-  <data name="ButtonClose" xml:space="preserve"><value>Close</value></data>
+  <data name="AboutDialogTitle" xml:space="preserve">
+    <value>About — Cornealius Eyeworth</value>
+  </data>
+  <data name="AboutDescription" xml:space="preserve">
+    <value>A distinguished ocular butler who reminds you&#10;to rest your eyes at regular intervals.&#10;&#10;Following the 20-20-20 Rule, with decorum.</value>
+  </data>
+  <data name="AboutVersion" xml:space="preserve">
+    <value>Version 1.0  —  © 2026 mpyziak</value>
+  </data>
+  <data name="ButtonClose" xml:space="preserve">
+    <value>Close</value>
+  </data>
 
   <!-- Notifications -->
-  <data name="NotificationOnDuty" xml:space="preserve"><value>Cornealius is on duty.</value></data>
+  <data name="NotificationOnDuty" xml:space="preserve">
+    <value>Cornealius is on duty.</value>
+  </data>
   <data name="NotificationReminders" xml:space="preserve">
     <value>Your eyes deserve an intermission.|A moment of respite for your weary eyes.|The 20-20-20 rule awaits.</value>
     <comment>Pipe-separated list of reminder messages shown in the top row of reminder toasts. One is chosen at random.</comment>
@@ -79,19 +129,28 @@
   </data>
 
   <!-- Input parsing errors -->
-  <data name="ParseErrorNoMinutes" xml:space="preserve"><value>Cornealious insists on at least one minute. He has standards.</value></data>
+  <data name="ParseErrorNoMinutes" xml:space="preserve">
+    <value>Cornealious insists on at least one minute. He has standards.</value>
+  </data>
   <data name="ParseErrorInvalidMinute" xml:space="preserve">
     <value>'{0}' is not a valid minute. Cornealious expects whole numbers between 0 and 59.</value>
     <comment>Format arg {0}: the invalid token entered by the user.</comment>
   </data>
 
-  <data name="LanguageDialogTitle" xml:space="preserve"><value>Language &#x2014; Cornealius Eyeworth</value></data>
-  <data name="MenuLanguage" xml:space="preserve"><value>Language...</value></data>
+  <data name="LanguageDialogTitle" xml:space="preserve">
+    <value>Language &#x2014; Cornealius Eyeworth</value>
+  </data>
 
   <!-- Options: language -->
-  <data name="OptionsLanguageLabel" xml:space="preserve"><value>Language (requires restart):</value></data>
-  <data name="OptionsLanguageDefault" xml:space="preserve"><value>System default</value></data>
-  <data name="OptionsLanguageRestartNotice" xml:space="preserve"><value>The language change will take effect the next time Cornealius starts.</value></data>
+  <data name="OptionsLanguageLabel" xml:space="preserve">
+    <value>Language (requires restart):</value>
+  </data>
+  <data name="OptionsLanguageDefault" xml:space="preserve">
+    <value>System default</value>
+  </data>
+  <data name="OptionsLanguageRestartNotice" xml:space="preserve">
+    <value>The language change will take effect the next time Cornealius starts.</value>
+  </data>
 
   <!-- Schedule dialog -->
   <data name="ScheduleDescriptionCron" xml:space="preserve">
@@ -102,14 +161,26 @@
     <value>Minutes {0} past every hour</value>
     <comment>Format arg {0}: comma-separated list of minutes, e.g. "20, 40, 55"</comment>
   </data>
-  <data name="ScheduleSimpleRadio" xml:space="preserve"><value>Simple — minutes of each hour</value></data>
-  <data name="ScheduleAdvancedRadio" xml:space="preserve"><value>Advanced — CRON expression</value></data>
-  <data name="ScheduleCronInstruction" xml:space="preserve"><value>Quartz CRON (e.g. "0 20,40,55 * * * ?"):</value></data>
-  <data name="ParseErrorCronEmpty" xml:space="preserve"><value>Cornealious requires a CRON expression. Silence is not a schedule.</value></data>
-  <data name="ParseErrorCronInvalid" xml:space="preserve"><value>&#x201C;{0}&#x201D; is not a valid Quartz CRON expression.</value></data>
+  <data name="ScheduleSimpleRadio" xml:space="preserve">
+    <value>Simple — minutes of each hour</value>
+  </data>
+  <data name="ScheduleAdvancedRadio" xml:space="preserve">
+    <value>Advanced — CRON expression</value>
+  </data>
+  <data name="ScheduleCronInstruction" xml:space="preserve">
+    <value>Quartz CRON (e.g. "0 20,40,55 * * * ?"):</value>
+  </data>
+  <data name="ParseErrorCronEmpty" xml:space="preserve">
+    <value>Cornealious requires a CRON expression. Silence is not a schedule.</value>
+  </data>
+  <data name="ParseErrorCronInvalid" xml:space="preserve">
+    <value>&#x201C;{0}&#x201D; is not a valid Quartz CRON expression.</value>
+  </data>
 
   <!-- Fatal error -->
-  <data name="FatalErrorTitle" xml:space="preserve"><value>Fatal Error</value></data>
+  <data name="FatalErrorTitle" xml:space="preserve">
+    <value>Fatal Error</value>
+  </data>
   <data name="FatalErrorMessage" xml:space="preserve">
     <value>Cornealius Eyeworth failed to start:&#10;&#10;{0}&#10;&#10;{1}</value>
     <comment>Format args: {0} = ex.Message, {1} = ex.StackTrace.</comment>

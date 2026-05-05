@@ -34,19 +34,22 @@
   </data>
 
   <data name="MenuOptions" xml:space="preserve">
-    <value>Opcje</value>
+    <value>Opcje &#160;⚙️</value>
+  </data>
+  <data name="MenuLanguage" xml:space="preserve">
+    <value>J&#281;zyk... &#160;🌐</value>
   </data>
   <data name="MenuTriggerTimes" xml:space="preserve">
-    <value>Harmonogram...</value>
+    <value>Harmonogram... &#160;⏰</value>
   </data>
   <data name="MenuHelp" xml:space="preserve">
-    <value>Pomoc</value>
+    <value>Pomoc &#160;❓</value>
   </data>
   <data name="MenuAbout" xml:space="preserve">
-    <value>O programie...</value>
+    <value>O programie... &#160;ℹ️</value>
   </data>
   <data name="MenuGitHub" xml:space="preserve">
-    <value>GitHub...</value>
+    <value>GitHub... &#160;📄</value>
   </data>
 
   <data name="ScheduleDialogTitle" xml:space="preserve">
@@ -94,9 +97,6 @@
 
   <data name="LanguageDialogTitle" xml:space="preserve">
     <value>J&#281;zyk &#x2014; Cornealius Eyeworth</value>
-  </data>
-  <data name="MenuLanguage" xml:space="preserve">
-    <value>J&#281;zyk...</value>
   </data>
 
   <data name="OptionsLanguageLabel" xml:space="preserve">
