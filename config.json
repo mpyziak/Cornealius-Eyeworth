@@ -1,5 +1,4 @@
 ﻿{
-  "NotificationMessage": "Your eyes deserve an intermission.",
   "CronExpression": "0 20,40,55 * * * ?",
   "Language": null
 }

@@ -34,7 +34,7 @@
 
   <!-- Application -->
   <data name="AppName" xml:space="preserve"><value>Cornealius Eyeworth</value></data>
-  <data name="AppTitle" xml:space="preserve"><value>🧿  Cornealius Eyeworth</value></data>
+  <data name="AppTitle" xml:space="preserve"><value>👁️  Cornealius Eyeworth</value></data>
   <data name="GitHubUrl" xml:space="preserve"><value>https://github.com/mpyziak/Cornealius-Eyeworth</value></data>
 
   <!-- Main window -->
@@ -69,6 +69,14 @@
 
   <!-- Notifications -->
   <data name="NotificationOnDuty" xml:space="preserve"><value>Cornealius is on duty.</value></data>
+  <data name="NotificationReminders" xml:space="preserve">
+    <value>Your eyes deserve an intermission.|A moment of respite for your weary eyes.|The 20-20-20 rule awaits.</value>
+    <comment>Pipe-separated list of reminder messages shown in the top row of reminder toasts. One is chosen at random.</comment>
+  </data>
+  <data name="NotificationQuips" xml:space="preserve">
+    <value>The human eye was not designed for eternal screen-gazing.|Blinking is free. Use it liberally.|Even the finest monocle requires occasional polishing.|Distance vision: a luxury your eyes richly deserve.|Your focus muscles need stretching too.|Cornealius reminds you: screens are temporary, eyesight should not.|A brief gaze into the distance costs nothing but a moment.|Your eyes have served you well. Return the favour.</value>
+    <comment>Pipe-separated list of witty eye-hygiene quips shown in the bottom row of all toasts. One is chosen at random.</comment>
+  </data>
 
   <!-- Input parsing errors -->
   <data name="ParseErrorNoMinutes" xml:space="preserve"><value>Cornealious insists on at least one minute. He has standards.</value></data>
@@ -98,7 +106,7 @@
   <data name="ScheduleAdvancedRadio" xml:space="preserve"><value>Advanced — CRON expression</value></data>
   <data name="ScheduleCronInstruction" xml:space="preserve"><value>Quartz CRON (e.g. "0 20,40,55 * * * ?"):</value></data>
   <data name="ParseErrorCronEmpty" xml:space="preserve"><value>Cornealious requires a CRON expression. Silence is not a schedule.</value></data>
-  <data name="ParseErrorCronInvalid" xml:space="preserve"><value>'"'{0}'"' is not a valid Quartz CRON expression.</value></data>
+  <data name="ParseErrorCronInvalid" xml:space="preserve"><value>&#x201C;{0}&#x201D; is not a valid Quartz CRON expression.</value></data>
 
   <!-- Fatal error -->
   <data name="FatalErrorTitle" xml:space="preserve"><value>Fatal Error</value></data>

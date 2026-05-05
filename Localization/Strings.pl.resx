@@ -1,54 +1,140 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
-  <resheader name="version"><value>2.0</value></resheader>
-  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
 
-  <data name="AppName" xml:space="preserve"><value>Cornealius Eyeworth</value></data>
-  <data name="AppTitle" xml:space="preserve"><value>&#x1F9FF;  Cornealius Eyeworth</value></data>
-  <data name="GitHubUrl" xml:space="preserve"><value>https://github.com/mpyziak/Cornealius-Eyeworth</value></data>
+  <data name="AppName" xml:space="preserve">
+    <value>Cornealius Eyeworth</value>
+  </data>
+  <data name="AppTitle" xml:space="preserve">
+    <value>&#x1F9FF;  Cornealius Eyeworth</value>
+  </data>
+  <data name="GitHubUrl" xml:space="preserve">
+    <value>https://github.com/mpyziak/Cornealius-Eyeworth</value>
+  </data>
 
-  <data name="StatusServing" xml:space="preserve"><value>&#x25CF; Na s&#322;u&#380;bie</value></data>
-  <data name="ScheduleDescription" xml:space="preserve"><value>Harmonogram: {0}</value></data>
-  <data name="NextTrigger" xml:space="preserve"><value>Nast&#281;pne przypomnienie: {0:HH\:mm}</value></data>
+  <data name="StatusServing" xml:space="preserve">
+    <value>&#x25CF; Na s&#322;u&#380;bie</value>
+  </data>
+  <data name="ScheduleDescription" xml:space="preserve">
+    <value>Harmonogram: {0}</value>
+  </data>
+  <data name="NextTrigger" xml:space="preserve">
+    <value>Nast&#281;pne przypomnienie: {0:HH\:mm}</value>
+  </data>
 
-  <data name="MenuOptions" xml:space="preserve"><value>Opcje</value></data>
-  <data name="MenuTriggerTimes" xml:space="preserve"><value>Harmonogram...</value></data>
-  <data name="MenuHelp" xml:space="preserve"><value>Pomoc</value></data>
-  <data name="MenuAbout" xml:space="preserve"><value>O programie...</value></data>
-  <data name="MenuGitHub" xml:space="preserve"><value>GitHub...</value></data>
+  <data name="MenuOptions" xml:space="preserve">
+    <value>Opcje</value>
+  </data>
+  <data name="MenuTriggerTimes" xml:space="preserve">
+    <value>Harmonogram...</value>
+  </data>
+  <data name="MenuHelp" xml:space="preserve">
+    <value>Pomoc</value>
+  </data>
+  <data name="MenuAbout" xml:space="preserve">
+    <value>O programie...</value>
+  </data>
+  <data name="MenuGitHub" xml:space="preserve">
+    <value>GitHub...</value>
+  </data>
 
-  <data name="ScheduleDialogTitle" xml:space="preserve"><value>Harmonogram &#x2014; Cornealius Eyeworth</value></data>
-  <data name="OptionsInstruction" xml:space="preserve"><value>Minuty ka&#380;dej godziny, w kt&#243;rych Cornealius&#10;przypomni Ci o odpoczynku dla oczu (np. 20, 40, 55):</value></data>
-  <data name="ButtonSave" xml:space="preserve"><value>Zapisz</value></data>
-  <data name="ButtonCancel" xml:space="preserve"><value>Anuluj</value></data>
+  <data name="ScheduleDialogTitle" xml:space="preserve">
+    <value>Harmonogram &#x2014; Cornealius Eyeworth</value>
+  </data>
+  <data name="OptionsInstruction" xml:space="preserve">
+    <value>Minuty ka&#380;dej godziny, w kt&#243;rych Cornealius&#10;przypomni Ci o odpoczynku dla oczu (np. 20, 40, 55):</value>
+  </data>
+  <data name="ButtonSave" xml:space="preserve">
+    <value>Zapisz</value>
+  </data>
+  <data name="ButtonCancel" xml:space="preserve">
+    <value>Anuluj</value>
+  </data>
 
-  <data name="AboutDialogTitle" xml:space="preserve"><value>O programie &#x2014; Cornealius Eyeworth</value></data>
-  <data name="AboutDescription" xml:space="preserve"><value>Wybitny okularny kamerdyner, kt&#243;ry przypomina&#10;o regularnym odpoczynku dla oczu.&#10;&#10;Zgodnie z zasad&#261; 20-20-20, z klas&#261;.</value></data>
-  <data name="AboutVersion" xml:space="preserve"><value>Wersja 1.0  &#x2014;  &#169; 2026 mpyziak</value></data>
-  <data name="ButtonClose" xml:space="preserve"><value>Zamknij</value></data>
+  <data name="AboutDialogTitle" xml:space="preserve">
+    <value>O programie &#x2014; Cornealius Eyeworth</value>
+  </data>
+  <data name="AboutDescription" xml:space="preserve">
+    <value>Wybitny okularny kamerdyner, kt&#243;ry przypomina&#10;o regularnym odpoczynku dla oczu.&#10;&#10;Zgodnie z zasad&#261; 20-20-20, z klas&#261;.</value>
+  </data>
+  <data name="AboutVersion" xml:space="preserve">
+    <value>Wersja 1.0  &#x2014;  &#169; 2026 mpyziak</value>
+  </data>
+  <data name="ButtonClose" xml:space="preserve">
+    <value>Zamknij</value>
+  </data>
 
-  <data name="NotificationOnDuty" xml:space="preserve"><value>Cornealius jest na s&#322;u&#380;bie.</value></data>
+  <data name="NotificationOnDuty" xml:space="preserve">
+    <value>Cornealius jest na s&#322;u&#380;bie.</value>
+  </data>
+  <data name="NotificationReminders" xml:space="preserve">
+    <value>Twoje oczy zas&#322;uguj&#261; na przerw&#281;.|Chwila wytchnienia dla Twoich zm&#281;czonych oczu.|Oderwij wzrok od ekranu. Tw&#243;j wzrok nalega.|Zasada 20-20-20 czeka na Ciebie.</value>
+  </data>
+  <data name="NotificationQuips" xml:space="preserve">
+    <value>Ludzkie oko nie zosta&#322;o stworzone do wiecznego wpatrywania si&#281; w ekran.|Mruganie jest bezp&#322;atne. U&#380;ywaj go obficie.|Nawet najlepszy monokl wymaga okazjonalnej opieki.|Widzenie w dal &#x2014; luksus, na kt&#243;ry Twoje oczy w pe&#322;ni zas&#322;uguj&#261;.|Mi&#281;&#347;nie akomodacji te&#380; potrzebuj&#261; rozci&#261;gni&#281;cia.|20 metr&#243;w przestrzeni &#x2014; balsam dla przepracowanego oka.|Cornealius przypomina: ekrany przemijają, wzrok nie powinien.|Kr&#243;tkie spojrzenie w dal kosztuje jedynie chwil&#281;.|Twoje oczy dobrze Ci s&#322;u&#380;&#261;. Odwzajemnij im przys&#322;ug&#281;.</value>
+  </data>
 
-  <data name="ParseErrorNoMinutes" xml:space="preserve"><value>Cornealius nalega na co najmniej jedn&#261; minut&#281;. Ma swoje standardy.</value></data>
-  <data name="ParseErrorInvalidMinute" xml:space="preserve"><value>&#x201E;{0}&#x201D; to nieprawid&#322;owa minuta. Cornealius oczekuje liczb ca&#322;kowitych od 0 do 59.</value></data>
+  <data name="ParseErrorNoMinutes" xml:space="preserve">
+    <value>Cornealius nalega na co najmniej jedn&#261; minut&#281;. Ma swoje standardy.</value>
+  </data>
+  <data name="ParseErrorInvalidMinute" xml:space="preserve">
+    <value>&#x201E;{0}&#x201D; to nieprawid&#322;owa minuta. Cornealius oczekuje liczb ca&#322;kowitych od 0 do 59.</value>
+  </data>
 
-  <data name="LanguageDialogTitle" xml:space="preserve"><value>J&#281;zyk &#x2014; Cornealius Eyeworth</value></data>
-  <data name="MenuLanguage" xml:space="preserve"><value>J&#281;zyk...</value></data>
+  <data name="LanguageDialogTitle" xml:space="preserve">
+    <value>J&#281;zyk &#x2014; Cornealius Eyeworth</value>
+  </data>
+  <data name="MenuLanguage" xml:space="preserve">
+    <value>J&#281;zyk...</value>
+  </data>
 
-  <data name="OptionsLanguageLabel" xml:space="preserve"><value>J&#281;zyk (wymaga ponownego uruchomienia):</value></data>
-  <data name="OptionsLanguageDefault" xml:space="preserve"><value>Domy&#347;lny systemowy</value></data>
-  <data name="OptionsLanguageRestartNotice" xml:space="preserve"><value>Zmiana j&#281;zyka zostanie zastosowana przy nast&#281;pnym uruchomieniu.</value></data>
+  <data name="OptionsLanguageLabel" xml:space="preserve">
+    <value>J&#281;zyk (wymaga ponownego uruchomienia):</value>
+  </data>
+  <data name="OptionsLanguageDefault" xml:space="preserve">
+    <value>Domy&#347;lny systemowy</value>
+  </data>
+  <data name="OptionsLanguageRestartNotice" xml:space="preserve">
+    <value>Zmiana j&#281;zyka zostanie zastosowana przy nast&#281;pnym uruchomieniu.</value>
+  </data>
 
-  <data name="ScheduleDescriptionCron" xml:space="preserve"><value>CRON: {0}</value></data>
-  <data name="ScheduleDescriptionSimple" xml:space="preserve"><value>Minuty {0} ka&#380;dej godziny</value></data>
-  <data name="ScheduleSimpleRadio" xml:space="preserve"><value>Prosty &#x2014; minuty ka&#380;dej godziny</value></data>
-  <data name="ScheduleAdvancedRadio" xml:space="preserve"><value>Zaawansowany &#x2014; wyra&#380;enie CRON</value></data>
-  <data name="ScheduleCronInstruction" xml:space="preserve"><value>Wyra&#380;enie Quartz CRON (np. "0 20,40,55 * * * ?"):</value></data>
-  <data name="ParseErrorCronEmpty" xml:space="preserve"><value>Kornaeliusz wymaga wyra&#380;enia CRON. Cisza to nie harmonogram.</value></data>
-  <data name="ParseErrorCronInvalid" xml:space="preserve"><value>"{0}" nie jest prawid&#322;owym wyra&#380;eniem Quartz CRON.</value></data>
+  <data name="ScheduleDescriptionCron" xml:space="preserve">
+    <value>CRON: {0}</value>
+  </data>
+  <data name="ScheduleDescriptionSimple" xml:space="preserve">
+    <value>Minuty {0} ka&#380;dej godziny</value>
+  </data>
+  <data name="ScheduleSimpleRadio" xml:space="preserve">
+    <value>Prosty &#x2014; minuty ka&#380;dej godziny</value>
+  </data>
+  <data name="ScheduleAdvancedRadio" xml:space="preserve">
+    <value>Zaawansowany &#x2014; wyra&#380;enie CRON</value>
+  </data>
+  <data name="ScheduleCronInstruction" xml:space="preserve">
+    <value>Wyra&#380;enie Quartz CRON (np. "0 20,40,55 * * * ?"):</value>
+  </data>
+  <data name="ParseErrorCronEmpty" xml:space="preserve">
+    <value>Kornaeliusz wymaga wyra&#380;enia CRON. Cisza to nie harmonogram.</value>
+  </data>
+  <data name="ParseErrorCronInvalid" xml:space="preserve">
+    <value>"{0}" nie jest prawid&#322;owym wyra&#380;eniem Quartz CRON.</value>
+  </data>
 
-  <data name="FatalErrorTitle" xml:space="preserve"><value>B&#322;&#261;d krytyczny</value></data>
-  <data name="FatalErrorMessage" xml:space="preserve"><value>Cornealius Eyeworth nie m&#243;g&#322; si&#281; uruchomi&#263;:&#10;&#10;{0}&#10;&#10;{1}</value></data>
+  <data name="FatalErrorTitle" xml:space="preserve">
+    <value>B&#322;&#261;d krytyczny</value>
+  </data>
+  <data name="FatalErrorMessage" xml:space="preserve">
+    <value>Cornealius Eyeworth nie m&#243;g&#322; si&#281; uruchomi&#263;:&#10;&#10;{0}&#10;&#10;{1}</value>
+  </data>
 </root>

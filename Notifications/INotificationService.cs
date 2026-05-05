@@ -9,9 +9,6 @@ internal interface INotificationService
     /// <summary>Sends the "on duty" notification shown once at startup.</summary>
     void SendStartupNotification();
 
-    /// <summary>
-    /// Sends the eye-rest reminder notification with the given
-    /// <paramref name="message"/> as body text.
-    /// </summary>
-    void SendReminderNotification(string message);
+    /// <summary>Sends the eye-rest reminder notification.</summary>
+    void SendReminderNotification();
 }

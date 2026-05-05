@@ -12,7 +12,7 @@ internal class SchedulerService(Config config, INotificationService notification
         var factory = new StdSchedulerFactory();
         var scheduler = await factory.GetScheduler(cancellationToken);
 
-        scheduler.JobFactory = new EyeworthJobFactory(notificationService, config, onJobFired);
+        scheduler.JobFactory = new EyeworthJobFactory(notificationService, onJobFired);
 
         var job = JobBuilder.Create<EyeworthJob>()
             .WithIdentity(EyeworthJob.Key)
