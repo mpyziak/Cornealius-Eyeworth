@@ -1,8 +1,8 @@
-﻿using System.Drawing;
+using System.Drawing;
 using System.Windows.Forms;
 using CornealiusEyeworth.Localization;
 
-namespace CornealiusEyeworth.UI;
+namespace CornealiusEyeworth.UI.Options;
 
 internal class ScheduleDialogControlFactory : IScheduleDialogControlFactory
 {
@@ -10,23 +10,12 @@ internal class ScheduleDialogControlFactory : IScheduleDialogControlFactory
     private const int IndentLeft = 32;
     private const int InputWidth = 252;
 
-    public RadioButton CreateSimpleRadio() => new()
-    {
-        Text = Strings.ScheduleSimpleRadio,
-        Font = new Font("Segoe UI", 9.5f),
-        AutoSize = true,
-        Location = new Point(Left, 16),
-        ForeColor = SystemColors.WindowText,
-        BackColor = Color.Transparent
-    };
-
     public Label CreateSimpleInstructionLabel() => new()
     {
         Text = Strings.OptionsInstruction,
         Font = new Font("Segoe UI", 9.5f),
-        AutoSize = false,
-        Size = new Size(InputWidth, 34),
-        Location = new Point(IndentLeft, 40),
+        AutoSize = true,
+        Location = new Point(Left, 16),
         ForeColor = SystemColors.WindowText,
         BackColor = Color.Transparent
     };
@@ -35,30 +24,41 @@ internal class ScheduleDialogControlFactory : IScheduleDialogControlFactory
     {
         Text = currentValue,
         Font = new Font("Segoe UI", 10f),
-        Location = new Point(IndentLeft, 78),
+        Location = new Point(Left, 54),
         Size = new Size(InputWidth, 26),
         BackColor = SystemColors.Window,
         ForeColor = SystemColors.WindowText,
         BorderStyle = BorderStyle.FixedSingle
     };
 
-    public RadioButton CreateAdvancedRadio() => new()
+    public LinkLabel CreateStandardToggle() => new()
     {
-        Text = Strings.ScheduleAdvancedRadio,
+        Text = Strings.ScheduleStandardToggle + " \u25bc",
         Font = new Font("Segoe UI", 9.5f),
         AutoSize = true,
-        Location = new Point(Left, 118),
-        ForeColor = SystemColors.WindowText,
-        BackColor = Color.Transparent
+        Location = new Point(Left, 0),
+        LinkColor = SystemColors.HotTrack,
+        BackColor = Color.Transparent,
+        LinkBehavior = LinkBehavior.NeverUnderline
+    };
+
+    public LinkLabel CreateAdvancedToggle() => new()
+    {
+        Text = Strings.ScheduleAdvancedToggle + " \u25b6",
+        Font = new Font("Segoe UI", 9.5f),
+        AutoSize = true,
+        Location = new Point(Left, 0),
+        LinkColor = SystemColors.HotTrack,
+        BackColor = Color.Transparent,
+        LinkBehavior = LinkBehavior.NeverUnderline
     };
 
     public Label CreateAdvancedInstructionLabel() => new()
     {
         Text = Strings.ScheduleCronInstruction,
         Font = new Font("Segoe UI", 9.5f),
-        AutoSize = false,
-        Size = new Size(InputWidth, 20),
-        Location = new Point(IndentLeft, 142),
+        AutoSize = true,
+        Location = new Point(Left, 0),
         ForeColor = SystemColors.WindowText,
         BackColor = Color.Transparent
     };
@@ -67,7 +67,7 @@ internal class ScheduleDialogControlFactory : IScheduleDialogControlFactory
     {
         Text = currentValue,
         Font = new Font("Segoe UI", 10f),
-        Location = new Point(IndentLeft, 164),
+        Location = new Point(Left, 26),
         Size = new Size(InputWidth, 26),
         BackColor = SystemColors.Window,
         ForeColor = SystemColors.WindowText,
@@ -79,7 +79,7 @@ internal class ScheduleDialogControlFactory : IScheduleDialogControlFactory
         var btn = new Button
         {
             Text = Strings.ButtonSave,
-            Location = new Point(116, 206),
+            Location = new Point(116, 0),
             Size = new Size(80, 28),
             Font = new Font("Segoe UI", 9.5f),
             BackColor = SystemColors.Highlight,
@@ -96,7 +96,7 @@ internal class ScheduleDialogControlFactory : IScheduleDialogControlFactory
         var btn = new Button
         {
             Text = Strings.ButtonCancel,
-            Location = new Point(204, 206),
+            Location = new Point(204, 0),
             Size = new Size(80, 28),
             Font = new Font("Segoe UI", 9.5f),
             BackColor = SystemColors.Control,

@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Windows.Forms;
 using CornealiusEyeworth.Configuration;
 using CornealiusEyeworth.Localization;
@@ -6,6 +6,7 @@ using CornealiusEyeworth.Notifications;
 using CornealiusEyeworth.Parsing;
 using CornealiusEyeworth.Scheduling;
 using CornealiusEyeworth.UI;
+using CornealiusEyeworth.UI.Options;
 
 namespace CornealiusEyeworth.Application;
 
@@ -63,7 +64,7 @@ internal class AppHost
             await schedulerCts.CancelAsync();
             await schedulerTask;
             schedulerCts = new CancellationTokenSource();
-            schedulerTask = new SchedulerService(c, _notificationService, form.NotifyFired)
+            schedulerTask = new SchedulerService(c, _notificationService, () => form.Invoke(() => form.UpdateViewModel(BuildViewModel(c))))
                 .RunAsync(schedulerCts.Token);
         }
 

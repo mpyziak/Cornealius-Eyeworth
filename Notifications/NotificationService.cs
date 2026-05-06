@@ -8,21 +8,29 @@ namespace CornealiusEyeworth.Notifications;
 /// </summary>
 internal class NotificationService : INotificationService
 {
+    private static readonly Random _random = Random.Shared;
+
+    private static string PickRandom(string pipeSeparated)
+    {
+        var entries = pipeSeparated.Split('|');
+        return entries[_random.Next(entries.Length)].Trim();
+    }
+
     /// <inheritdoc/>
     public void SendStartupNotification()
     {
         new ToastContentBuilder()
-            .AddText(Strings.AppName)
             .AddText(Strings.NotificationOnDuty)
+            .AddText(PickRandom(Strings.NotificationQuips))
             .Show();
     }
 
     /// <inheritdoc/>
-    public void SendReminderNotification(string message)
+    public void SendReminderNotification()
     {
         new ToastContentBuilder()
-            .AddText(Strings.AppName)
-            .AddText(message)
+            .AddText(PickRandom(Strings.NotificationReminders))
+            .AddText(PickRandom(Strings.NotificationQuips))
             .Show();
     }
 }

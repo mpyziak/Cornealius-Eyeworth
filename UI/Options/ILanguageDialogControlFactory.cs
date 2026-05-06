@@ -1,6 +1,6 @@
-﻿using System.Windows.Forms;
+using System.Windows.Forms;
 
-namespace CornealiusEyeworth.UI;
+namespace CornealiusEyeworth.UI.Options;
 
 /// <summary>
 /// Factory that creates all WinForms controls used by <see cref="LanguageDialog"/>.

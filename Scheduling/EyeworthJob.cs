@@ -10,7 +10,7 @@ namespace CornealiusEyeworth.Scheduling;
 /// to prevent overlapping executions.
 /// </summary>
 [DisallowConcurrentExecution]
-internal class EyeworthJob(INotificationService notificationService, Config config, Action? onFired = null) : IJob
+internal class EyeworthJob(INotificationService notificationService, Action? onFired = null) : IJob
 {
     /// <summary>The stable key used to register this job with the Quartz scheduler.</summary>
     public static readonly JobKey Key = new(nameof(EyeworthJob));
@@ -18,7 +18,7 @@ internal class EyeworthJob(INotificationService notificationService, Config conf
     /// <inheritdoc/>
     public Task Execute(IJobExecutionContext context)
     {
-        notificationService.SendReminderNotification(config.NotificationMessage);
+        notificationService.SendReminderNotification();
         onFired?.Invoke();
         return Task.CompletedTask;
     }

@@ -3,6 +3,8 @@ using System.Windows.Forms;
 using CornealiusEyeworth.Configuration;
 using CornealiusEyeworth.Localization;
 using CornealiusEyeworth.Parsing;
+using CornealiusEyeworth.UI.Help;
+using CornealiusEyeworth.UI.Options;
 
 namespace CornealiusEyeworth.UI;
 
@@ -38,7 +40,7 @@ internal class MainForm : Form
         StartPosition = FormStartPosition.CenterScreen;
         BackColor = SystemColors.Window;
         ForeColor = SystemColors.WindowText;
-        MainMenuStrip = controlFactory.CreateMenuStrip(OpenScheduleDialog, OpenLanguageDialog, OpenAboutDialog, OpenGitHub);
+        MainMenuStrip = controlFactory.CreateMenuStrip(OpenScheduleDialog, OpenLanguageDialog, OpenAboutDialog, OpenGitHub, OpenHelpDialog);
 
         _scheduleLabel    = controlFactory.CreateScheduleLabel(viewModel.ScheduleDescription);
         _nextTriggerLabel = controlFactory.CreateNextTriggerLabel(viewModel.NextTrigger);
@@ -74,6 +76,8 @@ internal class MainForm : Form
     }
 
     private void OpenAboutDialog() => new AboutDialog().ShowDialog(this);
+
+    private void OpenHelpDialog() => new HelpDialog().ShowDialog(this);
 
     private static void OpenGitHub() =>
         System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo

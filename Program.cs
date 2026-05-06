@@ -5,6 +5,7 @@ using CornealiusEyeworth.Localization;
 using CornealiusEyeworth.Notifications;
 using CornealiusEyeworth.Parsing;
 using CornealiusEyeworth.UI;
+using CornealiusEyeworth.UI.Options;
 
 Application.EnableVisualStyles();
 Application.SetCompatibleTextRenderingDefault(false);

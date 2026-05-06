@@ -1,8 +1,8 @@
-﻿using System.Drawing;
+using System.Drawing;
 using System.Windows.Forms;
 using CornealiusEyeworth.Localization;
 
-namespace CornealiusEyeworth.UI;
+namespace CornealiusEyeworth.UI.Options;
 
 internal class LanguageDialogControlFactory : ILanguageDialogControlFactory
 {
@@ -13,8 +13,7 @@ internal class LanguageDialogControlFactory : ILanguageDialogControlFactory
     {
         Text = Strings.OptionsLanguageLabel,
         Font = new Font("Segoe UI", 9.5f),
-        AutoSize = false,
-        Size = new Size(Width, 20),
+        AutoSize = true,
         Location = new Point(Left, 16),
         ForeColor = SystemColors.WindowText,
         BackColor = Color.Transparent

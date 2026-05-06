@@ -1,16 +1,16 @@
-﻿using System.Windows.Forms;
+using System.Windows.Forms;
 
-namespace CornealiusEyeworth.UI;
+namespace CornealiusEyeworth.UI.Options;
 
 /// <summary>
 /// Factory that creates all WinForms controls used by <see cref="ScheduleDialog"/>.
 /// </summary>
 internal interface IScheduleDialogControlFactory
 {
-    RadioButton CreateSimpleRadio();
     Label CreateSimpleInstructionLabel();
     TextBox CreateMinutesInput(string currentValue);
-    RadioButton CreateAdvancedRadio();
+    LinkLabel CreateStandardToggle();
+    LinkLabel CreateAdvancedToggle();
     Label CreateAdvancedInstructionLabel();
     TextBox CreateCronInput(string currentValue);
     Button CreateSaveButton();
