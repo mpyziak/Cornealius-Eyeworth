@@ -35,7 +35,7 @@ Picture this: You, dear reader, standing by the open window, moonlight caressing
 Should you wish to conjure Cornealious yourself, rather than trust the pre-assembled gentleman, the following ceremony is required:
 
 ### Prerequisites: The Butler's Wardrobe
-Before the performance may begin, ensure the .NET SDK is present on your machine - Cornealious will not step in without it.
+Before the performance may begin, ensure the .NET 9 SDK (or newer) is present on your machine - Cornealious will not step in without it.
 
 ### Act One: The Build
 To assemble Cornealious in his casual, Debug attire:
@@ -58,4 +58,4 @@ To publish Cornealious as a fully self-contained gentleman, runtime and all, usi
 For those who prefer the Visual Studio wing of the manor: the Publish... option in the IDE will do the honours, guided by the profile found at `Properties/PublishProfiles/win-x64-standalone.pubxml`.
 
 ### Finale: A Word from Cornealious
-Once published, the assembled executable and his companions will await in `publish/` (or under `bin/Release/net10.0-windows10.0.17763.0/win-x64/`). Do remember to keep `config.json` beside the executable - without it, Cornealious will stand in the hallway, hat in hand, utterly uncertain of when to advise you on eye care.
+Once published, the assembled executable and his companions will await in `publish/` (or under `bin/Release/net9.0-windows10.0.17763.0/win-x64/`). Do remember to keep `config.json` beside the executable - without it, Cornealious will stand in the hallway, hat in hand, utterly uncertain of when to advise you on eye care.
