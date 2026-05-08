@@ -62,8 +62,20 @@ namespace CornealiusEyeworth.Localization {
         internal static string HelpDialogTitle => ResourceManager.GetString("HelpDialogTitle", resourceCulture)!;
         internal static string HelpBody => ResourceManager.GetString("HelpBody", resourceCulture)!;
         internal static string NotificationOnDuty => ResourceManager.GetString("NotificationOnDuty", resourceCulture)!;
-        internal static string NotificationReminders => ResourceManager.GetString("NotificationReminders", resourceCulture)!;
-        internal static string NotificationQuips => ResourceManager.GetString("NotificationQuips", resourceCulture)!;
+        internal static string[] NotificationReminders => GetIndexedStrings("NotificationReminders");
+        internal static string[] NotificationQuips => GetIndexedStrings("NotificationQuips");
+
+        private static string[] GetIndexedStrings(string prefix)
+        {
+            var list = new System.Collections.Generic.List<string>();
+            for (int i = 0; ; i++)
+            {
+                var value = ResourceManager.GetString($"{prefix}_{i}", resourceCulture);
+                if (value is null) break;
+                list.Add(value);
+            }
+            return list.ToArray();
+        }
         internal static string ParseErrorNoMinutes => ResourceManager.GetString("ParseErrorNoMinutes", resourceCulture)!;
         internal static string ParseErrorInvalidMinute => ResourceManager.GetString("ParseErrorInvalidMinute", resourceCulture)!;
         internal static string OptionsLanguageLabel => ResourceManager.GetString("OptionsLanguageLabel", resourceCulture)!;

@@ -101,11 +101,63 @@ Cornealius läuft still im Hintergrund. Lassen Sie das Fenster einfach offen (Mi
   <data name="NotificationOnDuty" xml:space="preserve">
     <value>Cornealius ist im Dienst.</value>
   </data>
-  <data name="NotificationReminders" xml:space="preserve">
-    <value>Ihre Augen verdienen eine Pause.|Ein Moment der Erholung für Ihre müden Augen.|Die 20-20-20-Regel erwartet Ihr.</value>
+  <data name="NotificationReminders_0" xml:space="preserve">
+    <value>Ihre Augen verdienen eine Pause.</value>
   </data>
-  <data name="NotificationQuips" xml:space="preserve">
-    <value>Das menschliche Auge wurde nicht für ewiges Bildschirmstarren geschaffen.|Blinzeln ist kostenlos. Nutzen Sie es reichlich.|Selbst das feinste Monokel bedarf gelegentlicher Pflege.|Fernsicht: ein Luxus, den Ihre Augen wirklich verdienen.|Auch Ihre Fokusmuskulatur braucht Dehnung.|20 Meter ins Nichts - ein Tonikum für die überarbeitete Netzhaut.|Cornealius erinnert Sie: Bildschirme sind vergänglich, die Sehkraft soll nicht.|Ein Blick in die Ferne kostet nur einen Moment.|Ihre Augen haben Ihnen gut gedient. Erwidern Sie die Gunst.</value>
+  <data name="NotificationReminders_1" xml:space="preserve">
+    <value>Ein Moment der Erholung für Ihre müden Augen.</value>
+  </data>
+  <data name="NotificationReminders_2" xml:space="preserve">
+    <value>Die 20-20-20-Regel erwartet Sie.</value>
+  </data>
+
+  <data name="NotificationQuips_0" xml:space="preserve">
+    <value>Das menschliche Auge wurde nicht für ewiges Bildschirmstarren geschaffen.</value>
+  </data>
+  <data name="NotificationQuips_1" xml:space="preserve">
+    <value>Blinzeln ist kostenlos. Nutzen Sie es reichlich.</value>
+  </data>
+  <data name="NotificationQuips_2" xml:space="preserve">
+    <value>Selbst das feinste Monokel bedarf gelegentlicher Pflege.</value>
+  </data>
+  <data name="NotificationQuips_3" xml:space="preserve">
+    <value>Fernsicht: ein Luxus, den Ihre Augen wirklich verdienen.</value>
+  </data>
+  <data name="NotificationQuips_4" xml:space="preserve">
+    <value>Auch Ihre Fokusmuskulatur braucht Dehnung.</value>
+  </data>
+  <data name="NotificationQuips_5" xml:space="preserve">
+    <value>20 Meter ins Nichts — ein Tonikum für die überarbeitete Netzhaut.</value>
+  </data>
+  <data name="NotificationQuips_6" xml:space="preserve">
+    <value>Cornealius erinnert Sie: Bildschirme sind vergänglich, die Sehkraft soll nicht.</value>
+  </data>
+  <data name="NotificationQuips_7" xml:space="preserve">
+    <value>Ein Blick in die Ferne kostet nur einen Moment.</value>
+  </data>
+  <data name="NotificationQuips_8" xml:space="preserve">
+    <value>Ihre Augen haben Ihnen gut gedient. Erwidern Sie die Gunst.</value>
+  </data>
+  <data name="NotificationQuips_9" xml:space="preserve">
+    <value>Starre-Wettbewerbe mit dem Monitor sind nicht ratsam. Sie werden verlieren.</value>
+  </data>
+  <data name="NotificationQuips_10" xml:space="preserve">
+    <value>Ihre Netzhaut ist kein Abonnementdienst. Behandeln Sie sie entsprechend.</value>
+  </data>
+  <data name="NotificationQuips_11" xml:space="preserve">
+    <value>Der Horizont existiert aus gutem Grund. Konsultieren Sie ihn gelegentlich.</value>
+  </data>
+  <data name="NotificationQuips_12" xml:space="preserve">
+    <value>Pixel sind reichlich. Gute Sehkraft ist endlich.</value>
+  </data>
+  <data name="NotificationQuips_13" xml:space="preserve">
+    <value>Cornealius merkt an: Blaulicht ist kein Ersatz für Sonnenlicht.</value>
+  </data>
+  <data name="NotificationQuips_14" xml:space="preserve">
+    <value>Ein Fenster ist nicht nur dekorativ. Schauen Sie hindurch.</value>
+  </data>
+  <data name="NotificationQuips_15" xml:space="preserve">
+    <value>Ihre Ziliarmuskel hätten gerne ein Wort. Treten Sie vom Bildschirm zurück.</value>
   </data>
 
   <data name="ParseErrorNoMinutes" xml:space="preserve">
