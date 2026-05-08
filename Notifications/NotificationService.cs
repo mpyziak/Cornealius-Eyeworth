@@ -10,11 +10,8 @@ internal class NotificationService : INotificationService
 {
     private static readonly Random _random = Random.Shared;
 
-    private static string PickRandom(string pipeSeparated)
-    {
-        var entries = pipeSeparated.Split('|');
-        return entries[_random.Next(entries.Length)].Trim();
-    }
+    private static string PickRandom(string[] entries) =>
+        entries[_random.Next(entries.Length)];
 
     /// <inheritdoc/>
     public void SendStartupNotification()

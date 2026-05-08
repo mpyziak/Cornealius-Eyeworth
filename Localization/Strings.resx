@@ -140,13 +140,63 @@ Cornealius runs quietly in the background. Simply leave the window open (minimis
   <data name="NotificationOnDuty" xml:space="preserve">
     <value>Cornealius is on duty.</value>
   </data>
-  <data name="NotificationReminders" xml:space="preserve">
-    <value>Your eyes deserve an intermission.|A moment of respite for your weary eyes.|The 20-20-20 rule awaits.</value>
-    <comment>Pipe-separated list of reminder messages shown in the top row of reminder toasts. One is chosen at random.</comment>
+  <data name="NotificationReminders_0" xml:space="preserve">
+    <value>Your eyes deserve an intermission.</value>
   </data>
-  <data name="NotificationQuips" xml:space="preserve">
-    <value>The human eye was not designed for eternal screen-gazing.|Blinking is free. Use it liberally.|Even the finest monocle requires occasional polishing.|Distance vision: a luxury your eyes richly deserve.|Your focus muscles need stretching too.|Cornealius reminds you: screens are temporary, eyesight should not.|A brief gaze into the distance costs nothing but a moment.|Your eyes have served you well. Return the favour.</value>
-    <comment>Pipe-separated list of witty eye-hygiene quips shown in the bottom row of all toasts. One is chosen at random.</comment>
+  <data name="NotificationReminders_1" xml:space="preserve">
+    <value>A moment of respite for your weary eyes.</value>
+  </data>
+  <data name="NotificationReminders_2" xml:space="preserve">
+    <value>The 20-20-20 rule awaits.</value>
+  </data>
+
+  <data name="NotificationQuips_0" xml:space="preserve">
+    <value>The human eye was not designed for eternal screen-gazing.</value>
+  </data>
+  <data name="NotificationQuips_1" xml:space="preserve">
+    <value>Blinking is free. Use it liberally.</value>
+  </data>
+  <data name="NotificationQuips_2" xml:space="preserve">
+    <value>Even the finest monocle requires occasional polishing.</value>
+  </data>
+  <data name="NotificationQuips_3" xml:space="preserve">
+    <value>Distance vision: a luxury your eyes richly deserve.</value>
+  </data>
+  <data name="NotificationQuips_4" xml:space="preserve">
+    <value>Your focus muscles need stretching too.</value>
+  </data>
+  <data name="NotificationQuips_5" xml:space="preserve">
+    <value>Cornealius reminds you: screens are temporary, eyesight should not.</value>
+  </data>
+  <data name="NotificationQuips_6" xml:space="preserve">
+    <value>A brief gaze into the distance costs nothing but a moment.</value>
+  </data>
+  <data name="NotificationQuips_7" xml:space="preserve">
+    <value>Your eyes have served you well. Return the favour.</value>
+  </data>
+  <data name="NotificationQuips_8" xml:space="preserve">
+    <value>Staring contests with your monitor are inadvisable. You will lose.</value>
+  </data>
+  <data name="NotificationQuips_9" xml:space="preserve">
+    <value>Your retinas are not subscription-based. Treat them accordingly.</value>
+  </data>
+  <data name="NotificationQuips_10" xml:space="preserve">
+    <value>The horizon exists for a reason. Consult it occasionally.</value>
+  </data>
+  <data name="NotificationQuips_11" xml:space="preserve">
+    <value>Pixels are plentiful. Good eyesight is finite.</value>
+  </data>
+  <data name="NotificationQuips_12" xml:space="preserve">
+    <value>Cornealius notes: blue light is not a substitute for sunlight.</value>
+  </data>
+  <data name="NotificationQuips_13" xml:space="preserve">
+    <value>A window is not merely decorative. Gaze through it.</value>
+  </data>
+  <data name="NotificationQuips_14" xml:space="preserve">
+    <value>Your ciliary muscles would like a word. Step away from the screen.</value>
+  </data>
+  <data name="NotificationQuips_15" xml:space="preserve">
+    <value>Rest now. The scroll bar will still be there when you return.</value>
   </data>
 
   <!-- Input parsing errors -->
