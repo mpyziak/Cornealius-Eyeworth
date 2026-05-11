@@ -46,7 +46,7 @@ internal class MainFormControlFactory : IMainFormControlFactory
         return menu;
     }
 
-    public Label CreateTitleLabel() => new()
+    public Label CreateTitleLabel() => new ShadowLabel
     {
         Text = Strings.AppTitle,
         Font = new Font("Segoe UI", 13f, FontStyle.Bold),
