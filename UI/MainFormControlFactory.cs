@@ -51,8 +51,8 @@ internal class MainFormControlFactory : IMainFormControlFactory
         Text = Strings.AppTitle,
         Font = new Font("Segoe UI", 13f, FontStyle.Bold),
         AutoSize = true,
-        Location = new Point(20, 42),
-        ForeColor = SystemColors.Highlight,
+        Location = new Point(52, 42),
+        ForeColor = AppColors.Accent.PrussianInkBlue,
         BackColor = Color.Transparent
     };
 
@@ -62,7 +62,7 @@ internal class MainFormControlFactory : IMainFormControlFactory
         Font = new Font("Segoe UI", 10f),
         AutoSize = true,
         Location = new Point(22, 82),
-        ForeColor = Color.LimeGreen,
+        ForeColor = AppColors.Accent.MutedSage,
         BackColor = Color.Transparent
     };
 

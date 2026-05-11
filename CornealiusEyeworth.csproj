@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources\Logo.ico" />
+    <EmbeddedResource Include="Properties\Resources\Logo.png" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="config.json">

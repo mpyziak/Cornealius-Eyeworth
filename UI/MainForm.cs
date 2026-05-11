@@ -40,8 +40,7 @@ internal class MainForm : Form
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox = false;
         StartPosition = FormStartPosition.CenterScreen;
-        BackColor = SystemColors.Window;
-        ForeColor = SystemColors.WindowText;
+        ApplySurfaceColors();
         MainMenuStrip = controlFactory.CreateMenuStrip(OpenScheduleDialog, OpenLanguageDialog, OpenAboutDialog, OpenGitHub, OpenHelpDialog);
 
         _scheduleLabel    = controlFactory.CreateScheduleLabel(viewModel.ScheduleDescription);
@@ -49,6 +48,7 @@ internal class MainForm : Form
 
         Controls.AddRange([
             MainMenuStrip,
+            CreateLogoPictureBox(),
             controlFactory.CreateTitleLabel(),
             controlFactory.CreateStatusLabel(),
             _scheduleLabel,
@@ -63,6 +63,21 @@ internal class MainForm : Form
     }
 
     public void NotifyFired() { }
+
+    protected override void WndProc(ref Message m)
+    {
+        const int WM_SETTINGCHANGE = 0x001A;
+        base.WndProc(ref m);
+        if (m.Msg == WM_SETTINGCHANGE)
+            ApplySurfaceColors();
+    }
+
+    private void ApplySurfaceColors()
+    {
+        bool dark = System.Windows.Forms.Application.IsDarkModeEnabled;
+        BackColor = dark ? AppColors.Surface.Dark  : AppColors.Surface.Light;
+        ForeColor = dark ? AppColors.Logo.GraphiteDark : AppColors.Logo.GraphiteLight;
+    }
 
     private void OpenScheduleDialog()
     {
@@ -93,5 +108,19 @@ internal class MainForm : Form
         using var stream = Assembly.GetExecutingAssembly()
             .GetManifestResourceStream("CornealiusEyeworth.Properties.Resources.Logo.ico");
         return stream is null ? null : new Icon(stream);
+    }
+
+    private static PictureBox CreateLogoPictureBox()
+    {
+        var stream = Assembly.GetExecutingAssembly()
+            .GetManifestResourceStream("CornealiusEyeworth.Properties.Resources.Logo.png");
+        return new PictureBox
+        {
+            Image    = stream is null ? null : new Bitmap(stream),
+            SizeMode = PictureBoxSizeMode.Zoom,
+            Location = new Point(16, 38),
+            Size     = new Size(30, 30),
+            BackColor = Color.Transparent
+        };
     }
 }
