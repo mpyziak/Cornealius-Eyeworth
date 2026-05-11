@@ -18,10 +18,10 @@ internal static class AppColors
         public static readonly Color PrussianInkBlue = ColorTranslator.FromHtml("#233A5E");
 
         /// <summary>Secondary emphasis, hover states.</summary>
-        public static readonly Color SmokedBrass = ColorTranslator.FromHtml("#9A7B3F");
+        public static readonly Color SmokedBrass = ColorTranslator.FromHtml("#bb9958ff");
 
         /// <summary>Calm / OK states, passive success.</summary>
-        public static readonly Color MutedSage = ColorTranslator.FromHtml("#6B8B78");
+        public static readonly Color FreshSage = ColorTranslator.FromHtml("#62AE73");
     }
 
     // Surface colours
