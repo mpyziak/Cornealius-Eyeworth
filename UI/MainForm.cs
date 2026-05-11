@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Reflection;
 using System.Windows.Forms;
 using CornealiusEyeworth.Configuration;
 using CornealiusEyeworth.Localization;
@@ -34,6 +35,7 @@ internal class MainForm : Form
         _languageDialogControlFactory = languageDialogControlFactory;
 
         Text = Strings.AppName;
+        Icon = LoadEmbeddedIcon();
         Size = new Size(400, 220);
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox = false;
@@ -85,4 +87,11 @@ internal class MainForm : Form
             FileName = Strings.GitHubUrl,
             UseShellExecute = true
         });
+
+    private static Icon? LoadEmbeddedIcon()
+    {
+        using var stream = Assembly.GetExecutingAssembly()
+            .GetManifestResourceStream("CornealiusEyeworth.Properties.Resources.Logo.ico");
+        return stream is null ? null : new Icon(stream);
+    }
 }
