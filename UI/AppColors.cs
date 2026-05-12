@@ -1,9 +1,13 @@
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace CornealiusEyeworth.UI;
 
 internal static class AppColors
 {
+    public static Color TitleForeColor =>
+        System.Windows.Forms.Application.IsDarkModeEnabled ? Logo.GraphiteDark : Accent.PrussianInkBlue;
+
     // Logo — monochrome only; no accents or state colour
     public static class Logo
     {

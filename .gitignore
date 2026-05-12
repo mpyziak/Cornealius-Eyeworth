@@ -20,3 +20,8 @@ publish/
 
 # MSBuild logs
 *.binlog
+
+# Go build output
+go/cornealius-eyeworth
+go/cornealius-eyeworth.exe
+go/go.sum

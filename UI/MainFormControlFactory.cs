@@ -46,13 +46,13 @@ internal class MainFormControlFactory : IMainFormControlFactory
         return menu;
     }
 
-    public Label CreateTitleLabel() => new ShadowLabel
+    public Label CreateTitleLabel() => new()
     {
         Text = Strings.AppTitle,
         Font = new Font("Segoe UI", 13f, FontStyle.Bold),
         AutoSize = true,
         Location = new Point(52, 42),
-        ForeColor = AppColors.Accent.PrussianInkBlue,
+        ForeColor = AppColors.TitleForeColor,
         BackColor = Color.Transparent
     };
 
