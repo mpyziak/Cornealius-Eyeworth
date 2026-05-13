@@ -11,6 +11,12 @@ type Config struct {
 	Language       *string `json:"Language"`
 }
 
+// Store is the read/write contract for application settings.
+type Store interface {
+	Load() (*Config, error)
+	Save(*Config) error
+}
+
 // Repository reads and writes Config as JSON next to the executable.
 type Repository struct {
 	path string

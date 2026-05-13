@@ -14,7 +14,7 @@ import (
 
 // ShowScheduleDialog opens a standalone schedule-editing window.
 // onSaved is called with the updated *config.Config when the user saves.
-func ShowScheduleDialog(app fyne.App, repo *config.Repository, onSaved func(*config.Config)) {
+func ShowScheduleDialog(app fyne.App, repo config.Store, onSaved func(*config.Config)) {
 	S := i18n.Active
 
 	currentCfg, err := repo.Load()
