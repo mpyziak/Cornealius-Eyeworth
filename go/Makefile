@@ -12,7 +12,7 @@ deps:
 	go mod tidy
 
 winres:
-	go generate ./...
+	go run github.com/tc-hib/go-winres@latest make
 
 build:
 	go build $(LDFLAGS) -o $(BINARY) .

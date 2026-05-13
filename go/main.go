@@ -1,4 +1,4 @@
-//go:generate go-winres make
+//go:generate go run github.com/tc-hib/go-winres@latest make
 
 package main
 
