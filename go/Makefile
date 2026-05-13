@@ -6,10 +6,13 @@ ICON     = ../Properties/Resources/Logo.png
 LDFLAGS      = -ldflags "-s -w"
 LDFLAGS_WIN  = -ldflags "-s -w -H windowsgui"
 
-.PHONY: deps build run build-win upx upx-win package-win package-linux package-darwin cross-all clean
+.PHONY: deps winres build run build-win upx upx-win package-win package-linux package-darwin cross-all clean
 
 deps:
 	go mod tidy
+
+winres:
+	go run github.com/tc-hib/go-winres@latest make
 
 build:
 	go build $(LDFLAGS) -o $(BINARY) .
