@@ -72,6 +72,11 @@ func SendStartup(a fyne.App) {
 	go sendToast(a, i18n.Active.NotificationOnDuty, pickRandom(i18n.Active.NotificationQuips))
 }
 
+// SendMinimizedToTray delivers a "still running" hint when the window is hidden.
+func SendMinimizedToTray(a fyne.App) {
+	go sendToast(a, i18n.Active.AppName, i18n.Active.NotificationMinimizedToTray)
+}
+
 // SendReminder delivers an eye-rest reminder notification.
 func SendReminder(a fyne.App) {
 	go sendToast(a, pickRandom(i18n.Active.NotificationReminders), pickRandom(i18n.Active.NotificationQuips))

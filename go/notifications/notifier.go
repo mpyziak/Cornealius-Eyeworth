@@ -25,6 +25,14 @@ func SendStartup(app fyne.App) {
 	})
 }
 
+// SendMinimizedToTray delivers a "still running" hint when the window is hidden.
+func SendMinimizedToTray(app fyne.App) {
+	app.SendNotification(&fyne.Notification{
+		Title:   i18n.Active.AppName,
+		Content: i18n.Active.NotificationMinimizedToTray,
+	})
+}
+
 // SendReminder delivers an eye-rest reminder notification.
 func SendReminder(app fyne.App) {
 	app.SendNotification(&fyne.Notification{

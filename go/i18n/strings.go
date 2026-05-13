@@ -23,6 +23,10 @@ type Strings struct {
 	MenuGitHub       string
 	MenuQuit         string
 
+	TrayTooltipShowHide    string
+	TrayTooltipNextTrigger string
+	TrayTooltipQuit        string
+
 	ScheduleDialogTitle     string
 	OptionsInstruction      string
 	ScheduleCronInstruction string
@@ -40,9 +44,10 @@ type Strings struct {
 	HelpDialogTitle string
 	HelpBody        string
 
-	NotificationOnDuty    string
-	NotificationReminders []string
-	NotificationQuips     []string
+	NotificationOnDuty          string
+	NotificationMinimizedToTray string
+	NotificationReminders       []string
+	NotificationQuips           []string
 
 	ParseErrorNoMinutes     string
 	ParseErrorInvalidMinute string // format: %s = invalid token
@@ -113,6 +118,10 @@ var english = Strings{
 	MenuGitHub:       "GitHub... 📄",
 	MenuQuit:         "Quit",
 
+	TrayTooltipShowHide:    "Call/Dismiss Cornealius",
+	TrayTooltipNextTrigger: "Next reminder time",
+	TrayTooltipQuit:        "Quit the application",
+
 	ScheduleDialogTitle:     "Schedule — Cornealius Eyeworth",
 	OptionsInstruction:      "Minutes of each hour at which Cornealious shall remind you to rest your eyes (e.g. 20, 40, 55):",
 	ScheduleCronInstruction: `CRON (e.g. "0 20,40,55 * * * ?"):`,
@@ -140,7 +149,8 @@ You are in full control:
 
 Cornealius runs quietly in the background. Simply leave the window open (minimising is fine) and he will do the rest — with considerable decorum.`,
 
-	NotificationOnDuty: "Cornealius is on duty.",
+	NotificationOnDuty:          "Cornealius is on duty.",
+	NotificationMinimizedToTray: "Cornealius is still on duty — find him in the system tray.",
 	NotificationReminders: []string{
 		"Your eyes deserve an intermission.",
 		"A moment of respite for your weary eyes.",
@@ -201,6 +211,10 @@ var german = Strings{
 	MenuGitHub:       "GitHub... 📄",
 	MenuQuit:         "Beenden",
 
+	TrayTooltipShowHide:    "Cornealius rufen/entlassen",
+	TrayTooltipNextTrigger: "Nächste Erinnerungszeit",
+	TrayTooltipQuit:        "Beenden",
+
 	ScheduleDialogTitle:     "Zeitplan - Cornealius Eyeworth",
 	OptionsInstruction:      "Minuten jeder Stunde, in denen Cornealius Sie an die Augenpause erinnern soll (z.B. 20, 40, 55):",
 	ScheduleCronInstruction: `CRON-Ausdruck (z. B. "0 20,40,55 * * * ?"):`,
@@ -228,7 +242,8 @@ Sie haben die volle Kontrolle:
 
 Cornealius läuft still im Hintergrund. Lassen Sie das Fenster einfach offen (Minimieren ist in Ordnung) und er erledigt den Rest — mit beachtlichem Stil.`,
 
-	NotificationOnDuty: "Cornealius ist im Dienst.",
+	NotificationOnDuty:          "Cornealius ist im Dienst.",
+	NotificationMinimizedToTray: "Cornealius ist weiterhin im Dienst — Sie finden ihn in der Taskleiste.",
 	NotificationReminders: []string{
 		"Ihre Augen verdienen eine Pause.",
 		"Ein Moment der Erholung für Ihre müden Augen.",
@@ -287,7 +302,11 @@ var polish = Strings{
 	MenuAbout:        "O programie... ℹ️",
 	MenuHowToUse:     "Jak używać... ❓",
 	MenuGitHub:       "GitHub... 📄",
-	MenuQuit:         "Zamknij",
+	MenuQuit:         "Zakończ",
+
+	TrayTooltipShowHide:    "Zawołaj/Odeślij Cornealiusa",
+	TrayTooltipNextTrigger: "Czas następnego przypomnienia",
+	TrayTooltipQuit:        "Zamknij aplikację",
 
 	ScheduleDialogTitle:     "Harmonogram - Cornealius Eyeworth",
 	OptionsInstruction:      "Minuty każdej godziny, w których Cornealius przypomni Ci o odpoczynku dla oczu (np. 20, 40, 55):",
@@ -316,7 +335,8 @@ Masz pełną kontrolę:
 
 Cornealius działa cicho w tle. Wystarczy pozostawić okno otwarte (minimalizacja jest w porządku), a on zrobi resztę — z dużą klasą.`,
 
-	NotificationOnDuty: "Cornealius jest na służbie.",
+	NotificationOnDuty:          "Cornealius jest na służbie.",
+	NotificationMinimizedToTray: "Cornealius nadal jest na służbie — znajdziesz go w zasobniku systemowym.",
 	NotificationReminders: []string{
 		"Twoje oczy zasługują na przerwę.",
 		"Chwila wytchnienia dla Twoich zmęczonych oczu.",

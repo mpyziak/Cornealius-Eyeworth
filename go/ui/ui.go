@@ -3,6 +3,7 @@ package ui
 
 import (
 	"fmt"
+	"net/url"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -48,8 +49,10 @@ func Run(app fyne.App, cfg *config.Config, repo *config.Repository) {
 	sched := &scheduling.Scheduler{}
 
 	win := buildMainWindow(app, cfg, repo, sched, scheduleBinding, nextTriggerBinding, updateBindings)
-
-	// Create and setup system tray manager
+	win.SetCloseIntercept(func() {
+		win.Hide()
+		notifications.SendMinimizedToTray(app)
+	})
 	trayMgr := systray.NewManager(app, win)
 	trayMgr.Setup(cfg)
 
@@ -81,6 +84,11 @@ func Run(app fyne.App, cfg *config.Config, repo *config.Repository) {
 			}),
 			fyne.NewMenuItem(S2.MenuAbout, func() {
 				ShowAboutDialog(app)
+			}),
+			fyne.NewMenuItemSeparator(),
+			fyne.NewMenuItem(S2.MenuGitHub, func() {
+				u, _ := url.Parse(S2.GitHubUrl)
+				_ = app.OpenURL(u)
 			}),
 		),
 	))
@@ -121,7 +129,6 @@ func buildMainWindow(
 	S := i18n.Active
 
 	win := app.NewWindow(S.AppName)
-	win.SetFixedSize(true)
 	win.Resize(fyne.NewSize(mainWinW, mainWinH))
 
 	// ── body ────────────────────────────────────────────────────────────────
@@ -151,10 +158,6 @@ func buildMainWindow(
 	)
 
 	win.SetContent(container.NewPadded(body))
-	win.SetCloseIntercept(func() {
-		// Hide instead of closing to keep the app running in systray.
-		win.Hide()
-	})
 
 	return win
 }

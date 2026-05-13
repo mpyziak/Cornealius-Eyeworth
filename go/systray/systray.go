@@ -45,17 +45,17 @@ func (m *Manager) doSetup() {
 	systray.SetIcon(assets.IconBytes())
 	systray.SetTooltip(S.AppName)
 
-	showHideItem := systray.AddMenuItem(S.AppName, "Show/Hide window")
+	showHideItem := systray.AddMenuItem(S.TrayTooltipShowHide, S.AppName)
 	systray.AddSeparator()
 
 	m.nextTriggerMenu = systray.AddMenuItem(
 		fmt.Sprintf(S.NextTrigger, scheduling.NextTrigger(cfg.CronExpression).Format("15:04")),
-		"Next trigger time",
+		S.TrayTooltipNextTrigger,
 	)
 	m.nextTriggerMenu.Disable()
 
 	systray.AddSeparator()
-	quitItem := systray.AddMenuItem(S.MenuQuit, "Quit application")
+	quitItem := systray.AddMenuItem(S.MenuQuit, S.TrayTooltipQuit)
 
 	go func() {
 		for {
