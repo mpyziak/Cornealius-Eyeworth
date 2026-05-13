@@ -21,6 +21,7 @@ type Strings struct {
 	MenuAbout        string
 	MenuHowToUse     string
 	MenuGitHub       string
+	MenuQuit         string
 
 	ScheduleDialogTitle     string
 	OptionsInstruction      string
@@ -84,7 +85,7 @@ type LanguageOption struct {
 
 // AvailableLanguages is the list shown in the Language dialog.
 var AvailableLanguages = []LanguageOption{
-	{"", ""},           // display name filled at runtime from Active.OptionsLanguageDefault
+	{"", ""}, // display name filled at runtime from Active.OptionsLanguageDefault
 	{"English", "en"},
 	{"Deutsch", "de"},
 	{"Polski", "pl"},
@@ -110,6 +111,7 @@ var english = Strings{
 	MenuAbout:        "About... ℹ️",
 	MenuHowToUse:     "How to use... ❓",
 	MenuGitHub:       "GitHub... 📄",
+	MenuQuit:         "Quit",
 
 	ScheduleDialogTitle:     "Schedule — Cornealius Eyeworth",
 	OptionsInstruction:      "Minutes of each hour at which Cornealious shall remind you to rest your eyes (e.g. 20, 40, 55):",
@@ -197,6 +199,7 @@ var german = Strings{
 	MenuAbout:        "Über... ℹ️",
 	MenuHowToUse:     "Verwendung... ❓",
 	MenuGitHub:       "GitHub... 📄",
+	MenuQuit:         "Beenden",
 
 	ScheduleDialogTitle:     "Zeitplan - Cornealius Eyeworth",
 	OptionsInstruction:      "Minuten jeder Stunde, in denen Cornealius Sie an die Augenpause erinnern soll (z.B. 20, 40, 55):",
@@ -284,6 +287,7 @@ var polish = Strings{
 	MenuAbout:        "O programie... ℹ️",
 	MenuHowToUse:     "Jak używać... ❓",
 	MenuGitHub:       "GitHub... 📄",
+	MenuQuit:         "Zamknij",
 
 	ScheduleDialogTitle:     "Harmonogram - Cornealius Eyeworth",
 	OptionsInstruction:      "Minuty każdej godziny, w których Cornealius przypomni Ci o odpoczynku dla oczu (np. 20, 40, 55):",
