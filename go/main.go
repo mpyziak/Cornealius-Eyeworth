@@ -1,3 +1,5 @@
+//go:generate go-winres make
+
 package main
 
 import (
@@ -7,6 +9,7 @@ import (
 
 	"fyne.io/fyne/v2/app"
 
+	"github.com/mpyziak/cornealius-eyeworth/assets"
 	"github.com/mpyziak/cornealius-eyeworth/config"
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 	"github.com/mpyziak/cornealius-eyeworth/ui"
@@ -29,7 +32,8 @@ func main() {
 
 	i18n.SetLanguage(cfg.Language)
 
-	a := app.NewWithID("com.mpyziak.cornealius-eyeworth")
+	a := app.NewWithID("CornealiusEyeworth")
+	a.SetIcon(assets.Logo)
 
 	ui.Run(a, cfg, repo)
 }
