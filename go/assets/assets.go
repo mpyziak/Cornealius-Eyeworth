@@ -10,5 +10,11 @@ import (
 //go:embed Logo.png
 var logoBytes []byte
 
-// Logo is the application logo as a Fyne static resource.
+//go:embed Logo.ico
+var iconBytes []byte
+
+// Logo is the application logo as a Fyne static resource for UI elements.
 var Logo fyne.Resource = fyne.NewStaticResource("Logo.png", logoBytes)
+
+// AppIcon is the application icon used for the window/taskbar/notification icon.
+var AppIcon fyne.Resource = fyne.NewStaticResource("Logo.ico", iconBytes)

@@ -25,7 +25,7 @@ import (
 func Run(app fyne.App, cfg *config.Config, repo *config.Repository) {
 	S := i18n.Active
 
-	app.SetIcon(assets.Logo)
+	app.SetIcon(assets.AppIcon)
 
 	scheduleBinding := binding.NewString()
 	nextTriggerBinding := binding.NewString()
@@ -104,6 +104,7 @@ func buildMainWindow(
 	logo := canvas.NewImageFromResource(assets.Logo)
 	logo.SetMinSize(fyne.NewSize(36, 36))
 	logo.FillMode = canvas.ImageFillContain
+	logo.ScaleMode = canvas.ImageScaleSmooth
 
 	titleLabel := widget.NewLabelWithStyle(S.AppTitle, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	statusLabel := widget.NewLabel(S.StatusServing)
