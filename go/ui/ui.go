@@ -59,6 +59,10 @@ func Run(app fyne.App, cfg *config.Config, repo *config.Repository) {
 	// Build the window menu bar — all dialogs open from here so the window
 	// is always visible when they appear; no resize gymnastics needed.
 	S2 := i18n.Active // alias to avoid shadowing the outer S
+
+	quitItem := fyne.NewMenuItem(S2.MenuQuit, func() { app.Quit() })
+	quitItem.IsQuit = true
+
 	win.SetMainMenu(fyne.NewMainMenu(
 		fyne.NewMenu(S2.MenuOptions,
 			fyne.NewMenuItem(S2.MenuTriggerTimes, func() {
@@ -77,6 +81,8 @@ func Run(app fyne.App, cfg *config.Config, repo *config.Repository) {
 			fyne.NewMenuItem(S2.MenuLanguage, func() {
 				ShowLanguageDialog(app, repo)
 			}),
+			fyne.NewMenuItemSeparator(),
+			quitItem,
 		),
 		fyne.NewMenu(S2.MenuHelp,
 			fyne.NewMenuItem(S2.MenuHowToUse, func() {

@@ -302,7 +302,7 @@ var polish = Strings{
 	MenuAbout:        "O programie... ℹ️",
 	MenuHowToUse:     "Jak używać... ❓",
 	MenuGitHub:       "GitHub... 📄",
-	MenuQuit:         "Zakończ",
+	MenuQuit:         "Zamknij",
 
 	TrayTooltipShowHide:    "Zawołaj/Odeślij Cornealiusa",
 	TrayTooltipNextTrigger: "Czas następnego przypomnienia",

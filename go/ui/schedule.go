@@ -64,7 +64,7 @@ func ShowScheduleDialog(app fyne.App, repo *config.Repository, onSaved func(*con
 
 	win := app.NewWindow(S.ScheduleDialogTitle)
 	win.SetFixedSize(true)
-	win.Resize(fyne.NewSize(460, 300))
+	win.Resize(fyne.NewSize(450, 200))
 	win.CenterOnScreen()
 
 	saveBtn := widget.NewButton(S.ButtonSave, func() {

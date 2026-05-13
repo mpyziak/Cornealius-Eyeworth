@@ -15,7 +15,7 @@ func ShowHelpDialog(app fyne.App) {
 
 	win := app.NewWindow(S.HelpDialogTitle)
 	win.SetFixedSize(true)
-	win.Resize(fyne.NewSize(480, 420))
+	win.Resize(fyne.NewSize(450, 450))
 	win.CenterOnScreen()
 
 	titleLabel := widget.NewLabelWithStyle(S.AppTitle, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
@@ -24,7 +24,7 @@ func ShowHelpDialog(app fyne.App) {
 	bodyLabel.Wrapping = fyne.TextWrapWord
 
 	scroll := container.NewScroll(bodyLabel)
-	scroll.SetMinSize(fyne.NewSize(420, 300))
+	scroll.SetMinSize(fyne.NewSize(400, 350))
 
 	closeBtn := widget.NewButton(S.ButtonClose, func() { win.Close() })
 	btnRow := container.NewHBox(layout.NewSpacer(), closeBtn)

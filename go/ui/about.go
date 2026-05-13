@@ -15,7 +15,7 @@ func ShowAboutDialog(app fyne.App) {
 
 	win := app.NewWindow(S.AboutDialogTitle)
 	win.SetFixedSize(true)
-	win.Resize(fyne.NewSize(400, 240))
+	win.Resize(fyne.NewSize(450, 225))
 	win.CenterOnScreen()
 
 	titleLabel := widget.NewLabelWithStyle(S.AppTitle, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})

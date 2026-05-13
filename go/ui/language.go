@@ -48,7 +48,7 @@ func ShowLanguageDialog(app fyne.App, repo *config.Repository) {
 
 	win := app.NewWindow(S.LanguageDialogTitle)
 	win.SetFixedSize(true)
-	win.Resize(fyne.NewSize(340, 180))
+	win.Resize(fyne.NewSize(450, 150))
 	win.CenterOnScreen()
 
 	instrLabel := widget.NewLabel(S.OptionsLanguageLabel)
@@ -103,6 +103,7 @@ func ShowLanguageDialog(app fyne.App, repo *config.Repository) {
 	win.SetContent(container.NewPadded(container.New(layout.NewVBoxLayout(),
 		instrLabel,
 		selector,
+		widget.NewLabel(""), // spacer
 		btnRow,
 	)))
 	win.Show()
