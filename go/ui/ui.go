@@ -19,6 +19,14 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/systray"
 )
 
+// mainWinW/H is the fixed size of the main status window.
+// Every dialog restores the parent to these dimensions on close so Fyne
+// doesn't leave it at the dialog's larger size.
+const (
+	mainWinW float32 = 420
+	mainWinH float32 = 180
+)
+
 // Run is the application entry point for the UI layer. It creates the main
 // window, sets up the system tray, and hands control to the tray event loop.
 func Run(app fyne.App, cfg *config.Config, repo *config.Repository) {
@@ -44,30 +52,38 @@ func Run(app fyne.App, cfg *config.Config, repo *config.Repository) {
 	// Create and setup system tray manager
 	trayMgr := systray.NewManager(app, win)
 	trayMgr.Setup(cfg)
-	trayMgr.SetCallbacks(
-		func() {
-			ShowScheduleDialog(win, repo, func(updated *config.Config) {
-				sched.Start(updated.CronExpression, func() {
-					notifications.SendReminder(app)
-					if latest, err := repo.Load(); err == nil {
-						updateBindings(latest)
-						trayMgr.UpdateLabels(latest)
-					}
+
+	// Build the window menu bar — all dialogs open from here so the window
+	// is always visible when they appear; no resize gymnastics needed.
+	S2 := i18n.Active // alias to avoid shadowing the outer S
+	win.SetMainMenu(fyne.NewMainMenu(
+		fyne.NewMenu(S2.MenuOptions,
+			fyne.NewMenuItem(S2.MenuTriggerTimes, func() {
+				ShowScheduleDialog(app, repo, func(updated *config.Config) {
+					sched.Start(updated.CronExpression, func() {
+						notifications.SendReminder(app)
+						if latest, err := repo.Load(); err == nil {
+							updateBindings(latest)
+							trayMgr.UpdateLabels(latest)
+						}
+					})
+					updateBindings(updated)
+					trayMgr.UpdateLabels(updated)
 				})
-				updateBindings(updated)
-				trayMgr.UpdateLabels(updated)
-			})
-		},
-		func() {
-			ShowLanguageDialog(win, repo)
-		},
-		func() {
-			ShowAboutDialog(win)
-		},
-		func() {
-			ShowHelpDialog(win)
-		},
-	)
+			}),
+			fyne.NewMenuItem(S2.MenuLanguage, func() {
+				ShowLanguageDialog(app, repo)
+			}),
+		),
+		fyne.NewMenu(S2.MenuHelp,
+			fyne.NewMenuItem(S2.MenuHowToUse, func() {
+				ShowHelpDialog(app)
+			}),
+			fyne.NewMenuItem(S2.MenuAbout, func() {
+				ShowAboutDialog(app)
+			}),
+		),
+	))
 
 	notifications.SendStartup(app)
 	sched.Start(cfg.CronExpression, func() {
@@ -80,13 +96,16 @@ func Run(app fyne.App, cfg *config.Config, repo *config.Repository) {
 	})
 
 	// Hide the window initially (systray is the primary interface)
-	// win.ShowAndRun()
 	win.Hide()
 
-	// Run the system tray event loop (blocking call)
-	trayMgr.Run()
+	// Run the system tray in a goroutine; fyne.io/systray manages its own
+	// OS thread on Windows, so this is safe.
+	go trayMgr.Run()
 
-	// Cleanup when tray exits
+	// Start Fyne's event loop on the main goroutine (blocks until app.Quit()).
+	app.Run()
+
+	// Cleanup when app exits
 	sched.Stop()
 }
 
@@ -103,7 +122,7 @@ func buildMainWindow(
 
 	win := app.NewWindow(S.AppName)
 	win.SetFixedSize(true)
-	win.Resize(fyne.NewSize(420, 180))
+	win.Resize(fyne.NewSize(mainWinW, mainWinH))
 
 	// ── body ────────────────────────────────────────────────────────────────
 	logo := canvas.NewImageFromResource(assets.Logo)
@@ -132,8 +151,8 @@ func buildMainWindow(
 	)
 
 	win.SetContent(container.NewPadded(body))
-	win.SetOnClosed(func() {
-		// Hide instead of closing to keep the app running in systray
+	win.SetCloseIntercept(func() {
+		// Hide instead of closing to keep the app running in systray.
 		win.Hide()
 	})
 

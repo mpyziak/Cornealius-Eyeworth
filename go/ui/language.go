@@ -1,4 +1,4 @@
-package ui
+﻿package ui
 
 import (
 	"fyne.io/fyne/v2"
@@ -11,20 +11,18 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 )
 
-// ShowLanguageDialog shows the language-selection dialog over parent.
-func ShowLanguageDialog(parent fyne.Window, repo *config.Repository) {
+// ShowLanguageDialog opens a standalone language-selection window.
+func ShowLanguageDialog(app fyne.App, repo *config.Repository) {
 	S := i18n.Active
 
 	currentCfg, err := repo.Load()
 	if err != nil {
-		dialog.ShowError(err, parent)
 		return
 	}
 
-	// Build option list: first entry is "system default", then explicit locales.
 	type langItem struct {
 		display string
-		code    string // "" = system default
+		code    string
 	}
 	options := []langItem{
 		{S.OptionsLanguageDefault, ""},
@@ -38,7 +36,6 @@ func ShowLanguageDialog(parent fyne.Window, repo *config.Repository) {
 		labels[i] = o.display
 	}
 
-	// Find which option matches the current config.
 	currentIdx := 0
 	if currentCfg.Language != nil {
 		for i, o := range options {
@@ -49,12 +46,15 @@ func ShowLanguageDialog(parent fyne.Window, repo *config.Repository) {
 		}
 	}
 
+	win := app.NewWindow(S.LanguageDialogTitle)
+	win.SetFixedSize(true)
+	win.Resize(fyne.NewSize(340, 180))
+	win.CenterOnScreen()
+
 	instrLabel := widget.NewLabel(S.OptionsLanguageLabel)
 
 	selector := widget.NewSelect(labels, nil)
 	selector.SetSelectedIndex(currentIdx)
-
-	var dlg *dialog.CustomDialog
 
 	saveBtn := widget.NewButton(S.ButtonSave, func() {
 		idx := selector.SelectedIndex()
@@ -65,7 +65,7 @@ func ShowLanguageDialog(parent fyne.Window, repo *config.Repository) {
 
 		existing, loadErr := repo.Load()
 		if loadErr != nil {
-			dialog.ShowError(loadErr, parent)
+			dialog.ShowError(loadErr, win)
 			return
 		}
 
@@ -83,29 +83,27 @@ func ShowLanguageDialog(parent fyne.Window, repo *config.Repository) {
 			Language:       newLang,
 		}
 		if saveErr := repo.Save(updated); saveErr != nil {
-			dialog.ShowError(saveErr, parent)
+			dialog.ShowError(saveErr, win)
 			return
 		}
-		dlg.Hide()
 
 		if langChanged {
-			dialog.ShowInformation(S.AppName, S.OptionsLanguageRestartNotice, parent)
+			d := dialog.NewInformation(S.AppName, S.OptionsLanguageRestartNotice, win)
+			d.SetOnClosed(func() { win.Close() })
+			d.Show()
+		} else {
+			win.Close()
 		}
 	})
 	saveBtn.Importance = widget.HighImportance
 
-	cancelBtn := widget.NewButton(S.ButtonCancel, func() {
-		dlg.Hide()
-	})
+	cancelBtn := widget.NewButton(S.ButtonCancel, func() { win.Close() })
 
 	btnRow := container.NewHBox(layout.NewSpacer(), saveBtn, cancelBtn)
-	content := container.NewPadded(container.New(layout.NewVBoxLayout(),
+	win.SetContent(container.NewPadded(container.New(layout.NewVBoxLayout(),
 		instrLabel,
 		selector,
 		btnRow,
-	))
-
-	dlg = dialog.NewCustomWithoutButtons(S.LanguageDialogTitle, content, parent)
-	dlg.Resize(fyne.NewSize(320, 180))
-	dlg.Show()
+	)))
+	win.Show()
 }

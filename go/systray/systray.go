@@ -1,4 +1,4 @@
-// Package systray handles system tray integration for Cornealius Eyeworth.
+﻿// Package systray handles system tray integration for Cornealius Eyeworth.
 package systray
 
 import (
@@ -17,13 +17,10 @@ import (
 type Manager struct {
 	app             fyne.App
 	window          fyne.Window
-	onScheduleClick func()
-	onLanguageClick func()
-	onAboutClick    func()
-	onHelpClick     func()
 	scheduleMenu    *systray.MenuItem
 	nextTriggerMenu *systray.MenuItem
 	windowVisible   bool
+	setupCfg        *config.Config
 }
 
 // NewManager creates a new systray Manager.
@@ -34,70 +31,39 @@ func NewManager(app fyne.App, window fyne.Window) *Manager {
 	}
 }
 
-// SetCallbacks sets the menu item click handlers.
-func (m *Manager) SetCallbacks(
-	onSchedule, onLanguage, onAbout, onHelp func(),
-) {
-	m.onScheduleClick = onSchedule
-	m.onLanguageClick = onLanguage
-	m.onAboutClick = onAbout
-	m.onHelpClick = onHelp
+// Setup stores the config for use when the tray is ready.
+func (m *Manager) Setup(cfg *config.Config) {
+	m.setupCfg = cfg
 }
 
-// Setup initializes the system tray with menu items.
-func (m *Manager) Setup(cfg *config.Config) {
+// doSetup performs the real systray initialisation. Must be called from inside
+// the onReady callback passed to systray.Run so it works correctly on Windows.
+func (m *Manager) doSetup() {
+	cfg := m.setupCfg
 	S := i18n.Active
 
-	// Set tray icon
 	systray.SetIcon(assets.IconBytes())
 	systray.SetTooltip(S.AppName)
 
-	// Create menu items
 	showHideItem := systray.AddMenuItem(S.AppName, "Show/Hide window")
 	systray.AddSeparator()
 
-	m.scheduleMenu = systray.AddMenuItem(scheduling.Describe(cfg.CronExpression), "Current schedule")
 	m.nextTriggerMenu = systray.AddMenuItem(
 		fmt.Sprintf(S.NextTrigger, scheduling.NextTrigger(cfg.CronExpression).Format("15:04")),
 		"Next trigger time",
 	)
-	m.scheduleMenu.Disable()
 	m.nextTriggerMenu.Disable()
-
-	systray.AddSeparator()
-
-	settingsItem := systray.AddMenuItem(S.MenuTriggerTimes, "Configure schedule")
-	languageItem := systray.AddMenuItem(S.MenuLanguage, "Change language")
-	helpItem := systray.AddMenuItem(S.MenuHowToUse, "View help")
-	aboutItem := systray.AddMenuItem(S.MenuAbout, "About application")
 
 	systray.AddSeparator()
 	quitItem := systray.AddMenuItem(S.MenuQuit, "Quit application")
 
-	// Handle menu clicks
 	go func() {
 		for {
 			select {
 			case <-showHideItem.ClickedCh:
 				m.toggleWindowVisibility()
-			case <-settingsItem.ClickedCh:
-				if m.onScheduleClick != nil {
-					m.onScheduleClick()
-				}
-			case <-languageItem.ClickedCh:
-				if m.onLanguageClick != nil {
-					m.onLanguageClick()
-				}
-			case <-helpItem.ClickedCh:
-				if m.onHelpClick != nil {
-					m.onHelpClick()
-				}
-			case <-aboutItem.ClickedCh:
-				if m.onAboutClick != nil {
-					m.onAboutClick()
-				}
 			case <-quitItem.ClickedCh:
-				m.app.Quit()
+				systray.Quit()
 				return
 			}
 		}
@@ -131,8 +97,8 @@ func (m *Manager) toggleWindowVisibility() {
 // Run starts the system tray event loop (blocking call).
 func (m *Manager) Run() {
 	systray.Run(func() {
-		// onReady callback - tray icon is ready
+		m.doSetup()
 	}, func() {
-		// onExit callback
+		m.app.Quit()
 	})
 }

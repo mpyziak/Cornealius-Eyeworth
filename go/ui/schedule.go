@@ -1,4 +1,4 @@
-package ui
+﻿package ui
 
 import (
 	"fyne.io/fyne/v2"
@@ -12,21 +12,20 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/parsing"
 )
 
-// ShowScheduleDialog shows a modal schedule-editing dialog over parent.
+// ShowScheduleDialog opens a standalone schedule-editing window.
 // onSaved is called with the updated *config.Config when the user saves.
-func ShowScheduleDialog(parent fyne.Window, repo *config.Repository, onSaved func(*config.Config)) {
+func ShowScheduleDialog(app fyne.App, repo *config.Repository, onSaved func(*config.Config)) {
 	S := i18n.Active
 
 	currentCfg, err := repo.Load()
 	if err != nil {
-		dialog.ShowError(err, parent)
 		return
 	}
 
 	simpleMinutes := parsing.TryExtractSimpleMinutes(currentCfg.CronExpression)
 	startAdvanced := simpleMinutes == ""
 
-	// ── Standard tab ───────────────────────────────────────────────────────
+	// Standard tab
 	instrLabel := widget.NewLabel(S.OptionsInstruction)
 	instrLabel.Wrapping = fyne.TextWrapWord
 
@@ -41,7 +40,7 @@ func ShowScheduleDialog(parent fyne.Window, repo *config.Repository, onSaved fun
 		minutesEntry,
 	))
 
-	// ── Advanced tab ───────────────────────────────────────────────────────
+	// Advanced tab
 	cronInstrLabel := widget.NewLabel(S.ScheduleCronInstruction)
 
 	cronEntry := widget.NewEntry()
@@ -52,7 +51,6 @@ func ShowScheduleDialog(parent fyne.Window, repo *config.Repository, onSaved fun
 		cronEntry,
 	))
 
-	// ── Tabs ───────────────────────────────────────────────────────────────
 	tabs := container.NewAppTabs(
 		container.NewTabItem(S.ScheduleStandardToggle, standardContent),
 		container.NewTabItem(S.ScheduleAdvancedToggle, advancedContent),
@@ -61,12 +59,13 @@ func ShowScheduleDialog(parent fyne.Window, repo *config.Repository, onSaved fun
 		tabs.SelectIndex(1)
 	}
 
-	// ── Error label ────────────────────────────────────────────────────────
 	errorLabel := widget.NewLabel("")
 	errorLabel.Importance = widget.DangerImportance
 
-	// ── Buttons ────────────────────────────────────────────────────────────
-	var dlg *dialog.CustomDialog
+	win := app.NewWindow(S.ScheduleDialogTitle)
+	win.SetFixedSize(true)
+	win.Resize(fyne.NewSize(460, 300))
+	win.CenterOnScreen()
 
 	saveBtn := widget.NewButton(S.ButtonSave, func() {
 		var result parsing.ParseResult
@@ -86,24 +85,19 @@ func ShowScheduleDialog(parent fyne.Window, repo *config.Repository, onSaved fun
 			Language:       currentCfg.Language,
 		}
 		if saveErr := repo.Save(updated); saveErr != nil {
-			dialog.ShowError(saveErr, parent)
+			dialog.ShowError(saveErr, win)
 			return
 		}
-		dlg.Hide()
+		win.Close()
 		onSaved(updated)
 	})
 	saveBtn.Importance = widget.HighImportance
 
-	cancelBtn := widget.NewButton(S.ButtonCancel, func() {
-		dlg.Hide()
-	})
+	cancelBtn := widget.NewButton(S.ButtonCancel, func() { win.Close() })
 
 	btnRow := container.NewHBox(layout.NewSpacer(), saveBtn, cancelBtn)
 	bottom := container.New(layout.NewVBoxLayout(), errorLabel, btnRow)
 
-	content := container.NewBorder(nil, bottom, nil, nil, tabs)
-
-	dlg = dialog.NewCustomWithoutButtons(S.ScheduleDialogTitle, content, parent)
-	dlg.Resize(fyne.NewSize(420, 260))
-	dlg.Show()
+	win.SetContent(container.NewBorder(nil, bottom, nil, nil, tabs))
+	win.Show()
 }

@@ -3,16 +3,20 @@ package ui
 import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 )
 
-// ShowHelpDialog displays the "How to use" content over parent.
-func ShowHelpDialog(parent fyne.Window) {
+// ShowHelpDialog opens a standalone Help window.
+func ShowHelpDialog(app fyne.App) {
 	S := i18n.Active
+
+	win := app.NewWindow(S.HelpDialogTitle)
+	win.SetFixedSize(true)
+	win.Resize(fyne.NewSize(480, 420))
+	win.CenterOnScreen()
 
 	titleLabel := widget.NewLabelWithStyle(S.AppTitle, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
@@ -20,13 +24,16 @@ func ShowHelpDialog(parent fyne.Window) {
 	bodyLabel.Wrapping = fyne.TextWrapWord
 
 	scroll := container.NewScroll(bodyLabel)
-	scroll.SetMinSize(fyne.NewSize(400, 300))
+	scroll.SetMinSize(fyne.NewSize(420, 300))
 
-	content := container.NewPadded(container.New(layout.NewVBoxLayout(),
+	closeBtn := widget.NewButton(S.ButtonClose, func() { win.Close() })
+	btnRow := container.NewHBox(layout.NewSpacer(), closeBtn)
+
+	win.SetContent(container.NewPadded(container.New(layout.NewVBoxLayout(),
 		titleLabel,
 		widget.NewSeparator(),
 		scroll,
-	))
-
-	dialog.ShowCustom(S.HelpDialogTitle, S.ButtonClose, content, parent)
+		btnRow,
+	)))
+	win.Show()
 }

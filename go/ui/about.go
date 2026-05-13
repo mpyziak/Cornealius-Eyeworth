@@ -3,16 +3,20 @@ package ui
 import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 )
 
-// ShowAboutDialog displays application information over parent.
-func ShowAboutDialog(parent fyne.Window) {
+// ShowAboutDialog opens a standalone About window.
+func ShowAboutDialog(app fyne.App) {
 	S := i18n.Active
+
+	win := app.NewWindow(S.AboutDialogTitle)
+	win.SetFixedSize(true)
+	win.Resize(fyne.NewSize(400, 240))
+	win.CenterOnScreen()
 
 	titleLabel := widget.NewLabelWithStyle(S.AppTitle, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
@@ -21,12 +25,15 @@ func ShowAboutDialog(parent fyne.Window) {
 
 	versionLabel := widget.NewLabelWithStyle(S.AboutVersion, fyne.TextAlignCenter, fyne.TextStyle{Italic: true})
 
-	content := container.NewPadded(container.New(layout.NewVBoxLayout(),
+	closeBtn := widget.NewButton(S.ButtonClose, func() { win.Close() })
+	btnRow := container.NewHBox(layout.NewSpacer(), closeBtn)
+
+	win.SetContent(container.NewPadded(container.New(layout.NewVBoxLayout(),
 		titleLabel,
 		widget.NewSeparator(),
 		descLabel,
 		versionLabel,
-	))
-
-	dialog.ShowCustom(S.AboutDialogTitle, S.ButtonClose, content, parent)
+		btnRow,
+	)))
+	win.Show()
 }
