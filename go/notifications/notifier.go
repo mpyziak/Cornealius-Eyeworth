@@ -8,6 +8,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
+	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
 
 func pickRandom(items []string) string {
@@ -38,5 +39,48 @@ func SendReminder(app fyne.App) {
 	app.SendNotification(&fyne.Notification{
 		Title:   pickRandom(i18n.Active.NotificationReminders),
 		Content: pickRandom(i18n.Active.NotificationQuips),
+	})
+}
+
+// SendReminders delivers multiple aggregated reminders in a single notification.
+// Implements scheduling.Flusher interface (Dependency Inversion).
+func SendReminders(app fyne.App, reminders []scheduling.Reminder) {
+	if len(reminders) == 0 {
+		return
+	}
+
+	// Build combined title and content from reminder types
+	var title string
+	var content string
+
+	for _, r := range reminders {
+		if content != "" {
+			content += "\n"
+		}
+		content += "• " + r.Message
+	}
+
+	// Determine title based on reminder types present
+	hasEye := false
+	hasStandUp := false
+	for _, r := range reminders {
+		if r.Type == "eye" {
+			hasEye = true
+		} else if r.Type == "standup" {
+			hasStandUp = true
+		}
+	}
+
+	if hasEye && hasStandUp {
+		title = i18n.Active.NotificationCombinedTitle
+	} else if hasStandUp {
+		title = pickRandom(i18n.Active.NotificationStandUpReminders)
+	} else {
+		title = pickRandom(i18n.Active.NotificationReminders)
+	}
+
+	app.SendNotification(&fyne.Notification{
+		Title:   title,
+		Content: content,
 	})
 }

@@ -7,8 +7,9 @@ import (
 
 // Config holds the user-configurable application settings.
 type Config struct {
-	CronExpression string  `json:"CronExpression"`
-	Language       *string `json:"Language"`
+	CronExpression        string  `json:"CronExpression"`
+	StandUpCronExpression string  `json:"StandUpCronExpression"`
+	Language              *string `json:"Language"`
 }
 
 // Store is the read/write contract for application settings.

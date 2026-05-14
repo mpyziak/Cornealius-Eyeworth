@@ -1,6 +1,8 @@
 ﻿package ui
 
 import (
+	"strings"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
@@ -10,11 +12,12 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/config"
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 	"github.com/mpyziak/cornealius-eyeworth/parsing"
+	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
 
 // ShowScheduleDialog opens a standalone schedule-editing window.
 // onSaved is called with the updated *config.Config when the user saves.
-func ShowScheduleDialog(app fyne.App, repo config.Store, onSaved func(*config.Config)) {
+func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched scheduling.Runner, onSaved func(*config.Config), buffer scheduling.ReminderAggregator) {
 	S := i18n.Active
 
 	currentCfg, err := repo.Load()
@@ -22,33 +25,50 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, onSaved func(*config.Co
 		return
 	}
 
-	simpleMinutes := parsing.TryExtractSimpleMinutes(currentCfg.CronExpression)
-	startAdvanced := simpleMinutes == ""
+	simpleEyeMinutes := parsing.TryExtractSimpleMinutes(currentCfg.CronExpression)
+	simpleStandUpMinutes := parsing.TryExtractSimpleMinutes(currentCfg.StandUpCronExpression)
+	startAdvanced := simpleEyeMinutes == "" || (currentCfg.StandUpCronExpression != "" && simpleStandUpMinutes == "")
 
-	// Standard tab
-	instrLabel := widget.NewLabel(S.OptionsInstruction)
-	instrLabel.Wrapping = fyne.TextWrapWord
+	eyeInstrLabel := widget.NewLabel(S.OptionsInstruction)
+	eyeInstrLabel.Wrapping = fyne.TextWrapWord
 
 	minutesEntry := widget.NewEntry()
 	minutesEntry.SetPlaceHolder("20, 40, 55")
-	if simpleMinutes != "" {
-		minutesEntry.SetText(simpleMinutes)
+	if simpleEyeMinutes != "" {
+		minutesEntry.SetText(simpleEyeMinutes)
+	}
+
+	standUpInstrLabel := widget.NewLabel(S.OptionsStandUpInstruction)
+	standUpInstrLabel.Wrapping = fyne.TextWrapWord
+
+	standUpMinutesEntry := widget.NewEntry()
+	standUpMinutesEntry.SetPlaceHolder("0, 15, 30, 45")
+	if simpleStandUpMinutes != "" {
+		standUpMinutesEntry.SetText(simpleStandUpMinutes)
 	}
 
 	standardContent := container.NewPadded(container.New(layout.NewVBoxLayout(),
-		instrLabel,
+		eyeInstrLabel,
 		minutesEntry,
+		widget.NewSeparator(),
+		standUpInstrLabel,
+		standUpMinutesEntry,
 	))
 
-	// Advanced tab
-	cronInstrLabel := widget.NewLabel(S.ScheduleCronInstruction)
+	eyeCronInstrLabel := widget.NewLabel(S.ScheduleCronInstruction)
+	eyeCronEntry := widget.NewEntry()
+	eyeCronEntry.SetText(currentCfg.CronExpression)
 
-	cronEntry := widget.NewEntry()
-	cronEntry.SetText(currentCfg.CronExpression)
+	standUpCronInstrLabel := widget.NewLabel(S.ScheduleCronInstruction)
+	standUpCronEntry := widget.NewEntry()
+	standUpCronEntry.SetText(currentCfg.StandUpCronExpression)
 
 	advancedContent := container.NewPadded(container.New(layout.NewVBoxLayout(),
-		cronInstrLabel,
-		cronEntry,
+		eyeCronInstrLabel,
+		eyeCronEntry,
+		widget.NewSeparator(),
+		standUpCronInstrLabel,
+		standUpCronEntry,
 	))
 
 	tabs := container.NewAppTabs(
@@ -64,30 +84,67 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, onSaved func(*config.Co
 
 	win := app.NewWindow(S.ScheduleDialogTitle)
 	win.SetFixedSize(true)
-	win.Resize(fyne.NewSize(450, 200))
+	win.Resize(fyne.NewSize(500, 350))
 	win.CenterOnScreen()
 
 	saveBtn := widget.NewButton(S.ButtonSave, func() {
-		var result parsing.ParseResult
+		var eyeResult parsing.ParseResult
+		var standUpResult parsing.ParseResult
+
 		if tabs.SelectedIndex() == 0 {
-			result = parsing.ParseMinutes(minutesEntry.Text)
+			eyeResult = parsing.ParseMinutes(minutesEntry.Text)
+			if parsed := parsing.ParseMinutes(standUpMinutesEntry.Text); parsed.Valid {
+				standUpResult = parsed
+			} else if standUpMinutesEntry.Text == "" {
+				standUpResult = parsing.ParseResult{Valid: true, Expression: ""}
+			} else {
+				standUpResult = parsed
+			}
 		} else {
-			result = parsing.ParseCron(cronEntry.Text)
+			eyeResult = parsing.ParseCron(eyeCronEntry.Text)
+			if strings.TrimSpace(standUpCronEntry.Text) == "" {
+				standUpResult = parsing.ParseResult{Valid: true, Expression: ""}
+			} else {
+				standUpResult = parsing.ParseCron(standUpCronEntry.Text)
+			}
 		}
 
-		if !result.Valid {
-			errorLabel.SetText(result.Err)
+		if !eyeResult.Valid {
+			errorLabel.SetText(eyeResult.Err)
+			return
+		}
+
+		if !standUpResult.Valid {
+			errorLabel.SetText(standUpResult.Err)
 			return
 		}
 
 		updated := &config.Config{
-			CronExpression: result.Expression,
-			Language:       currentCfg.Language,
+			CronExpression:        eyeResult.Expression,
+			StandUpCronExpression: standUpResult.Expression,
+			Language:              currentCfg.Language,
 		}
 		if saveErr := repo.Save(updated); saveErr != nil {
 			dialog.ShowError(saveErr, win)
 			return
 		}
+
+		eyeSched.Start(updated.CronExpression, func() {
+			buffer.Add(scheduling.Reminder{
+				Type:    "eye",
+				Message: i18n.Active.NotificationEyeReminder,
+			})
+		})
+
+		if updated.StandUpCronExpression != "" {
+			standUpSched.Start(updated.StandUpCronExpression, func() {
+				buffer.Add(scheduling.Reminder{
+					Type:    "standup",
+					Message: i18n.Active.NotificationStandUpReminder,
+				})
+			})
+		}
+
 		win.Close()
 		onSaved(updated)
 	})
