@@ -2,6 +2,12 @@
 // Call SetLanguage once at startup; then reference Active anywhere.
 package i18n
 
+import (
+	"strings"
+
+	"fyne.io/fyne/v2/lang"
+)
+
 // Strings holds every user-visible string for one locale.
 type Strings struct {
 	AppName   string
@@ -74,16 +80,20 @@ type Strings struct {
 // Active points to the currently selected locale. Defaults to English.
 var Active = &english
 
-// SetLanguage switches the active locale. Pass nil for the OS default (English).
-func SetLanguage(lang *string) {
-	if lang == nil {
-		Active = &english
-		return
+// SetLanguage switches the active locale.
+// Pass nil for the OS default locale; if the system locale is unsupported, default to English.
+func SetLanguage(language *string) {
+	localeCode := ""
+	if language == nil {
+		localeCode = lang.SystemLocale().LanguageString()
+	} else {
+		localeCode = strings.ToLower(strings.TrimSpace(*language))
 	}
-	switch *lang {
-	case "de":
+
+	switch localeCode {
+	case "de", "de-de", "de-at", "de-ch", "de-li", "de-lu":
 		Active = &german
-	case "pl":
+	case "pl", "pl-pl":
 		Active = &polish
 	default:
 		Active = &english
