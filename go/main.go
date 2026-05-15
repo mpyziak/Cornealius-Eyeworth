@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/theme"
 
 	"github.com/mpyziak/cornealius-eyeworth/assets"
 	"github.com/mpyziak/cornealius-eyeworth/config"
@@ -33,6 +34,7 @@ func main() {
 	i18n.SetLanguage(cfg.Language)
 
 	a := app.NewWithID("CornealiusEyeworth")
+	a.Settings().SetTheme(theme.DefaultTheme())
 	a.SetIcon(assets.Logo)
 
 	ui.Run(a, cfg, repo)

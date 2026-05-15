@@ -18,3 +18,8 @@ var Logo fyne.Resource = fyne.NewStaticResource("Logo.png", logoBytes)
 
 // AppIcon is the application icon used for the window/taskbar/notification icon.
 var AppIcon fyne.Resource = fyne.NewStaticResource("Logo.ico", iconBytes)
+
+// IconBytes returns the raw icon bytes for systray integration.
+func IconBytes() []byte {
+	return iconBytes
+}

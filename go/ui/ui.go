@@ -1,9 +1,10 @@
-// Package ui contains all Fyne UI code for Cornealius Eyeworth.
+﻿// Package ui contains all Fyne UI code for Cornealius Eyeworth.
 package ui
 
 import (
 	"fmt"
 	"net/url"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -17,90 +18,136 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 	"github.com/mpyziak/cornealius-eyeworth/notifications"
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
+	"github.com/mpyziak/cornealius-eyeworth/systray"
 )
 
-// Run is the application entry point for the UI layer. It creates the main
-// window, wires the scheduler, and hands control to the Fyne event loop
-// (blocking call — must be invoked from main goroutine).
-func Run(app fyne.App, cfg *config.Config, repo *config.Repository) {
+const (
+	mainWinW float32 = 420
+	mainWinH float32 = 180
+)
+
+// Run is the application entry point for the UI layer.
+func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 	S := i18n.Active
 
 	app.SetIcon(assets.AppIcon)
 
 	scheduleBinding := binding.NewString()
 	nextTriggerBinding := binding.NewString()
+	standUpBinding := binding.NewString()
+	standUpNextTriggerBinding := binding.NewString()
 
-	updateBindings := func(c *config.Config) {
+	updateStatus := func(c *config.Config) {
 		_ = scheduleBinding.Set(scheduling.Describe(c.CronExpression))
 		_ = nextTriggerBinding.Set(
 			fmt.Sprintf(S.NextTrigger, scheduling.NextTrigger(c.CronExpression).Format("15:04")),
 		)
+		_ = standUpBinding.Set(scheduling.Describe(c.StandUpCronExpression))
+		_ = standUpNextTriggerBinding.Set(
+			fmt.Sprintf(S.NextTriggerStandUp, scheduling.NextTrigger(c.StandUpCronExpression).Format("15:04")),
+		)
 	}
-	updateBindings(cfg)
+	updateStatus(cfg)
 
-	sched := &scheduling.Scheduler{}
+	// Create scheduler instances and reminder buffer
+	eyeScheduler := &scheduling.Scheduler{}
+	standUpScheduler := &scheduling.Scheduler{}
+	reminderBuffer := scheduling.NewBuffer(2*time.Second, notifications.NewAppFlusher(app))
 
-	win := buildMainWindow(app, cfg, repo, sched, scheduleBinding, nextTriggerBinding, updateBindings)
+	win := buildMainWindow(app, scheduleBinding, nextTriggerBinding, standUpBinding, standUpNextTriggerBinding)
+	win.SetCloseIntercept(func() {
+		win.Hide()
+		notifications.SendMinimizedToTray(app)
+	})
+
+	trayMgr := systray.NewManager(app, win)
+	trayMgr.Setup(cfg)
+	win.SetMainMenu(buildMenu(app, repo, eyeScheduler, standUpScheduler, updateStatus, trayMgr, reminderBuffer))
 
 	notifications.SendStartup(app)
-	sched.Start(cfg.CronExpression, func() {
-		notifications.SendReminder(app)
-		latest, err := repo.Load()
-		if err == nil {
-			updateBindings(latest)
+
+	// Start both schedulers
+	eyeScheduler.Start(cfg.CronExpression, func() {
+		reminderBuffer.Add(scheduling.Reminder{
+			Type:    "eye",
+			Message: i18n.Active.NotificationEyeReminder,
+		})
+		if latest, err := repo.Load(); err == nil {
+			updateStatus(latest)
+			trayMgr.UpdateLabels(latest)
 		}
 	})
 
-	win.ShowAndRun()
-	sched.Stop()
+	if cfg.StandUpCronExpression != "" {
+		standUpScheduler.Start(cfg.StandUpCronExpression, func() {
+			reminderBuffer.Add(scheduling.Reminder{
+				Type:    "standup",
+				Message: i18n.Active.NotificationStandUpReminder,
+			})
+			if latest, err := repo.Load(); err == nil {
+				updateStatus(latest)
+				trayMgr.UpdateLabels(latest)
+			}
+		})
+	}
+
+	win.Hide()
+	go trayMgr.Run()
+	app.Run()
+
+	// Cleanup
+	eyeScheduler.Stop()
+	standUpScheduler.Stop()
+	reminderBuffer.Close()
 }
 
-func buildMainWindow(
+// buildMenu constructs the window menu bar.
+// All dialogs are opened from menu items so the parent window is always
+// visible when they appear — no resize juggling needed.
+func buildMenu(
 	app fyne.App,
-	cfg *config.Config,
-	repo *config.Repository,
-	sched *scheduling.Scheduler,
-	scheduleBinding binding.String,
-	nextTriggerBinding binding.String,
-	updateBindings func(*config.Config),
-) fyne.Window {
+	repo config.Store,
+	eyeSched scheduling.Runner,
+	standUpSched scheduling.Runner,
+	updateStatus func(*config.Config),
+	trayMgr *systray.Manager,
+	buffer scheduling.ReminderAggregator,
+) *fyne.MainMenu {
+	S := i18n.Active
+
+	quitItem := fyne.NewMenuItem(S.MenuQuit, func() { app.Quit() })
+	quitItem.IsQuit = true
+
+	return fyne.NewMainMenu(
+		fyne.NewMenu(S.MenuOptions,
+			fyne.NewMenuItem(S.MenuTriggerTimes, func() {
+				ShowScheduleDialog(app, repo, eyeSched, standUpSched, updateStatus, buffer)
+			}),
+			fyne.NewMenuItem(S.MenuLanguage, func() {
+				ShowLanguageDialog(app, repo)
+			}),
+			fyne.NewMenuItemSeparator(),
+			quitItem,
+		),
+		fyne.NewMenu(S.MenuHelp,
+			fyne.NewMenuItem(S.MenuHowToUse, func() { ShowHelpDialog(app) }),
+			fyne.NewMenuItem(S.MenuAbout, func() { ShowAboutDialog(app) }),
+			fyne.NewMenuItemSeparator(),
+			fyne.NewMenuItem(S.MenuGitHub, func() {
+				u, _ := url.Parse(S.GitHubUrl)
+				_ = app.OpenURL(u)
+			}),
+		),
+	)
+}
+
+// buildMainWindow creates and configures the main status window.
+func buildMainWindow(app fyne.App, scheduleBinding, nextTriggerBinding, standUpBinding, standUpNextTriggerBinding binding.String) fyne.Window {
 	S := i18n.Active
 
 	win := app.NewWindow(S.AppName)
-	win.SetFixedSize(true)
-	win.Resize(fyne.NewSize(420, 180))
+	win.Resize(fyne.NewSize(mainWinW, mainWinH))
 
-	// ── menu ────────────────────────────────────────────────────────────────
-	scheduleItem := fyne.NewMenuItem(S.MenuTriggerTimes, func() {
-		ShowScheduleDialog(win, repo, func(updated *config.Config) {
-			sched.Start(updated.CronExpression, func() {
-				notifications.SendReminder(app)
-				if latest, err := repo.Load(); err == nil {
-					updateBindings(latest)
-				}
-			})
-			updateBindings(updated)
-		})
-	})
-	languageItem := fyne.NewMenuItem(S.MenuLanguage, func() {
-		ShowLanguageDialog(win, repo)
-	})
-	optionsMenu := fyne.NewMenu(S.MenuOptions, scheduleItem, languageItem)
-
-	aboutItem := fyne.NewMenuItem(S.MenuAbout, func() {
-		ShowAboutDialog(win)
-	})
-	howToItem := fyne.NewMenuItem(S.MenuHowToUse, func() {
-		ShowHelpDialog(win)
-	})
-	githubItem := fyne.NewMenuItem(S.MenuGitHub, func() {
-		_ = app.OpenURL(parseURL(S.GitHubUrl))
-	})
-	helpMenu := fyne.NewMenu(S.MenuHelp, aboutItem, howToItem, githubItem)
-
-	win.SetMainMenu(fyne.NewMainMenu(optionsMenu, helpMenu))
-
-	// ── body ────────────────────────────────────────────────────────────────
 	logo := canvas.NewImageFromResource(assets.Logo)
 	logo.SetMinSize(fyne.NewSize(36, 36))
 	logo.FillMode = canvas.ImageFillContain
@@ -114,30 +161,22 @@ func buildMainWindow(
 
 	nextTriggerLabel := widget.NewLabelWithData(nextTriggerBinding)
 
-	topRow := container.NewHBox(logo, container.NewVBox(
-		titleLabel,
-		statusLabel,
-	))
+	standUpLabel := widget.NewLabelWithData(standUpBinding)
+	standUpLabel.Wrapping = fyne.TextWrapWord
 
+	standUpNextTriggerLabel := widget.NewLabelWithData(standUpNextTriggerBinding)
+
+	topRow := container.NewHBox(logo, container.NewVBox(titleLabel, statusLabel))
 	body := container.New(layout.NewVBoxLayout(),
 		topRow,
 		widget.NewSeparator(),
 		scheduleLabel,
 		nextTriggerLabel,
+		widget.NewSeparator(),
+		standUpLabel,
+		standUpNextTriggerLabel,
 	)
 
 	win.SetContent(container.NewPadded(body))
-	win.SetCloseIntercept(func() {
-		sched.Stop()
-		win.Close()
-	})
-
 	return win
-}
-
-// parseURL is a small helper to convert a raw URL string; the GitHubUrl
-// constant is always well-formed so the error is safely ignored here.
-func parseURL(raw string) *url.URL {
-	u, _ := url.Parse(raw)
-	return u
 }

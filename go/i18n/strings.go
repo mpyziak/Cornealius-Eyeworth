@@ -2,6 +2,12 @@
 // Call SetLanguage once at startup; then reference Active anywhere.
 package i18n
 
+import (
+	"strings"
+
+	"fyne.io/fyne/v2/lang"
+)
+
 // Strings holds every user-visible string for one locale.
 type Strings struct {
 	AppName   string
@@ -12,7 +18,8 @@ type Strings struct {
 	// Format args: %s = description (e.g. "20, 40, 55")
 	ScheduleDescription string
 	// Format args: %s = next trigger time formatted as HH:mm
-	NextTrigger string
+	NextTrigger        string
+	NextTriggerStandUp string
 
 	MenuOptions      string
 	MenuLanguage     string
@@ -21,12 +28,20 @@ type Strings struct {
 	MenuAbout        string
 	MenuHowToUse     string
 	MenuGitHub       string
+	MenuQuit         string
 
-	ScheduleDialogTitle     string
-	OptionsInstruction      string
-	ScheduleCronInstruction string
-	ScheduleStandardToggle  string
-	ScheduleAdvancedToggle  string
+	TrayTooltipShowHide    string
+	TrayTooltipNextTrigger string
+	TrayTooltipQuit        string
+
+	ScheduleDialogTitle       string
+	OptionsInstruction        string
+	OptionsStandUpInstruction string
+	ScheduleCronInstruction   string
+	ScheduleStandardToggle    string
+	ScheduleAdvancedToggle    string
+	ScheduleEyeToggle         string
+	ScheduleStandUpToggle     string
 
 	ButtonSave   string
 	ButtonCancel string
@@ -39,9 +54,14 @@ type Strings struct {
 	HelpDialogTitle string
 	HelpBody        string
 
-	NotificationOnDuty    string
-	NotificationReminders []string
-	NotificationQuips     []string
+	NotificationOnDuty           string
+	NotificationMinimizedToTray  string
+	NotificationReminders        []string
+	NotificationStandUpReminders []string
+	NotificationEyeReminder      string
+	NotificationStandUpReminder  string
+	NotificationCombinedTitle    string
+	NotificationQuips            []string
 
 	ParseErrorNoMinutes     string
 	ParseErrorInvalidMinute string // format: %s = invalid token
@@ -60,16 +80,20 @@ type Strings struct {
 // Active points to the currently selected locale. Defaults to English.
 var Active = &english
 
-// SetLanguage switches the active locale. Pass nil for the OS default (English).
-func SetLanguage(lang *string) {
-	if lang == nil {
-		Active = &english
-		return
+// SetLanguage switches the active locale.
+// Pass nil for the OS default locale; if the system locale is unsupported, default to English.
+func SetLanguage(language *string) {
+	localeCode := ""
+	if language == nil {
+		localeCode = lang.SystemLocale().LanguageString()
+	} else {
+		localeCode = strings.ToLower(strings.TrimSpace(*language))
 	}
-	switch *lang {
-	case "de":
+
+	switch localeCode {
+	case "de", "de-de", "de-at", "de-ch", "de-li", "de-lu":
 		Active = &german
-	case "pl":
+	case "pl", "pl-pl":
 		Active = &polish
 	default:
 		Active = &english
@@ -84,7 +108,7 @@ type LanguageOption struct {
 
 // AvailableLanguages is the list shown in the Language dialog.
 var AvailableLanguages = []LanguageOption{
-	{"", ""},           // display name filled at runtime from Active.OptionsLanguageDefault
+	{"", ""}, // display name filled at runtime from Active.OptionsLanguageDefault
 	{"English", "en"},
 	{"Deutsch", "de"},
 	{"Polski", "pl"},
@@ -102,6 +126,7 @@ var english = Strings{
 	StatusServing:       "● Serving",
 	ScheduleDescription: "Schedule: %s",
 	NextTrigger:         "Next trigger: %s",
+	NextTriggerStandUp:  "Next stand-up: %s",
 
 	MenuOptions:      "Options ⚙️",
 	MenuLanguage:     "Language... 🌐",
@@ -110,12 +135,20 @@ var english = Strings{
 	MenuAbout:        "About... ℹ️",
 	MenuHowToUse:     "How to use... ❓",
 	MenuGitHub:       "GitHub... 📄",
+	MenuQuit:         "Quit",
 
-	ScheduleDialogTitle:     "Schedule — Cornealius Eyeworth",
-	OptionsInstruction:      "Minutes of each hour at which Cornealious shall remind you to rest your eyes (e.g. 20, 40, 55):",
-	ScheduleCronInstruction: `CRON (e.g. "0 20,40,55 * * * ?"):`,
-	ScheduleStandardToggle:  "Standard",
-	ScheduleAdvancedToggle:  "Advanced",
+	TrayTooltipShowHide:    "Call/Dismiss Cornealius",
+	TrayTooltipNextTrigger: "Next reminder time",
+	TrayTooltipQuit:        "Quit the application",
+
+	ScheduleDialogTitle:       "Schedule — Cornealius Eyeworth",
+	OptionsInstruction:        "Minutes of each hour at which Cornealious shall remind you to rest your eyes (e.g. 20, 40, 55):",
+	OptionsStandUpInstruction: "Minutes of each hour at which Cornealius shall remind you to stand and stretch (e.g. 0, 15, 30, 45). Leave empty to disable:",
+	ScheduleCronInstruction:   `CRON (e.g. "0 20,40,55 * * * ?"):`,
+	ScheduleStandardToggle:    "Standard",
+	ScheduleAdvancedToggle:    "Advanced",
+	ScheduleEyeToggle:         "Eye Care",
+	ScheduleStandUpToggle:     "Stand-up",
 
 	ButtonSave:   "Save",
 	ButtonCancel: "Cancel",
@@ -138,12 +171,30 @@ You are in full control:
 
 Cornealius runs quietly in the background. Simply leave the window open (minimising is fine) and he will do the rest — with considerable decorum.`,
 
-	NotificationOnDuty: "Cornealius is on duty.",
+	NotificationOnDuty:          "Cornealius is on duty.",
+	NotificationMinimizedToTray: "Cornealius is still on duty — find him in the system tray.",
 	NotificationReminders: []string{
 		"Your eyes deserve an intermission.",
 		"A moment of respite for your weary eyes.",
 		"The 20-20-20 rule awaits.",
 	},
+	NotificationStandUpReminders: []string{
+		"Time to stand and stretch.",
+		"Movement awaits your limbs.",
+		"Your posture requires attention.",
+		"The sedentary life calls for a recess.",
+		"A stroll about the office is recommended.",
+		"Cornealius suggests a brief constitutional.",
+		"Your circulation could use the assistance.",
+		"Prolonged sitting is inadvisable. Rise and move.",
+		"Your back appreciates vertical orientation.",
+		"A moment's ambulation does wonders for the soul.",
+		"Movement: nature's most underrated medicine.",
+		"The chair is not a throne. Vacate it periodically.",
+	},
+	NotificationEyeReminder:     "Rest your eyes.",
+	NotificationStandUpReminder: "Move about.",
+	NotificationCombinedTitle:   "Wellness Check",
 	NotificationQuips: []string{
 		"The human eye was not designed for eternal screen-gazing.",
 		"Blinking is free. Use it liberally.",
@@ -189,6 +240,7 @@ var german = Strings{
 	StatusServing:       "● Im Dienst",
 	ScheduleDescription: "Zeitplan: %s",
 	NextTrigger:         "Nächste Erinnerung: %s",
+	NextTriggerStandUp:  "Nächstes Aufstehen: %s",
 
 	MenuOptions:      "Optionen ⚙️",
 	MenuLanguage:     "Sprache... 🌐",
@@ -197,12 +249,20 @@ var german = Strings{
 	MenuAbout:        "Über... ℹ️",
 	MenuHowToUse:     "Verwendung... ❓",
 	MenuGitHub:       "GitHub... 📄",
+	MenuQuit:         "Beenden",
 
-	ScheduleDialogTitle:     "Zeitplan - Cornealius Eyeworth",
-	OptionsInstruction:      "Minuten jeder Stunde, in denen Cornealius Sie an die Augenpause erinnern soll (z.B. 20, 40, 55):",
-	ScheduleCronInstruction: `CRON-Ausdruck (z. B. "0 20,40,55 * * * ?"):`,
-	ScheduleStandardToggle:  "Standard",
-	ScheduleAdvancedToggle:  "Erweitert",
+	TrayTooltipShowHide:    "Cornealius rufen/entlassen",
+	TrayTooltipNextTrigger: "Nächste Erinnerungszeit",
+	TrayTooltipQuit:        "Beenden",
+
+	ScheduleDialogTitle:       "Zeitplan - Cornealius Eyeworth",
+	OptionsInstruction:        "Minuten jeder Stunde, in denen Cornealius Sie an die Augenpause erinnern soll (z.B. 20, 40, 55):",
+	OptionsStandUpInstruction: "Minuten jeder Stunde, zu denen Cornealius dich daran erinnern soll, aufzustehen und zu dehnen (z. B. 0, 15, 30, 45). Leer lassen zum Deaktivieren:",
+	ScheduleCronInstruction:   `CRON-Ausdruck (z. B. "0 20,40,55 * * * ?"):`,
+	ScheduleStandardToggle:    "Standard",
+	ScheduleAdvancedToggle:    "Erweitert",
+	ScheduleEyeToggle:         "Augenpflege",
+	ScheduleStandUpToggle:     "Aufstehen",
 
 	ButtonSave:   "Speichern",
 	ButtonCancel: "Abbrechen",
@@ -225,12 +285,30 @@ Sie haben die volle Kontrolle:
 
 Cornealius läuft still im Hintergrund. Lassen Sie das Fenster einfach offen (Minimieren ist in Ordnung) und er erledigt den Rest — mit beachtlichem Stil.`,
 
-	NotificationOnDuty: "Cornealius ist im Dienst.",
+	NotificationOnDuty:          "Cornealius ist im Dienst.",
+	NotificationMinimizedToTray: "Cornealius ist weiterhin im Dienst — Sie finden ihn in der Taskleiste.",
 	NotificationReminders: []string{
 		"Ihre Augen verdienen eine Pause.",
 		"Ein Moment der Erholung für Ihre müden Augen.",
 		"Die 20-20-20-Regel erwartet Sie.",
 	},
+	NotificationStandUpReminders: []string{
+		"Zeit aufzustehen und zu dehnen.",
+		"Deine Gliedmaßen brauchen Bewegung.",
+		"Deine Körperhaltung verdient Aufmerksamkeit.",
+		"Das sitzende Leben ruft nach einer Pause.",
+		"Ein Spaziergang durch das Büro wird empfohlen.",
+		"Cornealius empfiehlt einen kurzen Spaziergang.",
+		"Dein Kreislauf könnte Hilfe gebrauchen.",
+		"Langes Sitzen ist nicht ratsam. Stehe auf und bewege dich.",
+		"Dein Rücken schätzt die aufrechte Körperhaltung.",
+		"Ein Moment Bewegung wirkt Wunder für die Seele.",
+		"Bewegung: Natur's unterschätztes Heilmittel.",
+		"Der Stuhl ist kein Thron. Verlasse ihn regelmäßig.",
+	},
+	NotificationEyeReminder:     "Ruhe deine Augen aus.",
+	NotificationStandUpReminder: "Bewege dich herum.",
+	NotificationCombinedTitle:   "Gesundheitsprüfung",
 	NotificationQuips: []string{
 		"Das menschliche Auge wurde nicht für ewiges Bildschirmstarren geschaffen.",
 		"Blinzeln ist kostenlos. Nutzen Sie es reichlich.",
@@ -276,6 +354,7 @@ var polish = Strings{
 	StatusServing:       "● Na służbie",
 	ScheduleDescription: "Harmonogram: %s",
 	NextTrigger:         "Następne przypomnienie: %s",
+	NextTriggerStandUp:  "Następne wstanie: %s",
 
 	MenuOptions:      "Opcje ⚙️",
 	MenuLanguage:     "Język... 🌐",
@@ -284,12 +363,20 @@ var polish = Strings{
 	MenuAbout:        "O programie... ℹ️",
 	MenuHowToUse:     "Jak używać... ❓",
 	MenuGitHub:       "GitHub... 📄",
+	MenuQuit:         "Zamknij",
 
-	ScheduleDialogTitle:     "Harmonogram - Cornealius Eyeworth",
-	OptionsInstruction:      "Minuty każdej godziny, w których Cornealius przypomni Ci o odpoczynku dla oczu (np. 20, 40, 55):",
-	ScheduleCronInstruction: `Wyrażenie CRON (np. "0 20,40,55 * * * ?"):`,
-	ScheduleStandardToggle:  "Standardowe",
-	ScheduleAdvancedToggle:  "Zaawansowane",
+	TrayTooltipShowHide:    "Zawołaj/Odeślij Cornealiusa",
+	TrayTooltipNextTrigger: "Czas następnego przypomnienia",
+	TrayTooltipQuit:        "Zamknij aplikację",
+
+	ScheduleDialogTitle:       "Harmonogram - Cornealius Eyeworth",
+	OptionsInstruction:        "Minuty każdej godziny, w których Cornealius przypomni Ci o odpoczynku dla oczu (np. 20, 40, 55):",
+	OptionsStandUpInstruction: "Minuty każdej godziny, w których Cornealius ma Cię przypomnieć o wstaniu i rozciągnięciu (np. 0, 15, 30, 45). Pozostaw puste, aby wyłączyć:",
+	ScheduleCronInstruction:   `Wyrażenie CRON (np. "0 20,40,55 * * * ?"):`,
+	ScheduleStandardToggle:    "Standardowe",
+	ScheduleAdvancedToggle:    "Zaawansowane",
+	ScheduleEyeToggle:         "Opieka oczna",
+	ScheduleStandUpToggle:     "Wstań",
 
 	ButtonSave:   "Zapisz",
 	ButtonCancel: "Anuluj",
@@ -312,13 +399,31 @@ Masz pełną kontrolę:
 
 Cornealius działa cicho w tle. Wystarczy pozostawić okno otwarte (minimalizacja jest w porządku), a on zrobi resztę — z dużą klasą.`,
 
-	NotificationOnDuty: "Cornealius jest na służbie.",
+	NotificationOnDuty:          "Cornealius jest na służbie.",
+	NotificationMinimizedToTray: "Cornealius nadal jest na służbie — znajdziesz go w zasobniku systemowym.",
 	NotificationReminders: []string{
 		"Twoje oczy zasługują na przerwę.",
 		"Chwila wytchnienia dla Twoich zmęczonych oczu.",
 		"Oderwij wzrok od ekranu. Twój wzrok nalega.",
 		"Zasada 20-20-20 czeka na Ciebie.",
 	},
+	NotificationStandUpReminders: []string{
+		"Czas wstać i się rozciągnąć.",
+		"Twoje kończyny potrzebują ruchu.",
+		"Twoja postawa zasługuje na uwagę.",
+		"Siedząca praca wymaga przerwy.",
+		"Spacer po biurze jest zalecany.",
+		"Cornealius sugeruje krótki spacer.",
+		"Twój układ krążenia potrzebuje pomocy.",
+		"Długie siedzenie jest niewskazane. Wstań i się poruszaj.",
+		"Twoje plecy doceniają pozycję pionową.",
+		"Moment ruchu robi cuda dla duszy.",
+		"Ruch: niedoceniany lek natury.",
+		"Krzesło to nie tron. Opuszczaj je okresowo.",
+	},
+	NotificationEyeReminder:     "Odpoczną twoje oczy.",
+	NotificationStandUpReminder: "Poruś się.",
+	NotificationCombinedTitle:   "Kontrola zdrowia",
 	NotificationQuips: []string{
 		"Ludzkie oko nie zostało stworzone do wiecznego wpatrywania się w ekran.",
 		"Mruganie jest bezpłatne. Używaj go obficie.",

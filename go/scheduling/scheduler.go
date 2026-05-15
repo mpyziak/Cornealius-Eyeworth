@@ -7,6 +7,12 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
+// Runner is the schedule execution contract.
+type Runner interface {
+	Start(cronExpr string, onFire func())
+	Stop()
+}
+
 // Scheduler wraps a robfig/cron instance and supports hot-restart when the
 // CRON expression changes.
 type Scheduler struct {
