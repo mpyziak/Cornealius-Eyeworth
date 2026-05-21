@@ -22,6 +22,5 @@ publish/
 *.binlog
 
 # Go build output
-cornealius-eyeworth
-cornealius-eyeworth.exe
+*ornealius*eyewort*
 go.sum
