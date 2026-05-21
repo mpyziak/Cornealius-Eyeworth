@@ -83,6 +83,13 @@ func (m *Manager) UpdateLabels(cfg *config.Config) {
 	}
 }
 
+// NotifyHidden tells the Manager the window was hidden by means other than
+// the tray toggle (e.g. the window's own close button), so the next tray
+// click correctly shows rather than hides it.
+func (m *Manager) NotifyHidden() {
+	m.windowVisible = false
+}
+
 // toggleWindowVisibility shows or hides the main window.
 func (m *Manager) toggleWindowVisibility() {
 	if m.windowVisible {
@@ -95,9 +102,14 @@ func (m *Manager) toggleWindowVisibility() {
 }
 
 // Run starts the system tray event loop (blocking call).
-func (m *Manager) Run() {
+// onReady is called after the tray icon has been fully initialised;
+// pass nil if no post-init work is needed.
+func (m *Manager) Run(onReady func()) {
 	systray.Run(func() {
 		m.doSetup()
+		if onReady != nil {
+			onReady()
+		}
 	}, func() {
 		m.app.Quit()
 	})

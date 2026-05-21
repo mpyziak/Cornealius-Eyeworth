@@ -57,14 +57,13 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 	win := buildMainWindow(app, scheduleBinding, nextTriggerBinding, standUpBinding, standUpNextTriggerBinding)
 	win.SetCloseIntercept(func() {
 		win.Hide()
+		trayMgr.NotifyHidden()
 		notifications.SendMinimizedToTray(app)
 	})
 
 	trayMgr := systray.NewManager(app, win)
 	trayMgr.Setup(cfg)
 	win.SetMainMenu(buildMenu(app, repo, eyeScheduler, standUpScheduler, updateStatus, trayMgr, reminderBuffer))
-
-	notifications.SendStartup(app)
 
 	// Start both schedulers
 	eyeScheduler.Start(cfg.CronExpression, func() {
@@ -92,7 +91,7 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 	}
 
 	win.Hide()
-	go trayMgr.Run()
+	go trayMgr.Run(func() { notifications.SendStartup(app) })
 	app.Run()
 
 	// Cleanup
