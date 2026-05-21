@@ -1,5 +1,3 @@
-//go:build !windows
-
 // Package notifications sends cross-platform desktop notifications via Fyne.
 package notifications
 
