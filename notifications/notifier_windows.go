@@ -7,13 +7,10 @@ package notifications
 
 import (
 	"math/rand"
-	"os"
-	"sync"
 	"syscall"
 	"unsafe"
 
 	"fyne.io/fyne/v2"
-	"github.com/mpyziak/cornealius-eyeworth/assets"
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
@@ -41,22 +38,10 @@ type notifyIconData struct {
 
 const (
 	nimModify   = 1
-	nimDelete   = 2
 	nifInfo     = 0x00000010
-	niifUser    = 0x00000004
-	niifLarge   = 0x00000020
-	hwndMessage = ^uintptr(2)
 
-	// systrayClass is the window class registered by fyne.io/systray.
-	// Its tray icon has ID 100. We piggyback on it for balloon delivery so
-	// Windows shows the app icon in the notification header.
 	systrayClass  = "SystrayClass"
 	systrayIconID = 100
-
-	// LoadImage flags
-	imageIcon      = 1
-	lrLoadFromFile = 0x00000010
-	lrDefaultSize  = 0x00000040
 )
 
 var (
@@ -64,47 +49,12 @@ var (
 	modUser32       = syscall.NewLazyDLL("user32.dll")
 	procShellNotify = modShell32.NewProc("Shell_NotifyIconW")
 	procFindWindow  = modUser32.NewProc("FindWindowW")
-	procLoadImage   = modUser32.NewProc("LoadImageW")
-
-	appIconHwnd  uintptr
-	appIconOnce  sync.Once
-	iconTempFile string
 )
 
 func msgOnlyWindow() uintptr {
 	cls, _ := syscall.UTF16PtrFromString(systrayClass)
 	hwnd, _, _ := procFindWindow.Call(uintptr(unsafe.Pointer(cls)), 0)
 	return hwnd
-}
-
-// appIcon writes the embedded .ico to a temp file once and loads it as an HICON.
-// Falls back to IDI_APPLICATION if anything fails.
-func appIcon() uintptr {
-	appIconOnce.Do(func() {
-		tmp, err := os.CreateTemp("", "eyeworth-*.ico")
-		if err != nil {
-			return
-		}
-		iconTempFile = tmp.Name()
-		if _, err := tmp.Write(assets.IconBytes()); err != nil {
-			tmp.Close()
-			return
-		}
-		tmp.Close()
-		path16, err := syscall.UTF16PtrFromString(iconTempFile)
-		if err != nil {
-			return
-		}
-		hicon, _, _ := procLoadImage.Call(
-			0,
-			uintptr(unsafe.Pointer(path16)),
-			imageIcon,
-			0, 0,
-			lrLoadFromFile|lrDefaultSize,
-		)
-		appIconHwnd = hicon
-	})
-	return appIconHwnd
 }
 
 func showBalloon(title, message string) {
@@ -119,8 +69,7 @@ func showBalloon(title, message string) {
 	nid.Wnd = hwnd
 	nid.ID = systrayIconID
 	nid.Flags = nifInfo
-	nid.BalloonIcon = appIcon()
-	nid.InfoFlags = niifUser | niifLarge
+	nid.InfoFlags = 0
 	t16, _ := syscall.UTF16FromString(title)
 	copy(nid.InfoTitle[:], t16)
 	m16, _ := syscall.UTF16FromString(message)

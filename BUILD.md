@@ -100,7 +100,6 @@ go build -ldflags "-s -w -H windowsgui" -o cornealius-eyeworth.exe .
 ### Windows (no console window, single .exe)
 
 ```powershell
-cd go
 # GCC must be on PATH — see Prerequisites
 $env:PATH = "$env:USERPROFILE\mingw64\mingw64\bin;$env:PATH"
 
@@ -111,7 +110,6 @@ go build -ldflags "-s -w -H windowsgui" -o cornealius-eyeworth.exe .
 ### Linux
 
 ```bash
-cd go
 go build -ldflags "-s -w" -o cornealius-eyeworth .
 # copy config.json next to the binary
 ```
@@ -119,7 +117,6 @@ go build -ldflags "-s -w" -o cornealius-eyeworth .
 ### macOS
 
 ```bash
-cd go
 go build -ldflags "-s -w" -o cornealius-eyeworth .
 # copy config.json next to the binary
 ```
@@ -154,16 +151,14 @@ make upx-win    # build + strip + UPX (Windows)
 Run without installing — use `go run` (like `npx` for Node.js):
 
 ```bash
-cd go
-
 # Windows — embed icon + single-file .exe
-go run fyne.io/fyne/v2/cmd/fyne@latest package -os windows -icon ../Properties/Resources/Logo.png -name "Cornealius Eyeworth"
+go run fyne.io/tools/cmd/fyne@latest package -os windows -icon assets/Logo.png -name "Cornealius Eyeworth"
 
 # macOS — produces a .app bundle
-go run fyne.io/fyne/v2/cmd/fyne@latest package -os darwin  -icon ../Properties/Resources/Logo.png -name "Cornealius Eyeworth"
+go run fyne.io/tools/cmd/fyne@latest package -os darwin  -icon assets/Logo.png -name "Cornealius Eyeworth"
 
 # Linux — produces an executable with .desktop file
-go run fyne.io/fyne/v2/cmd/fyne@latest package -os linux   -icon ../Properties/Resources/Logo.png -name "Cornealius Eyeworth"
+go run fyne.io/tools/cmd/fyne@latest package -os linux   -icon assets/Logo.png -name "Cornealius Eyeworth"
 ```
 
 **Optional:** To avoid typing the full path each time, install once:
