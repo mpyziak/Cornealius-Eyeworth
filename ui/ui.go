@@ -55,15 +55,16 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 	reminderBuffer := scheduling.NewBuffer(2*time.Second, notifications.NewAppFlusher(app))
 
 	win := buildMainWindow(app, scheduleBinding, nextTriggerBinding, standUpBinding, standUpNextTriggerBinding)
+
+	trayMgr := systray.NewManager(app, win)
+	trayMgr.Setup(cfg)
+	win.SetMainMenu(buildMenu(app, repo, eyeScheduler, standUpScheduler, updateStatus, trayMgr, reminderBuffer))
+
 	win.SetCloseIntercept(func() {
 		win.Hide()
 		trayMgr.NotifyHidden()
 		notifications.SendMinimizedToTray(app)
 	})
-
-	trayMgr := systray.NewManager(app, win)
-	trayMgr.Setup(cfg)
-	win.SetMainMenu(buildMenu(app, repo, eyeScheduler, standUpScheduler, updateStatus, trayMgr, reminderBuffer))
 
 	// Start both schedulers
 	eyeScheduler.Start(cfg.CronExpression, func() {
