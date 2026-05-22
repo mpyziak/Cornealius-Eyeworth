@@ -16,19 +16,22 @@ import (
 // Manager handles systray setup and lifecycle.
 type Manager struct {
 	app             fyne.App
-	window          fyne.Window
+	windowFactory   func() fyne.Window // builds a fresh window each time it is shown
+	currentWindow   fyne.Window        // non-nil while the status window is visible
 	scheduleMenu    *systray.MenuItem
 	nextTriggerMenu *systray.MenuItem
-	windowVisible   bool
 	setupCfg        *config.Config
 }
 
 // NewManager creates a new systray Manager.
-func NewManager(app fyne.App, window fyne.Window) *Manager {
-	return &Manager{
-		app:    app,
-		window: window,
-	}
+func NewManager(app fyne.App) *Manager {
+	return &Manager{app: app}
+}
+
+// SetWindowFactory sets the function used to build the status window on demand.
+// Must be called before the first tray interaction.
+func (m *Manager) SetWindowFactory(f func() fyne.Window) {
+	m.windowFactory = f
 }
 
 // Setup stores the config for use when the tray is ready.
@@ -83,21 +86,23 @@ func (m *Manager) UpdateLabels(cfg *config.Config) {
 	}
 }
 
-// NotifyHidden tells the Manager the window was hidden by means other than
-// the tray toggle (e.g. the window's own close button), so the next tray
-// click correctly shows rather than hides it.
+// NotifyHidden records that the status window has been closed by means other
+// than the tray toggle (e.g. the window's own X button or its close intercept),
+// so the next tray click correctly opens a fresh window.
 func (m *Manager) NotifyHidden() {
-	m.windowVisible = false
+	m.currentWindow = nil
 }
 
-// toggleWindowVisibility shows or hides the main window.
+// toggleWindowVisibility opens a fresh status window when none is shown, or
+// closes the current one when it is already visible.
 func (m *Manager) toggleWindowVisibility() {
-	if m.windowVisible {
-		m.window.Hide()
-		m.windowVisible = false
-	} else {
-		m.window.Show()
-		m.windowVisible = true
+	if m.currentWindow != nil {
+		w := m.currentWindow
+		m.currentWindow = nil
+		w.Close() // destroys HWND + GL context; no hidden window left over
+	} else if m.windowFactory != nil {
+		m.currentWindow = m.windowFactory()
+		m.currentWindow.Show()
 	}
 }
 

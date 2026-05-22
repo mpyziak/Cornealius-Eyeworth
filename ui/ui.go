@@ -49,21 +49,36 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 	}
 	updateStatus(cfg)
 
+	// Anchor window: created first so it becomes Fyne's "master" window.
+	// It is never shown, so Windows never registers its HWND as a visible
+	// window and will not send DPI-change / screen-capture events to it.
+	// Its sole purpose is to keep Fyne's event loop alive after the
+	// on-demand status window is closed.
+	_ = app.NewWindow("")
+
 	// Create scheduler instances and reminder buffer
 	eyeScheduler := &scheduling.Scheduler{}
 	standUpScheduler := &scheduling.Scheduler{}
 	reminderBuffer := scheduling.NewBuffer(2*time.Second, notifications.NewAppFlusher(app))
 
-	win := buildMainWindow(app, scheduleBinding, nextTriggerBinding, standUpBinding, standUpNextTriggerBinding)
-
-	trayMgr := systray.NewManager(app, win)
+	trayMgr := systray.NewManager(app)
 	trayMgr.Setup(cfg)
-	win.SetMainMenu(buildMenu(app, repo, eyeScheduler, standUpScheduler, updateStatus, trayMgr, reminderBuffer))
 
-	win.SetCloseIntercept(func() {
-		win.Hide()
-		trayMgr.NotifyHidden()
-		notifications.SendMinimizedToTray(app)
+	// windowFactory builds a fresh status window each time the user shows it.
+	// Closing the window calls win.Close() which destroys the HWND and frees
+	// the Fyne/GLFW OpenGL context, preventing GL resource accumulation that
+	// is triggered by screen-share and DPI-change OS events.
+	trayMgr.SetWindowFactory(func() fyne.Window {
+		win := buildMainWindow(app, scheduleBinding, nextTriggerBinding, standUpBinding, standUpNextTriggerBinding)
+		win.SetMainMenu(buildMenu(app, repo, eyeScheduler, standUpScheduler, updateStatus, trayMgr, reminderBuffer))
+		win.SetOnClosed(func() {
+			trayMgr.NotifyHidden()
+		})
+		win.SetCloseIntercept(func() {
+			notifications.SendMinimizedToTray(app)
+			win.Close() // triggers SetOnClosed → NotifyHidden
+		})
+		return win
 	})
 
 	// Start both schedulers
@@ -91,7 +106,6 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 		})
 	}
 
-	win.Hide()
 	go trayMgr.Run(func() { notifications.SendStartup(app) })
 	app.Run()
 
