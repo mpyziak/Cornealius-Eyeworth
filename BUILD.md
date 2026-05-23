@@ -152,13 +152,13 @@ Run without installing — use `go run` (like `npx` for Node.js):
 
 ```bash
 # Windows — embed icon + single-file .exe (~25 MB, identical to stripped go build)
-go run fyne.io/tools/cmd/fyne@latest package -release -app-id "github.com/mpyziak/cornealius-eyeworth" -os windows -icon assets/Logo.png -name "Cornealius Eyeworth"
+go run fyne.io/tools/cmd/fyne@latest package -release -app-id "com.github.mpyziak.cornealius-eyeworth" -os windows -icon assets/Logo.png -name "Cornealius Eyeworth"
 
 # macOS — produces a .app bundle
-go run fyne.io/tools/cmd/fyne@latest package -release -app-id "github.com/mpyziak/cornealius-eyeworth" -os darwin  -icon assets/Logo.png -name "Cornealius Eyeworth"
+go run fyne.io/tools/cmd/fyne@latest package -release -app-id "com.github.mpyziak.cornealius-eyeworth" -os darwin  -icon assets/Logo.png -name "Cornealius Eyeworth"
 
 # Linux — produces an executable with .desktop file
-go run fyne.io/tools/cmd/fyne@latest package -release -app-id "github.com/mpyziak/cornealius-eyeworth" -os linux   -icon assets/Logo.png -name "Cornealius Eyeworth"
+go run fyne.io/tools/cmd/fyne@latest package -release -app-id "com.github.mpyziak.cornealius-eyeworth" -os linux   -icon assets/Logo.png -name "Cornealius Eyeworth"
 ```
 
 > **Note:** `-release` enables dead-code stripping and `-app-id` sets the Windows application identity, keeping the output at ~25 MB — the same size as a stripped `go build`.

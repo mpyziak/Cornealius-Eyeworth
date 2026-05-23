@@ -1,4 +1,4 @@
-﻿//go:build windows
+//go:build windows
 
 // Package notifications sends Windows balloon tip notifications via Shell_NotifyIcon.
 // This bypasses fyne.App.SendNotification(), which shells out to PowerShell and
@@ -6,7 +6,6 @@
 package notifications
 
 import (
-	"math/rand"
 	"syscall"
 	"unsafe"
 
@@ -37,8 +36,8 @@ type notifyIconData struct {
 }
 
 const (
-	nimModify   = 1
-	nifInfo     = 0x00000010
+	nimModify = 1
+	nifInfo   = 0x00000010
 
 	systrayClass  = "SystrayClass"
 	systrayIconID = 100
@@ -77,15 +76,8 @@ func showBalloon(title, message string) {
 	procShellNotify.Call(nimModify, uintptr(unsafe.Pointer(&nid)))
 }
 
-func pickRandom(items []string) string {
-	if len(items) == 0 {
-		return ""
-	}
-	return items[rand.Intn(len(items))]
-}
-
 func SendStartup(_ fyne.App) {
-	showBalloon(i18n.Active.NotificationOnDuty, pickRandom(i18n.Active.NotificationQuips))
+	showBalloon(i18n.Active.NotificationOnDuty, pickRandom(i18n.Active.NotificationDistanceGlanceQuips))
 }
 
 func SendMinimizedToTray(_ fyne.App) {
@@ -93,37 +85,13 @@ func SendMinimizedToTray(_ fyne.App) {
 }
 
 func SendReminder(_ fyne.App) {
-	showBalloon(pickRandom(i18n.Active.NotificationReminders), pickRandom(i18n.Active.NotificationQuips))
+	showBalloon(pickRandom(i18n.Active.NotificationDistanceGlanceHeaders), pickRandom(i18n.Active.NotificationDistanceGlanceQuips))
 }
 
 func SendReminders(_ fyne.App, reminders []scheduling.Reminder) {
-	if len(reminders) == 0 {
+	title, content := aggregatedNotification(reminders)
+	if title == "" && content == "" {
 		return
-	}
-	var content string
-	for _, r := range reminders {
-		if content != "" {
-			content += "\n"
-		}
-		content += r.Message
-	}
-	hasEye, hasStandUp := false, false
-	for _, r := range reminders {
-		switch r.Type {
-		case "eye":
-			hasEye = true
-		case "standup":
-			hasStandUp = true
-		}
-	}
-	var title string
-	switch {
-	case hasEye && hasStandUp:
-		title = i18n.Active.NotificationCombinedTitle
-	case hasStandUp:
-		title = pickRandom(i18n.Active.NotificationStandUpReminders)
-	default:
-		title = pickRandom(i18n.Active.NotificationReminders)
 	}
 	showBalloon(title, content)
 }

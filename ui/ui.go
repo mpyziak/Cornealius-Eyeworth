@@ -1,8 +1,9 @@
-﻿// Package ui contains all Fyne UI code for Cornealius Eyeworth.
+// Package ui contains all Fyne UI code for Cornealius Eyeworth.
 package ui
 
 import (
 	"fmt"
+	"math/rand"
 	"net/url"
 	"time"
 
@@ -20,6 +21,13 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 	"github.com/mpyziak/cornealius-eyeworth/systray"
 )
+
+func randomChoice(choices []string) string {
+	if len(choices) == 0 {
+		return ""
+	}
+	return choices[rand.Intn(len(choices))]
+}
 
 const (
 	mainWinW float32 = 420
@@ -85,7 +93,7 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 	eyeScheduler.Start(cfg.CronExpression, func() {
 		reminderBuffer.Add(scheduling.Reminder{
 			Type:    "eye",
-			Message: i18n.Active.NotificationEyeReminder,
+			Message: randomChoice(i18n.Active.NotificationDistanceGlanceQuips),
 		})
 		if latest, err := repo.Load(); err == nil {
 			updateStatus(latest)
@@ -97,7 +105,7 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 		standUpScheduler.Start(cfg.StandUpCronExpression, func() {
 			reminderBuffer.Add(scheduling.Reminder{
 				Type:    "standup",
-				Message: i18n.Active.NotificationStandUpReminder,
+				Message: randomChoice(i18n.Active.NotificationMovementQuips),
 			})
 			if latest, err := repo.Load(); err == nil {
 				updateStatus(latest)

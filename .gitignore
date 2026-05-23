@@ -22,5 +22,5 @@ publish/
 *.binlog
 
 # Go build output
-*ornealius*eyewort*
+*ornealius*yewort*
 go.sum

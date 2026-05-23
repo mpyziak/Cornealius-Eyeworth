@@ -54,14 +54,13 @@ type Strings struct {
 	HelpDialogTitle string
 	HelpBody        string
 
-	NotificationOnDuty           string
-	NotificationMinimizedToTray  string
-	NotificationReminders        []string
-	NotificationStandUpReminders []string
-	NotificationEyeReminder      string
-	NotificationStandUpReminder  string
-	NotificationCombinedTitle    string
-	NotificationQuips            []string
+	NotificationOnDuty                string
+	NotificationMinimizedToTray       string
+	NotificationDistanceGlanceHeaders []string
+	NotificationMovementHeaders       []string
+	NotificationMovementQuips         []string
+	NotificationCombinedHeaders       []string
+	NotificationDistanceGlanceQuips   []string
 
 	ParseErrorNoMinutes     string
 	ParseErrorInvalidMinute string // format: %s = invalid token
@@ -173,12 +172,17 @@ Cornealius runs quietly in the background. Simply leave the window open (minimis
 
 	NotificationOnDuty:          "Cornealius is on duty.",
 	NotificationMinimizedToTray: "Cornealius is still on duty — find him in the system tray.",
-	NotificationReminders: []string{
+	NotificationDistanceGlanceHeaders: []string{
 		"Your eyes deserve an intermission.",
 		"A moment of respite for your weary eyes.",
 		"The 20-20-20 rule awaits.",
 	},
-	NotificationStandUpReminders: []string{
+	NotificationMovementHeaders: []string{
+		"A little motion would make your day.",
+		"Your legs are petitioning for a pause.",
+		"A short stretch will improve everything.",
+	},
+	NotificationMovementQuips: []string{
 		"Time to stand and stretch.",
 		"Movement awaits your limbs.",
 		"Your posture requires attention.",
@@ -192,10 +196,12 @@ Cornealius runs quietly in the background. Simply leave the window open (minimis
 		"Movement: nature's most underrated medicine.",
 		"The chair is not a throne. Vacate it periodically.",
 	},
-	NotificationEyeReminder:     "Rest your eyes.",
-	NotificationStandUpReminder: "Move about.",
-	NotificationCombinedTitle:   "Wellness Check",
-	NotificationQuips: []string{
+	NotificationCombinedHeaders: []string{
+		"Some pieces of advice, if I may:",
+		"Would you lay your eyes on these:",
+		"A packet for your attention:",
+	},
+	NotificationDistanceGlanceQuips: []string{
 		"The human eye was not designed for eternal screen-gazing.",
 		"Blinking is free. Use it liberally.",
 		"Even the finest monocle requires occasional polishing.",
@@ -287,12 +293,17 @@ Cornealius läuft still im Hintergrund. Lassen Sie das Fenster einfach offen (Mi
 
 	NotificationOnDuty:          "Cornealius ist im Dienst.",
 	NotificationMinimizedToTray: "Cornealius ist weiterhin im Dienst — Sie finden ihn in der Taskleiste.",
-	NotificationReminders: []string{
+	NotificationDistanceGlanceHeaders: []string{
 		"Ihre Augen verdienen eine Pause.",
 		"Ein Moment der Erholung für Ihre müden Augen.",
 		"Die 20-20-20-Regel erwartet Sie.",
 	},
-	NotificationStandUpReminders: []string{
+	NotificationMovementHeaders: []string{
+		"Ein wenig Bewegung würde Ihrem Tag guttun.",
+		"Deine Beine bitten um eine Pause.",
+		"Ein kurzes Dehnen verbessert alles.",
+	},
+	NotificationMovementQuips: []string{
 		"Zeit aufzustehen und zu dehnen.",
 		"Deine Gliedmaßen brauchen Bewegung.",
 		"Deine Körperhaltung verdient Aufmerksamkeit.",
@@ -306,10 +317,12 @@ Cornealius läuft still im Hintergrund. Lassen Sie das Fenster einfach offen (Mi
 		"Bewegung: Natur's unterschätztes Heilmittel.",
 		"Der Stuhl ist kein Thron. Verlasse ihn regelmäßig.",
 	},
-	NotificationEyeReminder:     "Ruhe deine Augen aus.",
-	NotificationStandUpReminder: "Bewege dich herum.",
-	NotificationCombinedTitle:   "Gesundheitsprüfung",
-	NotificationQuips: []string{
+	NotificationCombinedHeaders: []string{
+		"Ein paar Hinweise, wenn ich bitten darf:",
+		"Würden Sie einen Blick darauf werfen:",
+		"Ein Paket zu Ihrer Aufmerksamkeit:",
+	},
+	NotificationDistanceGlanceQuips: []string{
 		"Das menschliche Auge wurde nicht für ewiges Bildschirmstarren geschaffen.",
 		"Blinzeln ist kostenlos. Nutzen Sie es reichlich.",
 		"Selbst das feinste Monokel bedarf gelegentlicher Pflege.",
@@ -401,13 +414,18 @@ Cornealius działa cicho w tle. Wystarczy pozostawić okno otwarte (minimalizacj
 
 	NotificationOnDuty:          "Cornealius jest na służbie.",
 	NotificationMinimizedToTray: "Cornealius nadal jest na służbie — znajdziesz go w zasobniku systemowym.",
-	NotificationReminders: []string{
+	NotificationDistanceGlanceHeaders: []string{
 		"Twoje oczy zasługują na przerwę.",
 		"Chwila wytchnienia dla Twoich zmęczonych oczu.",
 		"Oderwij wzrok od ekranu. Twój wzrok nalega.",
 		"Zasada 20-20-20 czeka na Ciebie.",
 	},
-	NotificationStandUpReminders: []string{
+	NotificationMovementHeaders: []string{
+		"Trochę ruchu poprawi Ci dzień.",
+		"Twoje nogi proszą o chwilę przerwy.",
+		"Krótki rozciąg poprawi samopoczucie.",
+	},
+	NotificationMovementQuips: []string{
 		"Czas wstać i się rozciągnąć.",
 		"Twoje kończyny potrzebują ruchu.",
 		"Twoja postawa zasługuje na uwagę.",
@@ -421,10 +439,12 @@ Cornealius działa cicho w tle. Wystarczy pozostawić okno otwarte (minimalizacj
 		"Ruch: niedoceniany lek natury.",
 		"Krzesło to nie tron. Opuszczaj je okresowo.",
 	},
-	NotificationEyeReminder:     "Odpoczną twoje oczy.",
-	NotificationStandUpReminder: "Poruś się.",
-	NotificationCombinedTitle:   "Kontrola zdrowia",
-	NotificationQuips: []string{
+	NotificationCombinedHeaders: []string{
+		"Kilka uwag, jeśli mogę:",
+		"Czy zechciałbyś zerknąć na to:",
+		"Przesyłki do Twojej uwagi:",
+	},
+	NotificationDistanceGlanceQuips: []string{
 		"Ludzkie oko nie zostało stworzone do wiecznego wpatrywania się w ekran.",
 		"Mruganie jest bezpłatne. Używaj go obficie.",
 		"Nawet najlepszy monokl wymaga okazjonalnej opieki.",

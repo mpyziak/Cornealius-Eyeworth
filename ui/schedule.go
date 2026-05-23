@@ -1,4 +1,4 @@
-﻿package ui
+package ui
 
 import (
 	"strings"
@@ -132,7 +132,7 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 		eyeSched.Start(updated.CronExpression, func() {
 			buffer.Add(scheduling.Reminder{
 				Type:    "eye",
-				Message: i18n.Active.NotificationEyeReminder,
+				Message: randomChoice(i18n.Active.NotificationDistanceGlanceQuips),
 			})
 		})
 
@@ -140,7 +140,7 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 			standUpSched.Start(updated.StandUpCronExpression, func() {
 				buffer.Add(scheduling.Reminder{
 					Type:    "standup",
-					Message: i18n.Active.NotificationStandUpReminder,
+					Message: randomChoice(i18n.Active.NotificationMovementQuips),
 				})
 			})
 		}
