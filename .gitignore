@@ -20,3 +20,7 @@ publish/
 
 # MSBuild logs
 *.binlog
+
+# Go build output
+*ornealius*yewort*
+go.sum
