@@ -11,6 +11,7 @@ import (
 
 	"github.com/mpyziak/cornealius-eyeworth/config"
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
+	"github.com/mpyziak/cornealius-eyeworth/notifications"
 	"github.com/mpyziak/cornealius-eyeworth/parsing"
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
@@ -129,21 +130,17 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 			return
 		}
 
-		eyeSched.Start(updated.CronExpression, func() {
-			buffer.Add(scheduling.Reminder{
-				Type:    "eye",
-				Message: randomChoice(i18n.Active.NotificationDistanceGlanceQuips),
-			})
-		})
-
-		if updated.StandUpCronExpression != "" {
-			standUpSched.Start(updated.StandUpCronExpression, func() {
-				buffer.Add(scheduling.Reminder{
-					Type:    "standup",
-					Message: randomChoice(i18n.Active.NotificationMovementQuips),
-				})
-			})
-		}
+		scheduling.ApplySchedule(
+			eyeSched,
+			standUpSched,
+			scheduling.ScheduleSpec{
+				EyeCron:     updated.CronExpression,
+				StandUpCron: updated.StandUpCronExpression,
+			},
+			func(notificationCategory string) {
+				buffer.Add(notifications.NewReminder(notificationCategory))
+			},
+		)
 
 		win.Close()
 		onSaved(updated)

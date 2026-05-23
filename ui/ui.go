@@ -3,7 +3,6 @@ package ui
 
 import (
 	"fmt"
-	"math/rand"
 	"net/url"
 	"time"
 
@@ -21,13 +20,6 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 	"github.com/mpyziak/cornealius-eyeworth/systray"
 )
-
-func randomChoice(choices []string) string {
-	if len(choices) == 0 {
-		return ""
-	}
-	return choices[rand.Intn(len(choices))]
-}
 
 const (
 	mainWinW float32 = 420
@@ -89,30 +81,22 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 		return win
 	})
 
-	// Start both schedulers
-	eyeScheduler.Start(cfg.CronExpression, func() {
-		reminderBuffer.Add(scheduling.Reminder{
-			Type:    "eye",
-			Message: randomChoice(i18n.Active.NotificationDistanceGlanceQuips),
-		})
-		if latest, err := repo.Load(); err == nil {
-			updateStatus(latest)
-			trayMgr.UpdateLabels(latest)
-		}
-	})
-
-	if cfg.StandUpCronExpression != "" {
-		standUpScheduler.Start(cfg.StandUpCronExpression, func() {
-			reminderBuffer.Add(scheduling.Reminder{
-				Type:    "standup",
-				Message: randomChoice(i18n.Active.NotificationMovementQuips),
-			})
+	// Start both schedulers using scheduling package helper.
+	scheduling.ApplySchedule(
+		eyeScheduler,
+		standUpScheduler,
+		scheduling.ScheduleSpec{
+			EyeCron:     cfg.CronExpression,
+			StandUpCron: cfg.StandUpCronExpression,
+		},
+		func(notificationCategory string) {
+			reminderBuffer.Add(notifications.NewReminder(notificationCategory))
 			if latest, err := repo.Load(); err == nil {
 				updateStatus(latest)
 				trayMgr.UpdateLabels(latest)
 			}
-		})
-	}
+		},
+	)
 
 	go trayMgr.Run(func() { notifications.SendStartup(app) })
 	app.Run()

@@ -8,11 +8,6 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
 
-const (
-	reminderTypeEye     = "eye"
-	reminderTypeStandup = "standup"
-)
-
 func pickRandom(items []string) string {
 	if len(items) == 0 {
 		return ""
@@ -20,9 +15,9 @@ func pickRandom(items []string) string {
 	return items[rand.Intn(len(items))]
 }
 
-func hasReminderType(reminders []scheduling.Reminder, kind string) bool {
+func hasReminderType(reminders []scheduling.Reminder, notificationCategory string) bool {
 	for _, r := range reminders {
-		if r.Type == kind {
+		if r.NotificationCategory == notificationCategory {
 			return true
 		}
 	}
@@ -35,16 +30,16 @@ func aggregatedContent(reminders []scheduling.Reminder) string {
 	}
 
 	var lines []string
-	for _, targetType := range []string{reminderTypeStandup, reminderTypeEye} {
+	for _, targetNotificationCategory := range []string{scheduling.ReminderTypeStandup, scheduling.ReminderTypeEye} {
 		for _, r := range reminders {
-			if r.Type == targetType {
+			if r.NotificationCategory == targetNotificationCategory {
 				lines = append(lines, "• "+r.Message)
 			}
 		}
 	}
 
 	for _, r := range reminders {
-		if r.Type != reminderTypeStandup && r.Type != reminderTypeEye {
+		if r.NotificationCategory != scheduling.ReminderTypeStandup && r.NotificationCategory != scheduling.ReminderTypeEye {
 			lines = append(lines, "• "+r.Message)
 		}
 	}
@@ -54,14 +49,25 @@ func aggregatedContent(reminders []scheduling.Reminder) string {
 }
 
 func aggregatedTitle(reminders []scheduling.Reminder) string {
-	hasStandUp := hasReminderType(reminders, reminderTypeStandup)
-	hasDistanceGlance := hasReminderType(reminders, reminderTypeEye)
+	hasStandUp := hasReminderType(reminders, scheduling.ReminderTypeStandup)
+	hasDistanceGlance := hasReminderType(reminders, scheduling.ReminderTypeEye)
 	if hasStandUp && hasDistanceGlance {
 		return pickRandom(i18n.Active.NotificationCombinedHeaders)
 	} else if hasStandUp {
 		return pickRandom(i18n.Active.NotificationMovementHeaders)
 	}
 	return pickRandom(i18n.Active.NotificationDistanceGlanceHeaders)
+}
+
+func NewReminder(notificationCategory string) scheduling.Reminder {
+	switch notificationCategory {
+	case scheduling.ReminderTypeStandup:
+		return scheduling.Reminder{NotificationCategory: notificationCategory, Message: pickRandom(i18n.Active.NotificationMovementQuips)}
+	case scheduling.ReminderTypeEye:
+		return scheduling.Reminder{NotificationCategory: notificationCategory, Message: pickRandom(i18n.Active.NotificationDistanceGlanceQuips)}
+	default:
+		return scheduling.Reminder{NotificationCategory: notificationCategory, Message: ""}
+	}
 }
 
 func aggregatedNotification(reminders []scheduling.Reminder) (string, string) {

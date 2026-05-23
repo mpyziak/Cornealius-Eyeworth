@@ -7,8 +7,8 @@ import (
 
 // Reminder describes a single reminder event with a type identifier and message.
 type Reminder struct {
-	Type    string // "eye" or "standup"
-	Message string
+	NotificationCategory string // "eye" or "standup"
+	Message              string
 }
 
 // ReminderAggregator is the contract for buffering and flushing reminders.
