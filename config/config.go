@@ -32,6 +32,13 @@ func NewRepository(path string) *Repository {
 func (r *Repository) Load() (*Config, error) {
 	data, err := os.ReadFile(r.path)
 	if err != nil {
+		if os.IsNotExist(err) {
+			cfg := DefaultConfig()
+			if saveErr := r.Save(cfg); saveErr != nil {
+				return nil, saveErr
+			}
+			return cfg, nil
+		}
 		return nil, err
 	}
 	var cfg Config
