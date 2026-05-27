@@ -157,7 +157,7 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 		},
 	)
 
-	go trayMgr.Run(func() { notifications.SendStartup(app) })
+	trayMgr.Run(func() { notifications.SendStartup(app) })
 	app.Run()
 
 	// Cleanup

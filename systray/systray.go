@@ -1,11 +1,11 @@
-﻿// Package systray handles system tray integration for Cornealius Eyeworth.
+// Package systray handles system tray integration for Cornealius Eyeworth.
 package systray
 
 import (
 	"fmt"
 
 	"fyne.io/fyne/v2"
-	"fyne.io/systray"
+	"fyne.io/fyne/v2/driver/desktop"
 
 	"github.com/mpyziak/cornealius-eyeworth/assets"
 	"github.com/mpyziak/cornealius-eyeworth/config"
@@ -18,8 +18,8 @@ type Manager struct {
 	app             fyne.App
 	windowFactory   func() fyne.Window // builds a fresh window each time it is shown
 	currentWindow   fyne.Window        // non-nil while the status window is visible
-	scheduleMenu    *systray.MenuItem
-	nextTriggerMenu *systray.MenuItem
+	scheduleMenu    *fyne.MenuItem
+	nextTriggerMenu *fyne.MenuItem
 	setupCfg        *config.Config
 }
 
@@ -34,56 +34,58 @@ func (m *Manager) SetWindowFactory(f func() fyne.Window) {
 	m.windowFactory = f
 }
 
-// Setup stores the config for use when the tray is ready.
+// Setup stores the config and performs the real systray initialisation.
 func (m *Manager) Setup(cfg *config.Config) {
 	m.setupCfg = cfg
+	m.doSetup()
 }
 
-// doSetup performs the real systray initialisation. Must be called from inside
-// the onReady callback passed to systray.Run so it works correctly on Windows.
+// doSetup performs the real systray initialisation.
 func (m *Manager) doSetup() {
+	desk, ok := m.app.(desktop.App)
+	if !ok {
+		return
+	}
+
 	cfg := m.setupCfg
 	S := i18n.Active
 
-	systray.SetIcon(assets.IconBytes())
-	systray.SetTooltip(S.AppName)
-
-	showHideItem := systray.AddMenuItem(S.TrayTooltipShowHide, S.AppName)
-	systray.AddSeparator()
-
-	m.nextTriggerMenu = systray.AddMenuItem(
+	m.nextTriggerMenu = fyne.NewMenuItem(
 		fmt.Sprintf(S.NextTrigger, scheduling.NextTrigger(cfg.CronExpression).Format("15:04")),
-		S.TrayTooltipNextTrigger,
+		nil,
 	)
-	m.nextTriggerMenu.Disable()
+	m.nextTriggerMenu.Disabled = true
 
-	systray.AddSeparator()
-	quitItem := systray.AddMenuItem(S.MenuQuit, S.TrayTooltipQuit)
+	showHideItem := fyne.NewMenuItem(S.TrayTooltipShowHide, func() {
+		m.toggleWindowVisibility()
+	})
 
-	go func() {
-		for {
-			select {
-			case <-showHideItem.ClickedCh:
-				m.toggleWindowVisibility()
-			case <-quitItem.ClickedCh:
-				systray.Quit()
-				return
-			}
-		}
-	}()
+	quitItem := fyne.NewMenuItem(S.MenuQuit, func() {
+		m.app.Quit()
+	})
+
+	menu := fyne.NewMenu(S.AppName,
+		showHideItem,
+		fyne.NewMenuItemSeparator(),
+		m.nextTriggerMenu,
+		fyne.NewMenuItemSeparator(),
+		quitItem,
+	)
+
+	desk.SetSystemTrayMenu(menu)
+	m.app.SetIcon(assets.Logo)
 }
 
 // UpdateLabels updates the schedule and next trigger labels in the tray menu.
 func (m *Manager) UpdateLabels(cfg *config.Config) {
 	S := i18n.Active
 	if m.scheduleMenu != nil {
-		m.scheduleMenu.SetTitle(scheduling.Describe(cfg.CronExpression))
+		m.scheduleMenu.Label = scheduling.Describe(cfg.CronExpression)
 	}
 	if m.nextTriggerMenu != nil {
-		m.nextTriggerMenu.SetTitle(
-			fmt.Sprintf(S.NextTrigger, scheduling.NextTrigger(cfg.CronExpression).Format("15:04")),
-		)
+		m.nextTriggerMenu.Label = fmt.Sprintf(S.NextTrigger, scheduling.NextTrigger(cfg.CronExpression).Format("15:04"))
 	}
+	// Fyne's MenuItem automatically reflects changes to its Label if the menu is active.
 }
 
 // NotifyHidden records that the status window has been closed by means other
@@ -106,16 +108,9 @@ func (m *Manager) toggleWindowVisibility() {
 	}
 }
 
-// Run starts the system tray event loop (blocking call).
-// onReady is called after the tray icon has been fully initialised;
-// pass nil if no post-init work is needed.
+// Run is kept for API compatibility but no longer starts a separate loop.
 func (m *Manager) Run(onReady func()) {
-	systray.Run(func() {
-		m.doSetup()
-		if onReady != nil {
-			onReady()
-		}
-	}, func() {
-		m.app.Quit()
-	})
+	if onReady != nil {
+		onReady()
+	}
 }
