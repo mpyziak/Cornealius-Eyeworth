@@ -2,63 +2,161 @@
 
 ## Overview
 
-A small Windows desktop application (WinForms) that reminds users to rest their eyes on a schedule. It uses Quartz for scheduling and Windows toast notifications for reminders. The app is written in C# and targets .NET 10 (net10.0-windows10.0.17763.0).
+Eye-rest and stand-up reminder app. Lives in the system tray; fires balloon
+notifications on a CRON schedule. Cross-platform source; primary target is Windows.
+This is a **Go / Fyne v2** rewrite of an older C# WinForms version. The C# version
+no longer exists in this repo.
+
+---
 
 ## Quick facts
 
-- **Project name:** Cornealius-Eyeworth
-- **Primary language:** C# (.NET)
-- **Target framework:** net10.0-windows10.0.17763.0
-- **UI framework:** Windows Forms
-- **Entrypoint:** `Program.cs` → `AppHost.RunAsync()`
-- **Primary config:** `config.json` (fields: `CronExpression`, `Language`)
-- **Key packages:** Microsoft.Toolkit.Uwp.Notifications (7.1.3), Quartz (3.18.1)
-
-## Layout & responsibilities
-
-- **Application/** — `AppHost.cs`: composition root and app lifecycle.
-- **Configuration/** — config model + `JsonConfigRepository` for reading/writing `config.json`.
-- **Parsing/** — cron and minutes parsing (`CronExpressionParser`, `MinutesInputParser`).
-- **Scheduling/** — Quartz integration and scheduling logic (`SchedulerService`, `EyeworthJob`, `NextTriggerProvider`).
-- **Notifications/** — toast notifications (`NotificationService`).
-- **UI/** — WinForms UI (`MainForm`, dialogs for schedule and language).
-- **Localization/** — ResX resources and generated designer files.
-
-## Important files (entry points)
-
-- `Program.cs`
-- `CornealiusEyeworth.csproj`
-- `config.json`
-- `Application/AppHost.cs`
-- `Scheduling/SchedulerService.cs`
-- `Notifications/NotificationService.cs`
-- `Parsing/CronExpressionParser.cs`
-- `UI/MainForm.cs`
-
-## Build & run
-
-- Build: `dotnet build -c Debug` or `dotnet build -c Release`.
-- Run: execute the built binary from `bin/Debug/net10.0-windows10.0.17763.0/`.
-- Note: `config.json` is copied to the output; edit and restart to change runtime behavior.
-
-## Config
-
-- `config.json` contains `CronExpression` and `Language`.
-- Default CronExpression example: `0 20,40,55 * * * ?` (triggers at 20, 40 and 55 minutes each hour).
-
-## Search tokens & quick tasks
-
-- Search tokens: `AppHost`, `SchedulerService`, `NotificationService`, `CronExpressionParser`, `JsonConfigRepository`, `MainForm`, `config.json`.
-- Common edits:
-  - Change schedule: update `config.json` or `Scheduling/` code.
-  - Change notifications: edit `Notifications/NotificationService.cs`.
-  - Add language: add `.resx` in `Localization/` and update `LanguageDialog`.
-
-## Known constraints & gaps
-
-- Windows-only (WinForms + Windows toasts).
-- No automated tests in the repo.
-- global.json pins SDK `9.0.100` — may require matching SDK locally.
+| Key | Value |
+|-----|-------|
+| Language | Go 1.22 |
+| Module | `github.com/mpyziak/cornealius-eyeworth` |
+| UI framework | Fyne v2 (`fyne.io/fyne/v2 v2.7.4`) |
+| Systray | `fyne.io/systray v1.12.1` |
+| Scheduler | `github.com/robfig/cron/v3` (Quartz-style 6-field, seconds first) |
+| Config file | `config.json` next to the executable |
+| Entry point | `main.go` → `ui.Run()` |
 
 ---
-This file is a short, focused map of the repository to help future agents and contributors quickly find where to change scheduling, notifications, UI, and localization.
+
+## Package map
+
+```
+main.go              Entry point: loads config, sets locale, starts Fyne app + ui.Run()
+assets/              Embeds Logo.png (Fyne resource) and Logo.ico (systray + window icon)
+config/              Config struct (CronExpression, StandUpCronExpression, Language) + JSON repo
+i18n/                Strings struct, SetLanguage(), Active global; English / Deutsch / Polski
+notifications/       Platform-split notification senders
+  notifier.go        !windows: wraps fyne.App.SendNotification()
+  notifier_windows.go windows: Shell_NotifyIcon balloon tips via direct Win32 syscalls
+  flusher.go         AppFlusher — bridges scheduling.Flusher → SendReminders()
+parsing/             ParseCron(), ParseMinutes(), TryExtractSimpleMinutes()
+scheduling/
+  scheduler.go       Scheduler (hot-restartable robfig/cron wrapper), ApplySchedule()
+  buffer.go          Buffer — coalesces rapid firings into one notification (2 s window)
+  describer.go       Describe() — CRON → human-readable text
+  nexttrigger.go     NextTrigger() — next wall-clock fire time
+systray/             Manager: tray icon + on-demand status window lifecycle
+ui/
+  ui.go              Run() — wires everything together; anchor window + window factory
+  schedule.go        ShowScheduleDialog()
+  language.go        ShowLanguageDialog()
+  about.go           ShowAboutDialog()
+  help.go            ShowHelpDialog()
+winres/winres.json   Windows resource manifest (icon, version info) for go-winres
+rsrc_windows_amd64.syso  Compiled Windows resources (auto-linked by go build)
+```
+
+---
+
+## Architecture highlights
+
+### Window lifecycle (important for memory)
+- A silent **anchor window** (`app.NewWindow("")`, never shown) is created first to
+  keep Fyne's event loop alive. It is never `Show()`'d so Windows never registers its
+  HWND as a visible top-level window.
+- The status window is **on-demand**: `systray.Manager` holds a `windowFactory func()
+  fyne.Window`. Each tray click calls the factory and shows a fresh window;
+  closing it calls `win.Close()` (not `win.Hide()`), which destroys the HWND and
+  frees the Fyne/GLFW OpenGL context entirely.
+- Rationale: `win.Hide()` keeps the HWND registered with the Windows window manager.
+  On a locked/screen-shared session Windows routes display events (`WM_DPICHANGED`,
+  etc.) to all registered HWNDs. Fyne handles these by re-allocating GL framebuffers
+  and texture mipmaps (CGO/native memory, invisible to Go GC), causing multi-GB leaks
+  over hours. `Close()` removes the HWND and prevents this.
+
+### Notifications (Windows)
+- `fyne.App.SendNotification()` shells out to PowerShell and is blocked on
+  corporate machines. Windows implementation uses `Shell_NotifyIconW` (balloon
+  tip) via direct Win32 syscalls instead.
+- The systray window (`SystrayClass` HWND, id=100) must exist before calling
+  `Shell_NotifyIconW`. `SendStartup` is therefore called from inside the
+  `systray.Run` `onReady` callback, not before it.
+
+### Scheduling
+- Two independent `Scheduler` instances (eye, stand-up).
+- `scheduling.Buffer` coalesces events within a 2-second window, then calls
+  `AppFlusher.Flush()` → `SendReminders()`. Prevents duplicate popups when
+  both schedules fire in the same second.
+- `ApplySchedule()` centralises start/stop logic; used from both `ui.Run()` and
+  `ShowScheduleDialog` save handler.
+
+---
+
+## Build
+
+Recommended (matches fyne package tooling, ~25 MB, proper icon on all machines):
+```powershell
+go run fyne.io/tools/cmd/fyne@latest package -release -app-id "github.com/mpyziak/cornealius-eyeworth" -os windows -icon assets/Logo.png -name "Cornealius Eyeworth"
+```
+
+Plain go build (dev/quick):
+```powershell
+go build -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
+```
+
+Windows resources (icon, manifest) are embedded via `rsrc_windows_amd64.syso`
+generated by `go-winres` (`go generate` in root, or `make winres`).
+
+---
+
+## Memory leak — investigation log
+
+### Symptoms
+- Observed exclusively on a **constrained corporate Windows PC**.
+- App starts at ~60 MB, drops to 10–15 MB after GC. Stable for many hours.
+- Then bloats to 2–6+ GB and keeps growing until killed.
+- Reproduced without Teams calls and during a locked-screen session, ruling
+  out screen-share hooks as the sole trigger.
+
+### What was ruled out
+- The `scheduling.Buffer` and `Scheduler` have no unbounded growth.
+- `AppFlusher` and `SendReminders` allocate nothing long-lived.
+- No goroutine leak found in production paths.
+- `debug.FreeOSMemory()` on a 5-minute ticker was tried but removed (not
+  appropriate for release builds; doesn't fix the root cause).
+
+### Current hypothesis
+The leak is almost certainly **CGO/native memory** managed by Fyne's GLFW/OpenGL
+layer, not the Go heap. Possible triggers on the corporate machine:
+
+1. **DWM / DPI events on a locked session.** Group policy may force more aggressive
+   DWM redraws or DPI-change broadcasts. Each `WM_DPICHANGED` or `WM_SIZE` received
+   by a registered HWND causes Fyne to reallocate its Canvas backing store
+   (OpenGL framebuffer objects + mipmapped textures). These are `C.malloc`
+   allocations; Go GC is unaware.
+
+2. **Timer-driven canvas refresh in a hidden-but-alive Fyne window.** Fyne
+   internally ticks the canvas renderer even for hidden windows. On some driver
+   stacks this accumulates GL sync objects or PBO ring-buffers.
+
+3. **Corporate endpoint agent injecting an OpenGL/D3D hook** (AV, DLP, screen
+   recording compliance). Hooked GL calls may allocate per-frame side-channel
+   buffers that are never freed while the context is alive.
+
+### Current mitigation
+The on-demand window factory (see Architecture highlights above) eliminates the
+long-lived HWND. If the leak reappears it must be sourced from code that runs
+without any visible window (anchor window, scheduler, tray icon itself, or a
+Fyne internal goroutine keeping the hidden canvas ticking).
+
+### Next investigation steps (if leak returns)
+1. Confirm that the anchor window (`app.NewWindow("")`, never shown) does **not**
+   create an OpenGL context. If it does, consider replacing it with a mechanism
+   that keeps `app.Run()` alive without any Fyne window at all (e.g. a custom
+   `fyne.Driver` lifecycle hook, or simply never calling `app.NewWindow` for the
+   anchor and instead relying on the systray goroutine to block).
+2. Profile with `GODEBUG=clobberfree=1` or attach a native heap profiler
+   (e.g. umdh / VMMap on Windows) to see whether the growing memory is Go heap,
+   CGO heap, or mapped DLLs.
+3. Consider switching the Fyne theme to `theme.DefaultTheme()` with
+   `app.Settings().SetTheme()` and disabling animations — some Fyne themes trigger
+   more GL draw calls.
+4. As a last resort: eliminate Fyne entirely for the tray-only mode and use a
+   pure-Win32 message-loop (`CreateWindowEx` + `GetMessage` loop) with no GL.
+   Notifications already use pure Win32. The status window is the only remaining
+   Fyne dependency at runtime.

@@ -124,8 +124,8 @@ var english = Strings{
 
 	StatusServing:       "● Serving",
 	ScheduleDescription: "Schedule: %s",
-	NextTrigger:         "Next trigger: %s",
-	NextTriggerStandUp:  "Next stand-up: %s",
+	NextTrigger:         "Next eye care: %s",
+	NextTriggerStandUp:  "Next back care: %s",
 
 	MenuOptions:      "Options ⚙️",
 	MenuLanguage:     "Language... 🌐",
@@ -231,7 +231,7 @@ Cornealius runs quietly in the background. Simply leave the window open (minimis
 	OptionsLanguageRestartNotice: "The language change will take effect the next time Cornealius starts.",
 
 	ScheduleDescriptionCron:   "CRON: %s",
-	ScheduleDescriptionSimple: "Minutes %s past every hour",
+	ScheduleDescriptionSimple: "Calls at minutes %s of every hour",
 }
 
 // ---------------------------------------------------------------------------
@@ -245,8 +245,8 @@ var german = Strings{
 
 	StatusServing:       "● Im Dienst",
 	ScheduleDescription: "Zeitplan: %s",
-	NextTrigger:         "Nächste Erinnerung: %s",
-	NextTriggerStandUp:  "Nächstes Aufstehen: %s",
+	NextTrigger:         "Nächste Augenpflege: %s",
+	NextTriggerStandUp:  "Nächste Rückenpflege: %s",
 
 	MenuOptions:      "Optionen ⚙️",
 	MenuLanguage:     "Sprache... 🌐",
@@ -352,7 +352,7 @@ Cornealius läuft still im Hintergrund. Lassen Sie das Fenster einfach offen (Mi
 	OptionsLanguageRestartNotice: "Die Sprachänderung wird beim nächsten Start wirksam.",
 
 	ScheduleDescriptionCron:   "CRON: %s",
-	ScheduleDescriptionSimple: "Minuten %s jeder Stunde",
+	ScheduleDescriptionSimple: "Ruft an den Minuten: %s jeder Stunde",
 }
 
 // ---------------------------------------------------------------------------
@@ -366,8 +366,8 @@ var polish = Strings{
 
 	StatusServing:       "● Na służbie",
 	ScheduleDescription: "Harmonogram: %s",
-	NextTrigger:         "Następne przypomnienie: %s",
-	NextTriggerStandUp:  "Następne wstanie: %s",
+	NextTrigger:         "Najbliższa chwila dla oczu: %s",
+	NextTriggerStandUp:  "Najbliższa chwila dla pleców: %s",
 
 	MenuOptions:      "Opcje ⚙️",
 	MenuLanguage:     "Język... 🌐",
@@ -474,5 +474,5 @@ Cornealius działa cicho w tle. Wystarczy pozostawić okno otwarte (minimalizacj
 	OptionsLanguageRestartNotice: "Zmiana języka zostanie zastosowana przy następnym uruchomieniu.",
 
 	ScheduleDescriptionCron:   "CRON: %s",
-	ScheduleDescriptionSimple: "Minuty %s każdej godziny",
+	ScheduleDescriptionSimple: "Przypomina w minutach: %s każdej godziny",
 }

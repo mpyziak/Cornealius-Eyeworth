@@ -4,12 +4,12 @@ package ui
 import (
 	"fmt"
 	"net/url"
+	"sync"
 	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 
@@ -26,28 +26,84 @@ const (
 	mainWinH float32 = 180
 )
 
+// statusState holds the current displayable status strings and, while a status
+// window is open, direct label pointers for live updates. Using direct label
+// references instead of fyne data bindings avoids accumulating binding
+// listeners from each window-open cycle — binding listeners are never cleaned
+// up automatically when a window is closed, causing a listener-per-cycle leak
+// that prevents old Label widgets from being garbage-collected.
+type statusState struct {
+	mu sync.Mutex
+
+	schedule           string
+	nextTrigger        string
+	standUp            string
+	standUpNextTrigger string
+
+	// non-nil while the status window is open
+	scheduleLabel           *widget.Label
+	nextTriggerLabel        *widget.Label
+	standUpLabel            *widget.Label
+	standUpNextTriggerLabel *widget.Label
+}
+
+func (s *statusState) update(c *config.Config) {
+	S := i18n.Active
+	schedule := scheduling.Describe(c.CronExpression)
+	nextTrigger := fmt.Sprintf(S.NextTrigger, scheduling.NextTrigger(c.CronExpression).Format("15:04"))
+	standUp := scheduling.Describe(c.StandUpCronExpression)
+	standUpNextTrigger := fmt.Sprintf(S.NextTriggerStandUp, scheduling.NextTrigger(c.StandUpCronExpression).Format("15:04"))
+
+	s.mu.Lock()
+	s.schedule = schedule
+	s.nextTrigger = nextTrigger
+	s.standUp = standUp
+	s.standUpNextTrigger = standUpNextTrigger
+	sl := s.scheduleLabel
+	ntl := s.nextTriggerLabel
+	sul := s.standUpLabel
+	suntl := s.standUpNextTriggerLabel
+	s.mu.Unlock()
+
+	// Update live labels if the window is currently open.
+	if sl != nil {
+		sl.SetText(schedule)
+		ntl.SetText(nextTrigger)
+		sul.SetText(standUp)
+		suntl.SetText(standUpNextTrigger)
+	}
+}
+
+func (s *statusState) attach(sl, ntl, sul, suntl *widget.Label) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.scheduleLabel = sl
+	s.nextTriggerLabel = ntl
+	s.standUpLabel = sul
+	s.standUpNextTriggerLabel = suntl
+}
+
+func (s *statusState) detach() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.scheduleLabel = nil
+	s.nextTriggerLabel = nil
+	s.standUpLabel = nil
+	s.standUpNextTriggerLabel = nil
+}
+
+func (s *statusState) snapshot() (schedule, nextTrigger, standUp, standUpNextTrigger string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.schedule, s.nextTrigger, s.standUp, s.standUpNextTrigger
+}
+
 // Run is the application entry point for the UI layer.
 func Run(app fyne.App, cfg *config.Config, repo config.Store) {
-	S := i18n.Active
-
 	app.SetIcon(assets.AppIcon)
 
-	scheduleBinding := binding.NewString()
-	nextTriggerBinding := binding.NewString()
-	standUpBinding := binding.NewString()
-	standUpNextTriggerBinding := binding.NewString()
-
-	updateStatus := func(c *config.Config) {
-		_ = scheduleBinding.Set(scheduling.Describe(c.CronExpression))
-		_ = nextTriggerBinding.Set(
-			fmt.Sprintf(S.NextTrigger, scheduling.NextTrigger(c.CronExpression).Format("15:04")),
-		)
-		_ = standUpBinding.Set(scheduling.Describe(c.StandUpCronExpression))
-		_ = standUpNextTriggerBinding.Set(
-			fmt.Sprintf(S.NextTriggerStandUp, scheduling.NextTrigger(c.StandUpCronExpression).Format("15:04")),
-		)
-	}
-	updateStatus(cfg)
+	status := &statusState{}
+	status.update(cfg)
 
 	// Anchor window: created first so it becomes Fyne's "master" window.
 	// It is never shown, so Windows never registers its HWND as a visible
@@ -69,14 +125,17 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 	// the Fyne/GLFW OpenGL context, preventing GL resource accumulation that
 	// is triggered by screen-share and DPI-change OS events.
 	trayMgr.SetWindowFactory(func() fyne.Window {
-		win := buildMainWindow(app, scheduleBinding, nextTriggerBinding, standUpBinding, standUpNextTriggerBinding)
-		win.SetMainMenu(buildMenu(app, repo, eyeScheduler, standUpScheduler, updateStatus, trayMgr, reminderBuffer))
+		schedule, nextTrigger, standUp, standUpNextTrigger := status.snapshot()
+		win, sl, ntl, sul, suntl := buildMainWindow(app, schedule, nextTrigger, standUp, standUpNextTrigger)
+		status.attach(sl, ntl, sul, suntl)
+		win.SetMainMenu(buildMenu(app, repo, eyeScheduler, standUpScheduler, status.update, trayMgr, reminderBuffer))
 		win.SetOnClosed(func() {
+			status.detach()
 			trayMgr.NotifyHidden()
 		})
 		win.SetCloseIntercept(func() {
 			notifications.SendMinimizedToTray(app)
-			win.Close() // triggers SetOnClosed → NotifyHidden
+			win.Close() // triggers SetOnClosed → detach + NotifyHidden
 		})
 		return win
 	})
@@ -92,7 +151,7 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 		func(notificationCategory string) {
 			reminderBuffer.Add(notifications.NewReminder(notificationCategory))
 			if latest, err := repo.Load(); err == nil {
-				updateStatus(latest)
+				status.update(latest)
 				trayMgr.UpdateLabels(latest)
 			}
 		},
@@ -148,7 +207,9 @@ func buildMenu(
 }
 
 // buildMainWindow creates and configures the main status window.
-func buildMainWindow(app fyne.App, scheduleBinding, nextTriggerBinding, standUpBinding, standUpNextTriggerBinding binding.String) fyne.Window {
+// It returns the window and the four status labels so the caller can register
+// them for live updates without using data bindings.
+func buildMainWindow(app fyne.App, schedule, nextTrigger, standUp, standUpNextTrigger string) (fyne.Window, *widget.Label, *widget.Label, *widget.Label, *widget.Label) {
 	S := i18n.Active
 
 	win := app.NewWindow(S.AppName)
@@ -162,27 +223,27 @@ func buildMainWindow(app fyne.App, scheduleBinding, nextTriggerBinding, standUpB
 	titleLabel := widget.NewLabelWithStyle(S.AppTitle, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	statusLabel := widget.NewLabel(S.StatusServing)
 
-	scheduleLabel := widget.NewLabelWithData(scheduleBinding)
+	scheduleLabel := widget.NewLabel(schedule)
 	scheduleLabel.Wrapping = fyne.TextWrapWord
 
-	nextTriggerLabel := widget.NewLabelWithData(nextTriggerBinding)
+	nextTriggerLabel := widget.NewLabel(nextTrigger)
 
-	standUpLabel := widget.NewLabelWithData(standUpBinding)
+	standUpLabel := widget.NewLabel(standUp)
 	standUpLabel.Wrapping = fyne.TextWrapWord
 
-	standUpNextTriggerLabel := widget.NewLabelWithData(standUpNextTriggerBinding)
+	standUpNextTriggerLabel := widget.NewLabel(standUpNextTrigger)
 
 	topRow := container.NewHBox(logo, container.NewVBox(titleLabel, statusLabel))
 	body := container.New(layout.NewVBoxLayout(),
 		topRow,
 		widget.NewSeparator(),
-		scheduleLabel,
 		nextTriggerLabel,
+		scheduleLabel,
 		widget.NewSeparator(),
-		standUpLabel,
 		standUpNextTriggerLabel,
+		standUpLabel,
 	)
 
 	win.SetContent(container.NewPadded(body))
-	return win
+	return win, scheduleLabel, nextTriggerLabel, standUpLabel, standUpNextTriggerLabel
 }
