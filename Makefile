@@ -1,5 +1,7 @@
 BINARY   = cornealius-eyeworth
-ICON     = ../Properties/Resources/Logo.png
+APP_ID   = com.github.mpyziak.cornealius-eyeworth
+ICON     = assets/Logo.png
+APP_NAME = "Cornealius Eyeworth"
 
 # -s strips the symbol table; -w strips DWARF debug info.
 # Together they shave ~35-40% off a Fyne binary with no runtime cost.
@@ -34,13 +36,13 @@ run: build
 
 # fyne package strips by default; pass extra ldflags via FyneFlags if needed.
 package-win: deps
-	go run fyne.io/fyne/v2/cmd/fyne package -os windows -icon $(ICON) -name "Cornealius Eyeworth"
+	go run fyne.io/fyne/v2/cmd/fyne@latest package --release --appID $(APP_ID) --os windows --icon $(ICON) --name $(APP_NAME)
 
 package-linux: deps
-	go run fyne.io/fyne/v2/cmd/fyne package -os linux -icon $(ICON) -name "Cornealius Eyeworth"
+	go run fyne.io/fyne/v2/cmd/fyne@latest package --release --appID $(APP_ID) --os linux --icon $(ICON) --name $(APP_NAME)
 
 package-darwin: deps
-	go run fyne.io/fyne/v2/cmd/fyne package -os darwin -icon $(ICON) -name "Cornealius Eyeworth"
+	go run fyne.io/fyne/v2/cmd/fyne@latest package --release --appID $(APP_ID) --os darwin --icon $(ICON) --name $(APP_NAME)
 
 cross-all: deps
 	fyne-cross windows -arch amd64 -ldflags="-s -w"
