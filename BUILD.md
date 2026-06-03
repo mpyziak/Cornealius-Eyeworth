@@ -12,7 +12,7 @@ Cross-platform app for eye-rest reminders. Builds from the repository root and r
 | **C compiler** | any | CGO — required by Fyne's OpenGL backend | Linux: `sudo apt install gcc libgl1-mesa-dev xorg-dev` |
 | **MSYS2 / MinGW-w64** | any | CGO for Windows | see below |
 | **Xcode CLT** | any | CGO for macOS | `xcode-select --install` |
-| `fyne` CLI | optional | Packaging into distributables | `go install fyne.io/fyne/v2/cmd/fyne@latest@latest` |
+| `fyne` CLI | optional | Packaging into distributables | `go install fyne.io/tools/cmd/fyne@latest@latest` |
 
 > Fyne uses CGO for OpenGL support. A C compiler is mandatory on every platform.
 
@@ -105,13 +105,13 @@ make clean       # remove built binaries
 
 ```bash
 # Windows — embed icon + single-file .exe (~25 MB, identical to stripped go build)
-go run fyne.io/fyne/v2/cmd/fyne@latest package --release --appID "com.github.mpyziak.cornealius-eyeworth" --os windows --icon assets/Logo.png --name "Cornealius Eyeworth"
+go run fyne.io/tools/cmd/fyne@latest package --release --appID "com.github.mpyziak.cornealius-eyeworth" --os windows --icon assets/Logo.png --name "Cornealius Eyeworth"
 
 # macOS — produces a .app bundle
-go run fyne.io/fyne/v2/cmd/fyne@latest package --release --appID "com.github.mpyziak.cornealius-eyeworth" --os darwin --icon assets/Logo.png --name "Cornealius Eyeworth"
+go run fyne.io/tools/cmd/fyne@latest package --release --appID "com.github.mpyziak.cornealius-eyeworth" --os darwin --icon assets/Logo.png --name "Cornealius Eyeworth"
 
 # Linux — produces an executable with .desktop file
-go run fyne.io/fyne/v2/cmd/fyne@latest package --release --appID "com.github.mpyziak.cornealius-eyeworth" --os linux --icon assets/Logo.png --name "Cornealius Eyeworth"
+go run fyne.io/tools/cmd/fyne@latest package --release --appID "com.github.mpyziak.cornealius-eyeworth" --os linux --icon assets/Logo.png --name "Cornealius Eyeworth"
 ```
 
 ---

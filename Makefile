@@ -36,18 +36,20 @@ run: build
 
 # fyne package strips by default; pass extra ldflags via FyneFlags if needed.
 package-win: deps
-	go run fyne.io/fyne/v2/cmd/fyne@latest package --release --appID $(APP_ID) --os windows --icon $(ICON) --name $(APP_NAME)
+	go run fyne.io/tools/cmd/fyne@latest package --release --app-id $(APP_ID) --os windows --icon $(ICON) --name $(APP_NAME)
+	mkdir -p dist
+	mv $(APP_NAME).exe dist/$(APP_NAME).exe
 
 package-linux: deps
-	go run fyne.io/fyne/v2/cmd/fyne@latest package --release --appID $(APP_ID) --os linux --icon $(ICON) --name $(APP_NAME)
+	go run fyne.io/tools/cmd/fyne@latest package --release --app-id $(APP_ID) --os linux --icon $(ICON) --name $(APP_NAME)
+	mkdir -p dist
+	mv $(APP_NAME).tar.xz dist/$(APP_NAME).tar.xz
 
 package-darwin: deps
-	go run fyne.io/fyne/v2/cmd/fyne@latest package --release --appID $(APP_ID) --os darwin --icon $(ICON) --name $(APP_NAME)
-
-cross-all: deps
-	fyne-cross windows -arch amd64 -ldflags="-s -w"
-	fyne-cross linux   -arch amd64 -ldflags="-s -w"
-	fyne-cross darwin  -arch amd64,arm64 -ldflags="-s -w"
+	go run fyne.io/tools/cmd/fyne@latest package --release --app-id $(APP_ID) --os darwin --icon $(ICON) --name $(APP_NAME)
+	mkdir -p dist
+	mv $(APP_NAME).app dist/$(APP_NAME).app
 
 clean:
 	$(RM) $(BINARY) $(BINARY).exe
+	$(RM) -rf dist

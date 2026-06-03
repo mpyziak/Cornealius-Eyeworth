@@ -1,9 +1,5 @@
-# Build output
-bin/
-obj/
-
 # Publish output
-publish/
+dist/
 
 # VS Code
 .vscode/*
@@ -12,14 +8,6 @@ publish/
 !.vscode/launch.json
 !.vscode/extensions.json
 .history/
-
-# JetBrains Rider
-.idea/
-*.sln.iml
-*.DotSettings.user
-
-# MSBuild logs
-*.binlog
 
 # Go build output
 *ornealius*yewort*
