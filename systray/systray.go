@@ -63,6 +63,7 @@ func (m *Manager) doSetup() {
 	quitItem := fyne.NewMenuItem(S.MenuQuit, func() {
 		m.app.Quit()
 	})
+	quitItem.IsQuit = true // prevents Fyne from injecting a second Quit entry
 
 	menu := fyne.NewMenu(S.AppName,
 		showHideItem,
@@ -110,6 +111,7 @@ func (m *Manager) toggleWindowVisibility() {
 
 // Run is kept for API compatibility but no longer starts a separate loop.
 func (m *Manager) Run(onReady func()) {
+	patchTrayWindows()
 	if onReady != nil {
 		onReady()
 	}
