@@ -262,3 +262,32 @@ removed in favour of the `app.Driver().Run()` workaround for issue 1).
 |---|---------|-----------|---------------------|----------------------|
 | 1 | `fyne-io/fyne` | `WatchTheme` has no debounce; rapid registry writes flood funcQueue | Add 500 ms debounce + stop channel to `WatchTheme` | None without vendoring — `RunEventQueue` lives on an internal type that Go forbids importing across modules |
 | 2 | `go-gl/glfw` | HID arrival triggers full DirectInput re-scan | Don't register for HID notifications / add opt-out hint | None — requires library patch |
+
+---
+
+## Self-inflicted regression (resolved) — `SetParent(SystrayMonitor)` causes CPU loop
+
+**Introduced and fixed in this repository.** Recorded here as a hard constraint
+so it is never reintroduced.
+
+### What happened
+An attempt to hide both Fyne-created tray windows from shell-extension enumeration
+called `SetParent(hwnd, HWND_MESSAGE)` on both `SystrayClass` and `SystrayMonitor`
+from a background goroutine.  The result was runaway CPU use and unbounded memory
+growth triggered by Teams chat notification bubbles.
+
+### Why
+`SystrayMonitor` is a GLFW-managed window with an active OpenGL context owned by
+the main thread.  When `SetParent` is called on it from another thread, Windows
+delivers `WM_WINDOWPOSCHANGING/CHANGED/SIZE/MOVE` synchronously to the main-thread
+message queue.  GLFW's `wndProc` processes these and queries the window's geometry;
+a message-only window returns non-standard values, leaving GLFW in a state where it
+continuously issues resize/recheck calls — 100% CPU and a new GL allocation per
+iteration.
+
+### The rule
+**Never call `SetParent`, `SetWindowLongPtr`, `SetWindowPos`, or any other
+cross-thread Win32 style mutation on `SystrayMonitor`.**
+Only `SystrayClass` (the `fyne.io/systray` message pump — no GL context) is safe
+to reparent.  See `systray/systraypatch_win.go` and the "Systray window patching"
+section of `PROJECT_CONTEXT.md` for the full rationale.

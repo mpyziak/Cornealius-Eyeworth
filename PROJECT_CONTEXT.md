@@ -69,6 +69,35 @@ rsrc_windows_amd64.syso  Compiled Windows resources (auto-linked by go build)
   and texture mipmaps (CGO/native memory, invisible to Go GC), causing multi-GB leaks
   over hours. `Close()` removes the HWND and prevents this.
 
+### Systray window patching (Windows — `systray/systraypatch_win.go`)
+On some machines, endpoint-security shell extensions call `EnumWindows` and
+inject an extra "Quit" context-menu item into any process that has a notification-
+area icon and an enumerable top-level HWND.  Two HWNDs are created by Fyne's
+systray subsystem:
+
+- **`SystrayClass`** — plain Win32 message window owned by `fyne.io/systray`.
+  `SetParent(hwnd, HWND_MESSAGE)` is safe here: the window has no GL context,
+  its message loop (`GetMessage` in a background goroutine) continues to work
+  after reparenting, and `Shell_NotifyIcon` holds the HWND directly so tray
+  callbacks are unaffected.  **This window IS reparented.**
+
+- **`SystrayMonitor`** — hidden GLFW window created by Fyne's driver as a quit-
+  detection hook.  It has an OpenGL context managed by GLFW on the main thread.
+  **This window must NEVER be reparented or have its Win32 style mutated
+  cross-thread.**  Calling `SetParent` on it from a background goroutine causes
+  Windows to deliver `WM_WINDOWPOSCHANGING/CHANGED/SIZE/MOVE` synchronously to
+  the main thread.  GLFW's wndProc processes these and queries the window's
+  geometry; a message-only window returns non-standard values, leaving GLFW in
+  an inconsistent state that produces a continuous polling/recorrection loop
+  (100% CPU) and unbounded GL allocation.  `SystrayMonitor` has no
+  `Shell_NotifyIcon` entry so no shell extension can target it regardless of
+  its parent.
+
+Fyne also auto-injects a second Quit into every systray menu it builds
+(`addMissingQuitForMenu` in `driver/glfw/driver_desktop.go`) unless the last
+menu item already has `IsQuit = true`.  The quit item in `doSetup()` must
+always set `quitItem.IsQuit = true` to prevent this.
+
 ### Notifications (Windows)
 - `fyne.App.SendNotification()` shells out to PowerShell and is blocked on
   corporate machines. Windows implementation uses `Shell_NotifyIconW` (balloon

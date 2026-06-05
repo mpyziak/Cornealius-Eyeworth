@@ -58,18 +58,14 @@ func patchTrayWindowsWhenReady() {
 		pollInterval = 100 * time.Millisecond
 	)
 
-	var systrayHwnd, monitorHwnd uintptr
+	var systrayHwnd uintptr
 
 	for i := 0; i < maxAttempts; i++ {
 		if systrayHwnd == 0 {
 			cls, _ := syscall.UTF16PtrFromString("SystrayClass")
 			systrayHwnd, _, _ = procFindWinP.Call(uintptr(unsafe.Pointer(cls)), 0)
 		}
-		if monitorHwnd == 0 {
-			title, _ := syscall.UTF16PtrFromString("SystrayMonitor")
-			monitorHwnd, _, _ = procFindWinP.Call(0, uintptr(unsafe.Pointer(title)))
-		}
-		if systrayHwnd != 0 && monitorHwnd != 0 {
+		if systrayHwnd != 0 {
 			break
 		}
 		time.Sleep(pollInterval)
@@ -78,7 +74,11 @@ func patchTrayWindowsWhenReady() {
 	if systrayHwnd != 0 {
 		procSetPar.Call(systrayHwnd, hwndMessage)
 	}
-	if monitorHwnd != 0 {
-		procSetPar.Call(monitorHwnd, hwndMessage)
-	}
+	// SystrayMonitor is intentionally NOT reparented.
+	// It is a GLFW-managed window with an OpenGL context; calling SetParent on
+	// it cross-thread triggers WM_WINDOWPOSCHANGING/CHANGED/SIZE/MOVE back on
+	// the main thread, which can leave GLFW in an inconsistent geometry state
+	// and cause a continuous-polling loop (100% CPU) and unbounded GL allocation.
+	// SystrayMonitor has no Shell_NotifyIcon entry, so no shell extension will
+	// enumerate or inject into it regardless of its parent.
 }
