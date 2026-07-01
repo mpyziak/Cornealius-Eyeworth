@@ -43,3 +43,12 @@ require (
 	golang.org/x/text v0.22.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+// Patch for fyne.io/fyne/v2 WatchTheme (internal/app/theme_windows.go):
+// The upstream loop ignores the return value of RegNotifyChangeKeyValue.
+// When Windows deletes Themes\Personalize during a theme switch, RNCV returns
+// ERROR_KEY_DELETED (1018) on every call, spinning a tight loop that floods
+// Fyne's funcQueue with thousands of setupTheme closures → multi-MB heap spike.
+// The local fork adds ERROR_KEY_DELETED recovery and a 300 ms debounce.
+// See LEAKS.md §1 for full analysis.  Submit upstream: https://github.com/fyne-io/fyne
+replace fyne.io/fyne/v2 => ../fyne-v2-watchtheme-patch

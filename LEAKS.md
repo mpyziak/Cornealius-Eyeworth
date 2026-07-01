@@ -2,12 +2,17 @@
 
 This file documents two memory-leak root causes found during profiling of
 Cornealius Eyeworth, together with the minimal patches that fix them in their
-respective upstream libraries.  The patches are not applied in this repository;
-they are recorded here so that pull requests can be submitted upstream.
+respective upstream libraries.
+
+- **§1 (Fyne `WatchTheme`)** — workaround applied in this repository via
+  `go.mod replace` fork at `../fyne-v2-watchtheme-patch`.  See BUILD.md for
+  setup instructions.  Upstream bug report template is in §1 below.
+- **§2 (GLFW HID)** — requires a C-level change to the vendored GLFW sources;
+  not yet applied.  Upstream patch proposals are in §2 below.
 
 ---
 
-## 1 · `fyne.io/fyne/v2` — `WatchTheme` has no debounce and no stop signal
+## 1 · `fyne.io/fyne/v2` — `WatchTheme` ignores `RegNotifyChangeKeyValue` return value; key deletion causes busy-spin flooding `funcQueue`
 
 ### Affected file
 `internal/app/theme_windows.go` — function `WatchTheme`
@@ -138,24 +143,131 @@ Simpler alternative (no async event, no stop-channel — just adds the debounce)
 ### Upstream repository
 <https://github.com/fyne-io/fyne>
 
-### Workaround in this application
-No clean workaround is possible without either vendoring or a `go.mod replace`
-fork.
+### Exact failure sequence (observed 2026-06-23 / 2026-06-24)
 
-`app.Run()` (`fyne.io/fyne/v2/app.fyneApp.Run`) is the only public entry point
-for the event loop.  It starts `RunEventQueue` on the private `lifecycle` field
-before calling `driver.Run()`.  Calling `driver.Run()` alone causes `Quit()` to
-hang: `driver.Run()` calls `l.WaitForEvents()` on exit, which enqueues a
-sentinel to the lifecycle queue and blocks until it is drained — but without
-`RunEventQueue` running, nobody drains it.
+Both log sessions show the same pattern; the 2026-06-24 run is cleaner:
 
-`RunEventQueue` is defined on `*fyne.io/fyne/v2/internal/app.Lifecycle`, which
-Go's module system marks as internal and forbids importing from other modules.
+```
+08:30:35.487  theme-registry write #1           → Fyne's synchronous RNCV wakes up, calls onChanged()
+08:30:35.497  theme-registry key DELETED        → RNCV returns ERROR_KEY_DELETED (1018)
+                                                  Fyne: return value ignored, calls onChanged() anyway
+                                                  Fyne: tight loop — RNCV returns 1018 immediately every iteration
+                                                  HeapAlloc still ~1.32 MB (GC keeping up for now)
+08:30:35.616  key recreated (119 ms gap)        → Fyne's handle is still invalid; loop continues
+08:30:35.702  burst write #2 (our watcher sees it, Fyne can't — handle stale)
+08:30:35.723  burst write #3
+08:30:35.738  burst write #4
+08:30:35.763  burst write #5
+08:30:37.471  12 × Settings.AddListener fires in 8 ms — the queued setupTheme closures drain
+              HeapAlloc: 1.32 MB → 37.80 MB (+36 MB) in one event-loop frame
+              NumGC: 691 → 698 (7 GC cycles during drain — cannot keep up with allocation rate)
+```
 
-Therefore `app.Run()` is used as-is.  The WatchTheme leak remains until the
-upstream fix is merged.  Its practical effect is mitigated by the other fixes
-in this release: the binding-listener leak and GLFW HID enumeration are gone,
-so the post-call spike is smaller and GC recovers it faster.
+The ~12 closures that survive (out of potentially thousands enqueued during the
+119 ms tight-loop window) are those that Fyne's 60 fps event loop had not yet
+drained by the time steady-state resumed.  Each `setupTheme` call resets the
+theme cache, walks every widget in every open window, and re-applies colour
+and font metrics — O(widgets) allocations per call.
+
+### Workaround applied in this application
+
+A local fork of `fyne.io/fyne/v2` is maintained at
+`../fyne-v2-watchtheme-patch` (sibling of this repository) and wired in via a
+`replace` directive in `go.mod`:
+
+```
+replace fyne.io/fyne/v2 => ../fyne-v2-watchtheme-patch
+```
+
+The single patched file is
+`internal/app/theme_windows.go → WatchTheme`.  Two changes vs upstream v2.7.4:
+
+1. **ERROR_KEY_DELETED recovery**: check the `RegNotifyChangeKeyValue` return
+   value; on 1018 close the stale handle and poll with 50 ms sleeps until the
+   key is recreated, then resume watching normally.  This stops the tight loop.
+
+2. **300 ms debounce**: even after key recreation, Teams/Focus Assist writes the
+   key 3–5 more times in rapid succession.  A `time.Time` gate skips
+   `onChanged()` for any call that arrives within 300 ms of the previous one,
+   collapsing a burst of N writes into a single `setupTheme` call.
+
+Expected post-fix behaviour: one `Settings.AddListener` fire per Teams
+call-end event, heap stays at baseline, no multi-GB spike.
+
+### Suggested bug report (submit to https://github.com/fyne-io/fyne)
+
+> **Title**: `WatchTheme` (Windows): `RegNotifyChangeKeyValue` return value ignored — key deletion causes infinite tight loop flooding `funcQueue`
+>
+> **Affected version**: v2.7.4 (latest at time of writing; `internal/app/theme_windows.go`)
+>
+> **Platform**: Windows 10/11, any corporate environment where a Teams call or
+> Focus Assist restore triggers a full dark/light theme switch.
+>
+> **Reproduction**:
+> 1. Run any Fyne app on Windows with a `Settings().AddListener` registered.
+> 2. Start a Microsoft Teams call (or trigger any full theme switch that causes
+>    Windows to delete-and-recreate `HKCU\...\Themes\Personalize`).
+> 3. End the call / dismiss Focus Assist.
+> 4. Observe: heap jumps from ~1 MB to 20–40 MB; NumGC increases by 7+ in one
+>    event-loop frame; `Settings.AddListener` fires 10–15 times in <10 ms.
+>
+> **Root cause** (`internal/app/theme_windows.go`, function `WatchTheme`):
+>
+> ```go
+> for {
+>     // return value completely ignored
+>     regNotifyChangeKeyValue.Call(uintptr(k), 0, 0x00000001|0x00000004, 0, 0)
+>     onChanged()
+> }
+> ```
+>
+> When Windows deletes the registry key, `RegNotifyChangeKeyValue` returns
+> `ERROR_KEY_DELETED` (1018) **immediately** on every subsequent call.  Because
+> the return value is ignored, the loop calls `onChanged()` at CPU speed.
+> `onChanged()` calls `fyne.Do(s.setupTheme)`, posting to an unbounded channel.
+> The GLFW event loop drains the channel in one frame, running `setupTheme`
+> (cache reset + full widget-tree walk) N times in rapid succession.
+>
+> **Minimal fix**:
+>
+> ```go
+> import "time"
+>
+> func WatchTheme(onChanged func()) {
+>     // ... existing DLL loading ...
+>
+>     openKey := func() (registry.Key, error) {
+>         return registry.OpenKey(registry.CURRENT_USER, themeRegKey,
+>             syscall.KEY_NOTIFY|registry.QUERY_VALUE)
+>     }
+>     k, err := openKey()
+>     if err != nil { return }
+>
+>     const debounce = 300 * time.Millisecond
+>     var lastFired time.Time
+>
+>     for {
+>         ret, _, _ := regNotifyChangeKeyValue.Call(uintptr(k), 0,
+>             0x00000001|0x00000004, 0, 0)
+>         if ret != 0 { // ERROR_KEY_DELETED or other error
+>             k.Close()
+>             for {
+>                 time.Sleep(50 * time.Millisecond)
+>                 k, err = openKey()
+>                 if err == nil { break }
+>             }
+>             continue
+>         }
+>         if now := time.Now(); now.Sub(lastFired) >= debounce {
+>             lastFired = now
+>             onChanged()
+>         }
+>     }
+> }
+> ```
+>
+> **Observed heap impact without fix**: 1.3 MB → 37.8 MB per Teams call-end event.  
+> **Observed heap impact with fix**: expected single-digit MB spike (one `setupTheme` call) followed by immediate GC recovery.
 
 ---
 
@@ -260,7 +372,7 @@ removed in favour of the `app.Driver().Run()` workaround for issue 1).
 
 | # | Library | Root cause | Upstream fix needed | App-level workaround |
 |---|---------|-----------|---------------------|----------------------|
-| 1 | `fyne-io/fyne` | `WatchTheme` has no debounce; rapid registry writes flood funcQueue | Add 500 ms debounce + stop channel to `WatchTheme` | None without vendoring — `RunEventQueue` lives on an internal type that Go forbids importing across modules |
+| 1 | `fyne-io/fyne` | `WatchTheme` ignores `RegNotifyChangeKeyValue` return value; key deletion causes infinite tight loop flooding funcQueue with `setupTheme` closures → 37 MB heap spike | Add ERROR_KEY_DELETED recovery + 300 ms debounce to `WatchTheme` | **Applied**: `go.mod replace` fork at `../fyne-v2-watchtheme-patch`; bug report template in §1 above |
 | 2 | `go-gl/glfw` | HID arrival triggers full DirectInput re-scan | Don't register for HID notifications / add opt-out hint | None — requires library patch |
 
 ---

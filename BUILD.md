@@ -116,6 +116,138 @@ go run fyne.io/tools/cmd/fyne@latest package --release --app-id "com.github.mpyz
 
 ---
 
+## Fyne `WatchTheme` workaround (local module fork)
+
+This repository uses a patched local copy of `fyne.io/fyne/v2` to fix a
+Windows-only memory-leak bug in `WatchTheme` (see `LEAKS.md §1`).  The fix is
+wired via a `replace` directive in `go.mod`:
+
+```
+replace fyne.io/fyne/v2 => ../fyne-v2-watchtheme-patch
+```
+
+The patched fork must exist as a sibling directory.  If you clone this
+repository to a new machine or the sibling directory is missing, the build will
+fail with:
+
+```
+go: ../fyne-v2-watchtheme-patch: reading ../fyne-v2-watchtheme-patch/go.mod: open ...: no such file or directory
+```
+
+**To recreate the fork:**
+
+> **Note**: verified against `fyne.io/fyne/v2 v2.7.4` — the latest release at
+> the time of writing.  Run `go list -m -versions fyne.io/fyne/v2` before
+> starting; if a newer version is available, upgrade `go.mod` first (`go get
+> fyne.io/fyne/v2@latest ; go mod tidy`) and re-apply the patch to the new
+> module cache entry.
+
+```powershell
+# 1. Copy the module from the local cache (read-only by default — strip that)
+$ver = "v2.7.4"
+$src = "$env:USERPROFILE\go\pkg\mod\fyne.io\fyne\$ver"
+$dst = "..\fyne-v2-watchtheme-patch"
+
+Copy-Item -Recurse -Force $src $dst
+attrib -r "$dst\*.*" /s /d
+
+# 2. Open the single file that needs patching
+#    c:\Users\...\Projects\spikes\fyne-v2-watchtheme-patch\internal\app\theme_windows.go
+```
+
+Apply the following diff to `internal/app/theme_windows.go` in the copied
+directory (the patched version already committed in `../fyne-v2-watchtheme-patch`
+can be used as a reference):
+
+```diff
+--- a/internal/app/theme_windows.go
++++ b/internal/app/theme_windows.go
+@@ -4,6 +4,7 @@ package app
+ import (
+ 	"syscall"
++	"time"
+ 
+ 	"golang.org/x/sys/windows/registry"
+ 
+@@ -42,12 +42,41 @@ func isDark() bool {
+ // WatchTheme calls the supplied function when the Windows dark/light theme changes.
+ func WatchTheme(onChanged func()) {
+-	// implementation based on an MIT-licensed Github Gist by Jeremy Black (c) 2022
+-	// https://gist.github.com/jerblack/1d05bbcebb50ad55c312e4d7cf1bc909
+-	...
++	openKey := func() (registry.Key, error) {
++		return registry.OpenKey(registry.CURRENT_USER, themeRegKey,
++			syscall.KEY_NOTIFY|registry.QUERY_VALUE)
++	}
++	...
+ 	k, err := registry.OpenKey(...)
+ 	if err != nil {
+ 		return
+ 	}
++
++	const debounce = 300 * time.Millisecond
++	var lastFired time.Time
++
+ 	for {
+-		regNotifyChangeKeyValue.Call(uintptr(k), 0, 0x00000001|0x00000004, 0, 0)
+-		onChanged()
++		ret, _, _ := regNotifyChangeKeyValue.Call(uintptr(k), 0, 0x00000001|0x00000004, 0, 0)
++		if ret != 0 { // ERROR_KEY_DELETED (1018) or other error
++			k.Close()
++			for {
++				time.Sleep(50 * time.Millisecond)
++				k, err = openKey()
++				if err == nil { break }
++			}
++			continue
++		}
++		if now := time.Now(); now.Sub(lastFired) >= debounce {
++			lastFired = now
++			onChanged()
++		}
+ 	}
+ }
+```
+
+Two changes:
+1. **`ERROR_KEY_DELETED` recovery** — Windows deletes and recreates `Themes\Personalize` during a full theme switch (Teams call-end, Focus Assist restore).  The original code ignores the `RegNotifyChangeKeyValue` return value, so when the key is deleted the call returns error 1018 immediately on every iteration — a busy-spin that enqueues thousands of `setupTheme` closures in under 200 ms.  The fix closes the stale handle and polls until the key is recreated.
+2. **300 ms debounce** — Teams/Focus Assist writes the key 3–5 more times after recreation.  The debounce collapses the burst into a single `onChanged()` call.
+
+```powershell
+# 3. Verify the fork builds
+cd ..\fyne-v2-watchtheme-patch
+go build ./internal/app/ 2>&1
+
+# 4. Back in the app — confirm both builds compile
+cd ..\Cornealius-Eyeworth
+go build -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
+go build -tags sysmon -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
+```
+
+---
+
+## Diagnostic build — OS event monitoring (`sysmon` tag)
+
+The `sysmon` build tag compiles in additional goroutines that log Windows OS events to help diagnose memory leaks. It is **not** included in production builds.
+
+What `sysmon` adds:
+- Registry watcher on `HKCU\...\Themes\Personalize` (tracks burst writes that trigger Fyne's `setupTheme`)
+- A pinned OS-thread message pump that logs: HID / network device arrivals and removals (`WM_DEVICECHANGE`), power sleep/resume (`WM_POWERBROADCAST`), session lock/unlock/RDP (`WM_WTSSESSION_CHANGE`), display change, DPI change, theme change, system colour change, font change, `WM_COMPACTING`, and Group Policy `WM_SETTINGCHANGE`
+- Registry watcher on `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Group Policy\State` (GP update cycle ~90 min)
+- Fyne `Settings.AddListener` to correlate `setupTheme` calls with the registry bursts above
+
+```powershell
+# Diagnostic build (Windows, with sysmon monitoring)
+go build -tags sysmon -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
+
+# Production build (no extra overhead)
+go build -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
+```
+
+Log files are written to `%APPDATA%\Cornealius Eyeworth\logs\` regardless of the build tag (the base `applog` rotating-file logger and 30-second memory sampler are always active).
+
+---
+
 ## Project structure
 
 ```
