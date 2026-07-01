@@ -15,6 +15,7 @@ import (
 
 	"github.com/mpyziak/cornealius-eyeworth/assets"
 	"github.com/mpyziak/cornealius-eyeworth/config"
+	log "github.com/mpyziak/cornealius-eyeworth/diagnostics"
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 	"github.com/mpyziak/cornealius-eyeworth/notifications"
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
@@ -112,24 +113,57 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 	// on-demand status window is closed.
 	_ = app.NewWindow("")
 
-	// Create scheduler instances and reminder buffer
 	eyeScheduler := &scheduling.Scheduler{}
 	standUpScheduler := &scheduling.Scheduler{}
 	reminderBuffer := scheduling.NewBuffer(2*time.Second, notifications.NewAppFlusher(app))
 
 	trayMgr := systray.NewManager(app)
 	trayMgr.Setup(cfg)
+	trayMgr.SetWindowFactory(windowFactory(app, repo, status, eyeScheduler, standUpScheduler, trayMgr, reminderBuffer))
 
-	// windowFactory builds a fresh status window each time the user shows it.
-	// Closing the window calls win.Close() which destroys the HWND and frees
-	// the Fyne/GLFW OpenGL context, preventing GL resource accumulation that
-	// is triggered by screen-share and DPI-change OS events.
-	trayMgr.SetWindowFactory(func() fyne.Window {
+	scheduling.ApplySchedule(
+		eyeScheduler,
+		standUpScheduler,
+		scheduling.ScheduleSpec{
+			EyeCron:     cfg.CronExpression,
+			StandUpCron: cfg.StandUpCronExpression,
+		},
+		cronCallback(repo, status, trayMgr, reminderBuffer),
+	)
+
+	log.EnableUiDevDiagnosticsSettingsListener(app)
+
+	trayMgr.Run(func() { notifications.SendStartup(app) })
+	log.Info("event loop running — eye=%s standUp=%s", cfg.CronExpression, cfg.StandUpCronExpression)
+	app.Run()
+
+	eyeScheduler.Stop()
+	standUpScheduler.Stop()
+	reminderBuffer.Close()
+	log.Info("schedulers stopped, shutting down")
+}
+
+// windowFactory returns a function that builds a fresh status window each time
+// the user shows it. Closing the window calls win.Close(), which destroys the
+// HWND and frees the Fyne/GLFW OpenGL context, preventing GL resource
+// accumulation triggered by screen-share and DPI-change OS events.
+func windowFactory(
+	app fyne.App,
+	repo config.Store,
+	status *statusState,
+	eyeSched scheduling.Runner,
+	standUpSched scheduling.Runner,
+	trayMgr *systray.Manager,
+	buffer scheduling.ReminderAggregator,
+) func() fyne.Window {
+	return func() fyne.Window {
+		log.Event("status window opened")
 		schedule, nextTrigger, standUp, standUpNextTrigger := status.snapshot()
 		win, sl, ntl, sul, suntl := buildMainWindow(app, schedule, nextTrigger, standUp, standUpNextTrigger)
 		status.attach(sl, ntl, sul, suntl)
-		win.SetMainMenu(buildMenu(app, repo, eyeScheduler, standUpScheduler, status.update, trayMgr, reminderBuffer))
+		win.SetMainMenu(buildMenu(app, repo, eyeSched, standUpSched, status.update, trayMgr, buffer))
 		win.SetOnClosed(func() {
+			log.Event("status window closed")
 			status.detach()
 			trayMgr.NotifyHidden()
 		})
@@ -138,32 +172,24 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 			win.Close() // triggers SetOnClosed → detach + NotifyHidden
 		})
 		return win
-	})
+	}
+}
 
-	// Start both schedulers using scheduling package helper.
-	scheduling.ApplySchedule(
-		eyeScheduler,
-		standUpScheduler,
-		scheduling.ScheduleSpec{
-			EyeCron:     cfg.CronExpression,
-			StandUpCron: cfg.StandUpCronExpression,
-		},
-		func(notificationCategory string) {
-			reminderBuffer.Add(notifications.NewReminder(notificationCategory))
-			if latest, err := repo.Load(); err == nil {
-				status.update(latest)
-				trayMgr.UpdateLabels(latest)
-			}
-		},
-	)
-
-	trayMgr.Run(func() { notifications.SendStartup(app) })
-	app.Run()
-
-	// Cleanup
-	eyeScheduler.Stop()
-	standUpScheduler.Stop()
-	reminderBuffer.Close()
+// cronCallback returns the function fired by both schedulers on each trigger.
+func cronCallback(
+	repo config.Store,
+	status *statusState,
+	trayMgr *systray.Manager,
+	buffer scheduling.ReminderAggregator,
+) func(string) {
+	return func(notificationCategory string) {
+		log.Event("cron fired — category=%s", notificationCategory)
+		buffer.Add(notifications.NewReminder(notificationCategory))
+		if latest, err := repo.Load(); err == nil {
+			status.update(latest)
+			trayMgr.UpdateLabels(latest)
+		}
+	}
 }
 
 // buildMenu constructs the window menu bar.

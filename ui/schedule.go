@@ -9,6 +9,7 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 
+	log "github.com/mpyziak/cornealius-eyeworth/diagnostics"
 	"github.com/mpyziak/cornealius-eyeworth/config"
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 	"github.com/mpyziak/cornealius-eyeworth/notifications"
@@ -129,6 +130,7 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 			dialog.ShowError(saveErr, win)
 			return
 		}
+		log.Event("schedule saved — eye=%s standUp=%s", updated.CronExpression, updated.StandUpCronExpression)
 
 		scheduling.ApplySchedule(
 			eyeSched,

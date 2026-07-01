@@ -90,11 +90,16 @@ go build -ldflags "-s -w -H windowsgui" -o cornealius-eyeworth.exe .
 The repository includes a `Makefile` with these useful targets:
 
 ```make
-make deps        # go mod tidy
-make build       # build stripped native binary
-make build-win   # build a Windows GUI binary
-make run         # build and run the app
-make clean       # remove built binaries
+make deps                # go mod tidy
+make build               # release build — no logging compiled in
+make build-win           # release build, Windows GUI subsystem
+make build-dev           # logging enabled (diagnostics tag)
+make build-dev-win       # logging enabled, Windows GUI subsystem
+make build-dev-sysmon    # logging + OS event monitors (Windows only)
+make build-dev-sysmon-win
+make patch-fyne          # recreate the Fyne WatchTheme fork (run once per machine)
+make run                 # build and run the app
+make clean               # remove built binaries
 ```
 
 ---
@@ -218,17 +223,26 @@ Two changes:
 cd ..\fyne-v2-watchtheme-patch
 go build ./internal/app/ 2>&1
 
-# 4. Back in the app — confirm both builds compile
+# 4. Back in the app — confirm all three build profiles compile
 cd ..\Cornealius-Eyeworth
 go build -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
-go build -tags sysmon -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
+go build -tags diagnostics -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
+go build -tags diagnostics,sysmon -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
 ```
 
 ---
 
-## Diagnostic build — OS event monitoring (`sysmon` tag)
+## Diagnostic builds
 
-The `sysmon` build tag compiles in additional goroutines that log Windows OS events to help diagnose memory leaks. It is **not** included in production builds.
+Logging and OS event monitoring are **not compiled into release builds** at all.
+They live in `dev-diagnostics/` and are gated by two build tags:
+
+| Tag | What it adds |
+|-----|--------------|
+| `diagnostics` | Rotating-file logger + 30-second memory sampler (`dev-diagnostics/`) |
+| `diagnostics,sysmon` | All of the above **plus** OS-level event monitors (Windows only) |
+
+The `sysmon` tag is meaningless without `diagnostics` — it only compiles code inside `dev-diagnostics/`.
 
 What `sysmon` adds:
 - Registry watcher on `HKCU\...\Themes\Personalize` (tracks burst writes that trigger Fyne's `setupTheme`)
@@ -237,14 +251,17 @@ What `sysmon` adds:
 - Fyne `Settings.AddListener` to correlate `setupTheme` calls with the registry bursts above
 
 ```powershell
-# Diagnostic build (Windows, with sysmon monitoring)
-go build -tags sysmon -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
-
-# Production build (no extra overhead)
+# Standard build (no logging, no OS monitors)
 go build -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
+
+# Diagnostic build — logging only
+go build -tags diagnostics -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
+
+# Diagnostic build — logging + OS event monitoring (Windows only)
+go build -tags diagnostics,sysmon -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
 ```
 
-Log files are written to `%APPDATA%\Cornealius Eyeworth\logs\` regardless of the build tag (the base `applog` rotating-file logger and 30-second memory sampler are always active).
+Log files are written next to the executable, named by UTC timestamp (e.g. `cornealius-2026-06-22T14-30-00Z.log`).
 
 ---
 

@@ -3,7 +3,7 @@
 package main
 
 import (
-	"log"
+	syslog "log"
 	"os"
 	"path/filepath"
 
@@ -12,6 +12,7 @@ import (
 
 	"github.com/mpyziak/cornealius-eyeworth/assets"
 	"github.com/mpyziak/cornealius-eyeworth/config"
+	log "github.com/mpyziak/cornealius-eyeworth/diagnostics"
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 	"github.com/mpyziak/cornealius-eyeworth/ui"
 )
@@ -21,15 +22,24 @@ func main() {
 	// regardless of the working directory (including after fyne package).
 	exePath, err := os.Executable()
 	if err != nil {
-		log.Fatalf("cannot resolve executable path: %v", err)
+		syslog.Fatalf("cannot resolve executable path: %v", err)
 	}
-	cfgPath := filepath.Join(filepath.Dir(exePath), "config.json")
+	exeDir := filepath.Dir(exePath)
+	cfgPath := filepath.Join(exeDir, "config.json")
+
+	if err := log.Init(exeDir); err != nil {
+		syslog.Printf("warning: logging unavailable: %v", err)
+	}
+	defer log.Close()
+	log.Info("app starting — exe=%s", exePath)
 
 	repo := config.NewRepository(cfgPath)
 	cfg, err := repo.Load()
 	if err != nil {
-		log.Fatalf("cannot load config.json: %v", err)
+		log.Err("cannot load config.json: %v", err)
+		syslog.Fatalf("cannot load config.json: %v", err)
 	}
+	log.Info("config loaded — eye=%s standUp=%s lang=%s", cfg.CronExpression, cfg.StandUpCronExpression, cfg.Language)
 
 	i18n.SetLanguage(cfg.Language)
 
@@ -37,5 +47,7 @@ func main() {
 	a.Settings().SetTheme(theme.DefaultTheme())
 	a.SetIcon(assets.Logo)
 
+	log.Info("UI starting")
 	ui.Run(a, cfg, repo)
+	log.Info("app exiting")
 }
