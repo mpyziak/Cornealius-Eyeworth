@@ -195,6 +195,8 @@ Cornealius runs quietly in the background. Simply leave the window open (minimis
 		"A moment's ambulation does wonders for the soul.",
 		"Movement: nature's most underrated medicine.",
 		"The chair is not a throne. Vacate it periodically.",
+		"The human spine was not engineered for the seated position.",
+		"A brief perambulation costs nothing yet buys considerable vitality.",
 	},
 	NotificationCombinedHeaders: []string{
 		"Some pieces of advice, if I may:",
@@ -218,6 +220,8 @@ Cornealius runs quietly in the background. Simply leave the window open (minimis
 		"A window is not merely decorative. Gaze through it.",
 		"Your ciliary muscles would like a word. Step away from the screen.",
 		"Rest now. The scroll bar will still be there when you return.",
+		"Focus fatigue is real. The view from your window is also real.",
+		"Even the most dedicated clerk must occasionally look up from the ledger.",
 	},
 
 	ParseErrorNoMinutes:     "Cornealius insists on at least one minute. He has standards.",
@@ -316,6 +320,8 @@ Cornealius läuft still im Hintergrund. Lassen Sie das Fenster einfach offen (Mi
 		"Ein Moment Bewegung wirkt Wunder für die Seele.",
 		"Bewegung: Natur's unterschätztes Heilmittel.",
 		"Der Stuhl ist kein Thron. Verlasse ihn regelmäßig.",
+		"Die menschliche Wirbelsäule wurde nicht für die Sitzposition geschaffen. Erinnern Sie sie an Alternativen.",
+		"Ein kurzer Spaziergang kostet nichts doch schenkt Vitalität.",
 	},
 	NotificationCombinedHeaders: []string{
 		"Ein paar Hinweise, wenn ich bitten darf:",
@@ -339,6 +345,8 @@ Cornealius läuft still im Hintergrund. Lassen Sie das Fenster einfach offen (Mi
 		"Cornealius merkt an: Blaulicht ist kein Ersatz für Sonnenlicht.",
 		"Ein Fenster ist nicht nur dekorativ. Schauen Sie hindurch.",
 		"Ihre Ziliarmuskel hätten gerne ein Wort. Treten Sie vom Bildschirm zurück.",
+		"Augenermüdung ist real. Die Aussicht aus Ihrem Fenster ebenfalls.",
+		"Selbst der gewissenhafteste Schreiber muss gelegentlich vom Hauptbuch aufsehen.",
 	},
 
 	ParseErrorNoMinutes:     "Cornealius besteht auf mindestens einer Minute. Er hat Ansprüche.",
@@ -438,6 +446,8 @@ Cornealius działa cicho w tle. Wystarczy pozostawić okno otwarte (minimalizacj
 		"Moment ruchu robi cuda dla duszy.",
 		"Ruch: niedoceniany lek natury.",
 		"Krzesło to nie tron. Opuszczaj je okresowo.",
+		"Ludzki kręgosłup nie został zaprojektowany do pozycji siedzącej. Przypomnij mu o alternatywach.",
+		"Krótki spacer nic nie kosztuje, a dodaje witalności.",
 	},
 	NotificationCombinedHeaders: []string{
 		"Kilka uwag, jeśli mogę:",
@@ -461,6 +471,8 @@ Cornealius działa cicho w tle. Wystarczy pozostawić okno otwarte (minimalizacj
 		"Okno to nie tylko dekoracja. Sprawdź, co za nim.",
 		"Twoje mięśnie rzęskowe mają coś do powiedzenia. Odejdź od ekranu.",
 		"Odpocznij teraz. Pasek przewijania będzie czekał na Twój powrót.",
+		"Zmęczenie wzroku jest realne. Widok z okna również.",
+		"Nawet najbardziej sumienny urzędnik musi od czasu do czasu oderwać wzrok od księgi.",
 	},
 
 	ParseErrorNoMinutes:     "Cornealius nalega na co najmniej jedną minutę. Ma swoje standardy.",

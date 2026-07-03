@@ -5,17 +5,18 @@ package diagnostics
 // sysmon_windows.go monitors the two OS-level event sources identified as
 // root causes of memory leaks (see LEAKS.md):
 //
-//  1. Registry writes to HKCU\...\Themes\Personalize — each write wakes Fyne's
-//     WatchTheme goroutine and enqueues an unbounded fyne.Do(setupTheme) call.
-//     Teams / Focus Assist writes this key 5-15 times in <200 ms when restoring
-//     after a call end.  We watch the same key with an async event and log every
-//     write, annotating rapid bursts so the pattern is visible in the log.
+//  1. Registry writes to HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize;
+//     each write wakes Fyne's WatchTheme goroutine and enqueues an unbounded
+//     fyne.Do(setupTheme) call. Teams / Focus Assist writes this key 5-15 times
+//     in <200 ms when restoring after a call end. We watch the same key with an
+//     async event and log every write, annotating rapid bursts so the pattern is
+//     visible in the log.
 //
-//  2. WM_DEVICECHANGE / DBT_DEVICEARRIVAL on HID interfaces — each arrival
+//  2. WM_DEVICECHANGE / DBT_DEVICEARRIVAL on HID interfaces; each arrival
 //     causes GLFW to call IDirectInput8_EnumDevices, which corporate endpoint-
 //     security agents intercept, allocating scan context that is slow to free.
 //     A Bluetooth headset switching between HFP (call) and A2DP (media) profiles
-//     generates 1-3 of these events per switch.  We register our own message-
+//     generates 1-3 of these events per switch. We register our own message-
 //     only window for the same GUID_DEVINTERFACE_HID notification and log each
 //     arrival/removal.
 //
@@ -38,7 +39,7 @@ func EnableUiDevDiagnosticsSettingsListener(app fyne.App) {
 	})
 }
 
-// ── Win32 constants ──────────────────────────────────────────────────────────
+// -- Win32 constants ----------------------------------------------------------
 
 const (
 	regNotifyChangeLastSet = uintptr(0x00000004) // REG_NOTIFY_CHANGE_LAST_SET
@@ -68,7 +69,7 @@ const (
 	fileNotifyChangeLastWrite = uintptr(0x00000010) // FILE_NOTIFY_CHANGE_LAST_WRITE
 	invalidHandleValue        = ^uintptr(0)         // INVALID_HANDLE_VALUE
 
-	dbtDevtypNet = uint32(4) // DBT_DEVTYP_NET — legacy VPN / dial-up adapters
+	dbtDevtypNet = uint32(4) // DBT_DEVTYP_NET: legacy VPN / dial-up adapters
 
 	wmWtsSessionChange   = uint32(0x02B1)
 	wtsSessionLock       = uintptr(0x7)
@@ -103,7 +104,7 @@ var guidDevIfaceNet = [16]byte{
 	0x71, 0xA8, 0x7A, 0xBA, 0xC3, 0x61, // Data4[2..7]
 }
 
-// ── Win32 structs ────────────────────────────────────────────────────────────
+// -- Win32 structs ------------------------------------------------------------
 
 type wndClassExW struct {
 	Size, Style uint32
@@ -141,7 +142,7 @@ type msgW struct {
 	PtY     int32
 }
 
-// ── Lazy Win32 procs ─────────────────────────────────────────────────────────
+// -- Lazy Win32 procs ---------------------------------------------------------
 
 var (
 	modAdvapi32 = syscall.NewLazyDLL("advapi32.dll")
@@ -173,7 +174,7 @@ var (
 	procWTSRegisterSession = modWtsapi32.NewProc("WTSRegisterSessionNotification")
 )
 
-// ── Stop handle ──────────────────────────────────────────────────────────────
+// -- Stop handle --------------------------------------------------------------
 
 var sysmonStop syscall.Handle // manual-reset event, set by stopSysmon()
 
@@ -182,7 +183,7 @@ var sysmonStop syscall.Handle // manual-reset event, set by stopSysmon()
 func startSysmon() {
 	h, _, _ := procCreateEvent.Call(0, 1 /*manual-reset*/, 0, 0)
 	if h == 0 {
-		Warn("sysmon: CreateEvent failed — OS event monitoring disabled")
+		Warn("sysmon: CreateEvent failed; OS event monitoring disabled")
 		return
 	}
 	sysmonStop = syscall.Handle(h)
@@ -193,7 +194,7 @@ func startSysmon() {
 	go monitorNotifications()
 }
 
-// ── 3. Group Policy registry watcher ─────────────────────────────────────────
+// -- 3. Group Policy registry watcher -----------------------------------------
 
 // gpWatchKeys are the HKCU paths written by the GP engine at the end of every
 // successful policy refresh (GPUPDATE), at logon, and on "gpupdate /force".
@@ -223,7 +224,7 @@ func monitorGPRegistry() {
 		Info("sysmon: watching HKCU\\%s for GPUPDATE activity", path)
 	}
 	if len(keys) == 0 {
-		Info("sysmon: GP registry keys absent — GPUPDATE monitoring disabled")
+		Info("sysmon: GP registry keys absent; GPUPDATE monitoring disabled")
 		return
 	}
 	defer func() {
@@ -239,7 +240,7 @@ func monitorGPRegistry() {
 		for i, k := range keys {
 			evt, _, _ := procCreateEvent.Call(0, 0 /*auto-reset*/, 0, 0)
 			if evt == 0 {
-				Warn("sysmon: CreateEvent failed in GP registry watcher — stopping")
+				Warn("sysmon: CreateEvent failed in GP registry watcher; stopping")
 				return
 			}
 			// bWatchSubtree=true so child-key writes are also caught.
@@ -264,7 +265,7 @@ func monitorGPRegistry() {
 			return
 		}
 		if idx := int(result - waitObject0); idx >= 0 && idx < len(keys) {
-			Event("system: GPUPDATE-related registry write to HKCU\\%s — likely GPUPDATE cycle (~90 min) or logon policy refresh; check for WM_SETTINGCHANGE \"Policy\" in next few seconds", keys[idx].path)
+			Event("system: GPUPDATE-related registry write to HKCU\\%s; likely GPUPDATE cycle (~90 min) or logon policy refresh; check for WM_SETTINGCHANGE \"Policy\" in next few seconds", keys[idx].path)
 		}
 	}
 }
@@ -277,14 +278,14 @@ func stopSysmon() {
 	}
 }
 
-// ── 1. Theme-registry watcher ────────────────────────────────────────────────
+// -- 1. Theme-registry watcher ------------------------------------------------
 
 const themeRegKey = `SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize`
 
 // errKeyDeleted is Windows error 1018 (ERROR_KEY_DELETED): returned by
 // RegNotifyChangeKeyValue when the watched key is deleted while the async
-// notification is armed.  Windows deletes and recreates Themes\Personalize
-// during full theme switches (e.g. dark↔light, Teams call restore).  We
+// notification is armed. Windows deletes and recreates Themes\Personalize
+// during full theme switches (e.g. dark/light, Teams call restore). We
 // reopen the key and resume watching instead of exiting.
 const errKeyDeleted = uintptr(1018)
 
@@ -298,7 +299,7 @@ func openThemeKey() (syscall.Handle, error) {
 func monitorThemeRegistry() {
 	hKey, err := openThemeKey()
 	if err != nil {
-		Warn("sysmon: cannot open theme key: %v — registry monitoring disabled", err)
+		Warn("sysmon: cannot open theme key: %v; registry monitoring disabled", err)
 		return
 	}
 
@@ -312,7 +313,7 @@ func monitorThemeRegistry() {
 		notifyEvt, _, _ := procCreateEvent.Call(0, 0 /*auto-reset*/, 0, 0)
 		if notifyEvt == 0 {
 			syscall.RegCloseKey(hKey)
-			Warn("sysmon: CreateEvent failed in registry watcher — stopping")
+			Warn("sysmon: CreateEvent failed in registry watcher; stopping")
 			return
 		}
 
@@ -329,7 +330,7 @@ func monitorThemeRegistry() {
 			if ret == errKeyDeleted {
 				// Windows deleted the key during a theme switch (ERROR_KEY_DELETED).
 				// Wait briefly for the key to be recreated, then resume watching.
-				Event("system: theme-registry key deleted — full theme switch in progress (dark↔light, Teams call restore); Fyne WatchTheme handle also invalidated — watching for key recreation")
+				Event("system: theme-registry key deleted; full theme switch in progress (dark/light, Teams call restore); Fyne WatchTheme handle also invalidated; watching for key recreation")
 				for {
 					select {
 					default:
@@ -342,13 +343,13 @@ func monitorThemeRegistry() {
 					}
 					hKey, err = openThemeKey()
 					if err == nil {
-						Event("system: theme-registry key recreated — resuming watch")
+						Event("system: theme-registry key recreated; resuming watch")
 						break
 					}
 				}
 				continue
 			}
-			Warn("sysmon: RegNotifyChangeKeyValue failed (ret=%d) — registry monitoring stopped", ret)
+			Warn("sysmon: RegNotifyChangeKeyValue failed (ret=%d); registry monitoring stopped", ret)
 			return
 		}
 
@@ -375,16 +376,16 @@ func monitorThemeRegistry() {
 		now := time.Now()
 		if now.Sub(lastWrite) < 600*time.Millisecond {
 			burstCount++
-			Event("system: theme-registry write — burst #%d within 600 ms — Fyne WatchTheme queues another setupTheme onto funcQueue (cache reset + layout pass per call)", burstCount)
+			Event("system: theme-registry write; burst #%d within 600 ms; Fyne WatchTheme queues another setupTheme onto funcQueue (cache reset + layout pass per call)", burstCount)
 		} else {
 			burstCount = 1
-			Event("system: theme-registry write — Fyne WatchTheme will queue setupTheme onto funcQueue")
+			Event("system: theme-registry write; Fyne WatchTheme will queue setupTheme onto funcQueue")
 		}
 		lastWrite = now
 	}
 }
 
-// ── 2. HID device-notification watcher ───────────────────────────────────────
+// -- 2. HID device-notification watcher ---------------------------------------
 
 // hidWndProc is the window procedure for our HID-monitoring window.
 // Package-level so its address is stable for the lifetime of the process.
@@ -393,7 +394,7 @@ var hidWndProc = syscall.NewCallback(func(hwnd, msg, wp, lp uintptr) uintptr {
 	case wmDeviceChange:
 		// DBT_DEVNODES_CHANGED has no lParam.
 		if wp == dbtDevNodesChanged {
-			Event("system: WM_DEVICECHANGE DBT_DEVNODES_CHANGED — device tree changed")
+			Event("system: WM_DEVICECHANGE DBT_DEVNODES_CHANGED; device tree changed")
 		} else if lp != 0 {
 			hdr := (*devBroadcastHdr)(unsafe.Pointer(lp))
 			switch hdr.DeviceType {
@@ -404,9 +405,9 @@ var hidWndProc = syscall.NewCallback(func(hwnd, msg, wp, lp uintptr) uintptr {
 				switch wp {
 				case dbtDeviceArrival:
 					if isHID {
-						Event("system: WM_DEVICECHANGE DBT_DEVICEARRIVAL (HID) — GLFW will call IDirectInput8_EnumDevices; corporate AV agents may allocate scan context here")
+						Event("system: WM_DEVICECHANGE DBT_DEVICEARRIVAL (HID); GLFW will call IDirectInput8_EnumDevices; corporate AV agents may allocate scan context here")
 					} else if isNet {
-						Event("system: WM_DEVICECHANGE DBT_DEVICEARRIVAL (network adapter) — VPN connect or ethernet plug-in; IP stack rebuild may follow")
+						Event("system: WM_DEVICECHANGE DBT_DEVICEARRIVAL (network adapter); VPN connect or ethernet plug-in; IP stack rebuild may follow")
 					} else {
 						Event("system: WM_DEVICECHANGE DBT_DEVICEARRIVAL (other device interface)")
 					}
@@ -414,7 +415,7 @@ var hidWndProc = syscall.NewCallback(func(hwnd, msg, wp, lp uintptr) uintptr {
 					if isHID {
 						Event("system: WM_DEVICECHANGE DBT_DEVICEREMOVECOMPLETE (HID)")
 					} else if isNet {
-						Event("system: WM_DEVICECHANGE DBT_DEVICEREMOVECOMPLETE (network adapter) — VPN disconnect or ethernet unplug")
+						Event("system: WM_DEVICECHANGE DBT_DEVICEREMOVECOMPLETE (network adapter); VPN disconnect or ethernet unplug")
 					} else {
 						Event("system: WM_DEVICECHANGE DBT_DEVICEREMOVECOMPLETE (other device interface)")
 					}
@@ -423,9 +424,9 @@ var hidWndProc = syscall.NewCallback(func(hwnd, msg, wp, lp uintptr) uintptr {
 				// Legacy mechanism used by older VPN clients and dial-up adapters.
 				switch wp {
 				case dbtDeviceArrival:
-					Event("system: WM_DEVICECHANGE DBT_DEVICEARRIVAL (DBT_DEVTYP_NET) — legacy VPN/dial-up adapter connected")
+					Event("system: WM_DEVICECHANGE DBT_DEVICEARRIVAL (DBT_DEVTYP_NET); legacy VPN/dial-up adapter connected")
 				case dbtDeviceRemoveComplete:
-					Event("system: WM_DEVICECHANGE DBT_DEVICEREMOVECOMPLETE (DBT_DEVTYP_NET) — legacy VPN/dial-up adapter disconnected")
+					Event("system: WM_DEVICECHANGE DBT_DEVICEREMOVECOMPLETE (DBT_DEVTYP_NET); legacy VPN/dial-up adapter disconnected")
 				}
 			}
 		}
@@ -433,38 +434,38 @@ var hidWndProc = syscall.NewCallback(func(hwnd, msg, wp, lp uintptr) uintptr {
 	case wmPowerBroadcast:
 		switch wp {
 		case pbtApmSuspend:
-			Event("system: WM_POWERBROADCAST PBT_APMSUSPEND — system going to sleep/hibernate")
+			Event("system: WM_POWERBROADCAST PBT_APMSUSPEND; system going to sleep/hibernate")
 		case pbtApmResumeAuto:
-			Event("system: WM_POWERBROADCAST PBT_APMRESUMEAUTOMATIC — system resumed (auto/timer)")
+			Event("system: WM_POWERBROADCAST PBT_APMRESUMEAUTOMATIC; system resumed (auto/timer)")
 		case pbtApmResumeSuspend:
-			Event("system: WM_POWERBROADCAST PBT_APMRESUMESUSPEND — system resumed (user action)")
+			Event("system: WM_POWERBROADCAST PBT_APMRESUMESUSPEND; system resumed (user action)")
 		}
 
 	case wmDisplayChange:
 		// Fires on resolution/depth change, screen-share start/stop, RDP attach, docking.
-		// Fyne calls reloadScale() → SetDirty() on every visible canvas; GL framebuffer reallocated.
+		// Fyne calls reloadScale() -> SetDirty() on every visible canvas; GL framebuffer reallocated.
 		depth := wp & 0xFFFF
 		width := lp & 0xFFFF
 		height := (lp >> 16) & 0xFFFF
-		Event("system: WM_DISPLAYCHANGE — depth=%d resolution=%dx%d — Fyne reloadScale+SetDirty on all canvases; GL framebuffers reallocated", depth, width, height)
+		Event("system: WM_DISPLAYCHANGE depth=%d resolution=%dx%d; Fyne reloadScale+SetDirty on all canvases; GL framebuffers reallocated", depth, width, height)
 
 	case wmDpiChanged:
 		// LOWORD(wParam) = new X DPI, HIWORD(wParam) = new Y DPI.
 		// Common triggers: docking/undocking, RDP client resize, VDI window resize, display-scaling GPO.
-		// Fyne responds with processResized → RescaleContext → GL framebuffer realloc on every visible window.
+		// Fyne responds with processResized -> RescaleContext -> GL framebuffer realloc on every visible window.
 		dpiX := wp & 0xFFFF
 		dpiY := (wp >> 16) & 0xFFFF
-		Event("system: WM_DPICHANGED — new DPI x=%d y=%d — Fyne RescaleContext+GL framebuffer realloc on all visible windows", dpiX, dpiY)
+		Event("system: WM_DPICHANGED new DPI x=%d y=%d; Fyne RescaleContext+GL framebuffer realloc on all visible windows", dpiX, dpiY)
 
 	case wmCompacting:
 		// Broadcast when the system is critically low on physical memory.
 		// Seeing this means the leak has already reached system-wide impact.
-		Event("system: WM_COMPACTING — system physical memory critically low; Windows compacting working sets")
+		Event("system: WM_COMPACTING; system physical memory critically low; Windows compacting working sets")
 
 	case wmFontChange:
 		// Broadcast when the installed font set changes (e.g. GPO font deployment).
-		// Fyne rebuilds glyph texture atlases on next render — allocates GL texture memory.
-		Event("system: WM_FONTCHANGE — installed font set changed (GPO font deployment?); Fyne glyph atlas rebuilt on next render")
+		// Fyne rebuilds glyph texture atlases on next render; allocates GL texture memory.
+		Event("system: WM_FONTCHANGE; installed font set changed (GPO font deployment?); Fyne glyph atlas rebuilt on next render")
 
 	case wmSettingChange:
 		// "ImmersiveColorSet" = Teams/Focus Assist toggling dark mode.
@@ -474,32 +475,32 @@ var hidWndProc = syscall.NewCallback(func(hwnd, msg, wp, lp uintptr) uintptr {
 		if lp != 0 {
 			param := syscall.UTF16ToString((*[128]uint16)(unsafe.Pointer(lp))[:])
 			if param == "Policy" {
-				Event("system: WM_SETTINGCHANGE param=%q — GROUP POLICY REFRESH; correlate with GP-registry writes to confirm GPUPDATE cycle", param)
+				Event("system: WM_SETTINGCHANGE param=%q; GROUP POLICY REFRESH; correlate with GP-registry writes to confirm GPUPDATE cycle", param)
 			} else {
-				Event("system: WM_SETTINGCHANGE param=%q — may trigger Fyne settings listener cascade", param)
+				Event("system: WM_SETTINGCHANGE param=%q; may trigger Fyne settings listener cascade", param)
 			}
 		} else {
-			Event("system: WM_SETTINGCHANGE (no param) — may trigger Fyne settings listener cascade")
+			Event("system: WM_SETTINGCHANGE (no param); may trigger Fyne settings listener cascade")
 		}
 
 	case wmThemeChanged:
 		// Windows visual theme applied/switched; Fyne invalidates cache.ResetThemeCaches() on all windows.
-		Event("system: WM_THEMECHANGED — Fyne theme cache invalidated on all windows")
+		Event("system: WM_THEMECHANGED; Fyne theme cache invalidated on all windows")
 
 	case wmSysColorChange:
 		// High-contrast toggle, accessibility changes; same listener chain as WM_THEMECHANGED.
-		Event("system: WM_SYSCOLORCHANGE — may trigger Fyne theme/settings listener cascade")
+		Event("system: WM_SYSCOLORCHANGE; may trigger Fyne theme/settings listener cascade")
 
 	case wmWtsSessionChange:
 		switch wp {
 		case wtsSessionLock:
-			Event("system: WM_WTSSESSION_CHANGE WTS_SESSION_LOCK — workstation locked")
+			Event("system: WM_WTSSESSION_CHANGE WTS_SESSION_LOCK; workstation locked")
 		case wtsSessionUnlock:
-			Event("system: WM_WTSSESSION_CHANGE WTS_SESSION_UNLOCK — workstation unlocked")
+			Event("system: WM_WTSSESSION_CHANGE WTS_SESSION_UNLOCK; workstation unlocked")
 		case wtsRemoteConnect:
-			Event("system: WM_WTSSESSION_CHANGE WTS_REMOTE_CONNECT — RDP session attached; expect WM_DISPLAYCHANGE + DPI cascade")
+			Event("system: WM_WTSSESSION_CHANGE WTS_REMOTE_CONNECT; RDP session attached; expect WM_DISPLAYCHANGE + DPI cascade")
 		case wtsRemoteDisconnect:
-			Event("system: WM_WTSSESSION_CHANGE WTS_REMOTE_DISCONNECT — RDP session detached")
+			Event("system: WM_WTSSESSION_CHANGE WTS_REMOTE_DISCONNECT; RDP session detached")
 		}
 	}
 
@@ -508,7 +509,7 @@ var hidWndProc = syscall.NewCallback(func(hwnd, msg, wp, lp uintptr) uintptr {
 })
 
 func monitorHIDDevices() {
-	// This goroutine owns its Win32 window — it must stay on the same OS thread.
+	// This goroutine owns its Win32 window; it must stay on the same OS thread.
 	runtime.LockOSThread()
 	// Intentionally not unlocking: the goroutine is dedicated to this loop.
 
@@ -523,11 +524,11 @@ func monitorHIDDevices() {
 	wc.Size = uint32(unsafe.Sizeof(wc))
 
 	if atom, _, _ := procRegisterClassEx.Call(uintptr(unsafe.Pointer(&wc))); atom == 0 {
-		Warn("sysmon: RegisterClassEx failed — HID monitoring disabled")
+		Warn("sysmon: RegisterClassEx failed; HID monitoring disabled")
 		return
 	}
 
-	// Message-only window (HWND_MESSAGE parent) — invisible to EnumWindows.
+	// Message-only window (HWND_MESSAGE parent), invisible to EnumWindows.
 	hwnd, _, _ := procCreateWindowEx.Call(
 		0,
 		uintptr(unsafe.Pointer(className)),
@@ -536,7 +537,7 @@ func monitorHIDDevices() {
 		hwndMessageSM, 0, hInst, 0,
 	)
 	if hwnd == 0 {
-		Warn("sysmon: CreateWindowEx failed — HID monitoring disabled")
+		Warn("sysmon: CreateWindowEx failed; HID monitoring disabled")
 		return
 	}
 
@@ -548,7 +549,7 @@ func monitorHIDDevices() {
 
 	hNotif, _, _ := procRegDevNotif.Call(hwnd, uintptr(unsafe.Pointer(&dbi)), deviceNotifyWindowHandle)
 	if hNotif == 0 {
-		Warn("sysmon: RegisterDeviceNotification(HID) failed — HID events may not be captured")
+		Warn("sysmon: RegisterDeviceNotification(HID) failed; HID events may not be captured")
 	} else {
 		Info("sysmon: watching GUID_DEVINTERFACE_HID for WM_DEVICECHANGE triggers")
 	}
@@ -560,16 +561,16 @@ func monitorHIDDevices() {
 	}
 	dbiNet.Size = uint32(unsafe.Sizeof(dbiNet))
 	if hNotifNet, _, _ := procRegDevNotif.Call(hwnd, uintptr(unsafe.Pointer(&dbiNet)), deviceNotifyWindowHandle); hNotifNet == 0 {
-		Warn("sysmon: RegisterDeviceNotification(NET) failed — VPN/ethernet events may not be captured")
+		Warn("sysmon: RegisterDeviceNotification(NET) failed; VPN/ethernet events may not be captured")
 	} else {
 		Info("sysmon: watching GUID_DEVINTERFACE_NET for VPN/ethernet WM_DEVICECHANGE triggers")
 	}
 
 	// Register for session-change notifications (lock/unlock).
 	// WTSRegisterSessionNotification requires a real HWND, not HWND_MESSAGE on
-	// some older Windows versions — if it fails we still get power events.
+	// some older Windows versions; if it fails we still get power events.
 	if ret, _, _ := procWTSRegisterSession.Call(hwnd, uintptr(notifyForThisSession)); ret == 0 {
-		Warn("sysmon: WTSRegisterSessionNotification failed — session lock/unlock events will not be logged")
+		Warn("sysmon: WTSRegisterSessionNotification failed; session lock/unlock events will not be logged")
 	} else {
 		Info("sysmon: watching WM_WTSSESSION_CHANGE for session lock/unlock")
 	}
@@ -602,12 +603,12 @@ func monitorHIDDevices() {
 	}
 }
 
-// ── 4. Windows notification database watcher ─────────────────────────────────
+// -- 4. Windows notification database watcher ---------------------------------
 
 // monitorNotifications watches the Windows Push Notification (WPN) platform
-// database directory for writes.  The WPN service updates wpndatabase.db every
+// database directory for writes. The WPN service updates wpndatabase.db every
 // time a toast notification is delivered, regardless of the source app.
-// We log the trigger only — no notification content is read or stored.
+// We log the trigger only; no notification content is read or stored.
 //
 // Common triggers:
 //   - Teams / Slack / Outlook message or meeting-reminder toasts
@@ -621,7 +622,7 @@ func monitorHIDDevices() {
 func monitorNotifications() {
 	localAppData, _ := syscall.Getenv("LOCALAPPDATA")
 	if localAppData == "" {
-		Warn("sysmon: LOCALAPPDATA not set — notification monitoring disabled")
+		Warn("sysmon: LOCALAPPDATA not set; notification monitoring disabled")
 		return
 	}
 
@@ -634,7 +635,7 @@ func monitorNotifications() {
 		fileNotifyChangeLastWrite|fileNotifyChangeSize,
 	)
 	if hChange == 0 || hChange == invalidHandleValue {
-		Warn("sysmon: FindFirstChangeNotification for WPN directory failed — notification monitoring disabled")
+		Warn("sysmon: FindFirstChangeNotification for WPN directory failed; notification monitoring disabled")
 		return
 	}
 	defer procCloseHandle.Call(hChange)
@@ -658,11 +659,11 @@ func monitorNotifications() {
 			return
 		}
 
-		Event("system: WPN notification delivered — Windows notification platform wrote to notification database (toast from Teams, Outlook, Defender, calendar, etc.)")
+		Event("system: WPN notification delivered; Windows notification platform wrote to notification database (toast from Teams, Outlook, Defender, calendar, etc.)")
 
 		// Rearm the change handle for the next write.
 		if ret, _, _ := procFindNextChangeNotif.Call(hChange); ret == 0 {
-			Warn("sysmon: FindNextChangeNotification failed — notification monitoring stopped")
+			Warn("sysmon: FindNextChangeNotification failed; notification monitoring stopped")
 			return
 		}
 	}
