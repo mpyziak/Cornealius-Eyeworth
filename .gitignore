@@ -11,5 +11,4 @@ dist/
 
 # Go build output
 *ornealius*yewort*
-go.sum
 config.json

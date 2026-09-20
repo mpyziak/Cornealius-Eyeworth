@@ -1,0 +1,189 @@
+name: Release
+
+on:
+  push:
+    # Remove this branch entry once the pipeline is proven — it exists so the
+    # workflow can be iterated on without cutting throwaway tags.
+    branches: [deploy-pipeline-setup]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      macos:
+        description: Also build macOS
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_ID: com.github.mpyziak.cornealius-eyeworth
+  APP_NAME: Cornealius Eyeworth
+  ICON: assets/Logo.png
+  # Must match the fyne.io/fyne/v2 version in go.mod — the patched fork is
+  # rebuilt from this tag on every run.
+  FYNE_TAG: v2.7.4
+
+jobs:
+  plan:
+    name: Plan build
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.targets.outputs.matrix }}
+      version: ${{ steps.version.outputs.version }}
+      label: ${{ steps.version.outputs.label }}
+    steps:
+      - name: Select target platforms
+        id: targets
+        run: |
+          # macOS is opt-in. On a private repo it bills at 10x the rate of Linux
+          # against the 2,000 min/month free allowance; once this repo is public
+          # it is unmetered and can be enabled by default.
+          # Enable per-run via the "Run workflow" button, or permanently by
+          # moving the darwin entry into the default list below.
+          linux_windows='{"os":"ubuntu-latest","platform":"linux"},{"os":"windows-latest","platform":"windows"}'
+          darwin='{"os":"macos-latest","platform":"darwin"}'
+
+          if [ "${{ inputs.macos }}" = "true" ]; then
+            echo "matrix={\"include\":[$linux_windows,$darwin]}" >> "$GITHUB_OUTPUT"
+          else
+            echo "matrix={\"include\":[$linux_windows]}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Derive version
+        id: version
+        run: |
+          # Tag builds are versioned from the tag; branch builds get a short SHA
+          # label and a placeholder version, since fyne requires x[.y[.z]].
+          if [ "$GITHUB_REF" != "${GITHUB_REF#refs/tags/}" ]; then
+            label="${GITHUB_REF#refs/tags/}"
+            version="$(printf '%s' "${label#v}" | grep -oE '^[0-9]+(\.[0-9]+){0,2}' || true)"
+          else
+            label="$(printf '%s' "$GITHUB_SHA" | cut -c1-7)"
+            version=""
+          fi
+          echo "label=$label" >> "$GITHUB_OUTPUT"
+          echo "version=${version:-0.0.0}" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build ${{ matrix.platform }}
+    needs: plan
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      VERSION: ${{ needs.plan.outputs.version }}
+      ASSET: Cornealius-Eyeworth-${{ needs.plan.outputs.label }}-${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Install Linux build dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc libgl1-mesa-dev xorg-dev
+
+      - name: Rebuild the patched Fyne fork
+        run: |
+          fork=../fyne-v2-watchtheme-patch
+
+          # go.mod replaces fyne.io/fyne/v2 with a sibling checkout carrying the
+          # WatchTheme fix (see BUILD.md / LEAKS.md §1). A fresh clone has no such
+          # sibling, so it is reconstructed from pinned upstream plus the single
+          # patched file tracked in external-patches/.
+          #
+          # Fetching a bare commit needs init+fetch; git clone cannot take a SHA.
+          # autocrlf is disabled so the check below is not confused by line endings
+          # on the Windows runner.
+          git init -q "$fork"
+          git -C "$fork" config core.autocrlf false
+          git -C "$fork" remote add origin https://github.com/fyne-io/fyne.git
+          git -C "$fork" fetch -q --depth 1 origin "$FYNE_TAG"
+          git -C "$fork" checkout -q --detach FETCH_HEAD
+
+          cp external-patches/fyne-theme_windows.go \
+            "$fork/internal/app/theme_windows.go"
+
+          # The fork must now differ from upstream in exactly the patched file.
+          # Anything else means the patch did not land where it was meant to, or
+          # upstream is not the tree we expect — either way, do not ship it.
+          changed=$(git -C "$fork" status --porcelain)
+          paths=$(printf '%s\n' "$changed" | awk 'NF {print $NF}')
+          if [ "$paths" != "internal/app/theme_windows.go" ]; then
+            echo "::error::Patched Fyne fork does not match expectations."
+            echo "expected exactly: internal/app/theme_windows.go"
+            echo "actual:"
+            printf '%s\n' "$changed"
+            exit 1
+          fi
+          echo "Fyne fork verified: patch applied, no other drift."
+
+      - name: Install fyne CLI
+        if: matrix.platform != 'windows'
+        run: |
+          go install fyne.io/tools/cmd/fyne@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Package
+        env:
+          CGO_ENABLED: '1'
+        run: |
+          mkdir -p dist
+          case "${{ matrix.platform }}" in
+            windows)
+              # Built with go build rather than fyne package: the committed
+              # rsrc_windows_amd64.syso (from make winres) already embeds an
+              # icon and manifest, and fyne package adds a second manifest,
+              # which lld-link rejects as a duplicate resource.
+              go build -ldflags "-s -w -H windowsgui" -o "dist/$ASSET.exe" .
+              ;;
+            linux)
+              fyne package --os linux --app-id "$APP_ID" \
+                --app-version "$VERSION" --icon "$ICON" --name "$APP_NAME"
+              mv "$APP_NAME.tar.xz" "dist/$ASSET.tar.xz"
+              ;;
+            darwin)
+              fyne package --os darwin --app-id "$APP_ID" \
+                --app-version "$VERSION" --icon "$ICON" --name "$APP_NAME"
+              ditto -c -k --keepParent "$APP_NAME.app" "dist/$ASSET.zip"
+              ;;
+          esac
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}
+          path: dist/*
+          if-no-files-found: error
+          # Short retention keeps private-repo runs clear of the 500 MB cap.
+          retention-days: 7
+
+  release:
+    name: Publish release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [plan, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release create "${{ needs.plan.outputs.label }}" dist/* --generate-notes
