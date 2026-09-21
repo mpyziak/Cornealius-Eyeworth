@@ -2,6 +2,7 @@ BINARY   = cornealius-eyeworth
 APP_ID   = com.github.mpyziak.cornealius-eyeworth
 ICON     = assets/Logo.png
 APP_NAME = "Cornealius Eyeworth"
+APP_FILE = Cornealius-Eyeworth
 
 # -s strips the symbol table; -w strips DWARF debug info.
 # Together they shave ~35-40% off a Fyne binary with no runtime cost.
@@ -21,7 +22,7 @@ FYNE_TAG  = v2.7.4
 FYNE_REPO = https://github.com/fyne-io/fyne.git
 FYNE_FORK = ../fyne-v2-watchtheme-patch
 
-.PHONY: deps winres build build-win build-dev build-dev-win build-dev-sysmon build-dev-sysmon-win upx upx-win run patch-fyne package-win package-linux package-darwin cross-all clean
+.PHONY: deps winres build build-win build-dev build-dev-win build-dev-sysmon build-dev-sysmon-win upx upx-win run patch-fyne package-win package-linux package-darwin clean
 
 deps:
 	go mod tidy
@@ -56,10 +57,6 @@ build-dev-sysmon-win:
 # internal/app/theme_windows.go with the debounce + ERROR_KEY_DELETED-recovery
 # patch. Run once after cloning on a new machine. Safe to re-run if FYNE_FORK
 # is absent.
-#
-# This clones rather than copying out of the module cache: go.mod's replace
-# directive means Go never downloads fyne.io/fyne/v2, so on a clean machine the
-# cache is empty exactly when the fork is needed. CI bootstraps the same way.
 
 patch-fyne:
 	@if [ -d "$(FYNE_FORK)" ]; then echo "$(FYNE_FORK) already exists; delete it first to re-patch"; exit 1; fi
@@ -79,11 +76,9 @@ upx-win: build-win
 run: build
 	./$(BINARY)
 
-# fyne package strips by default; pass extra ldflags via FyneFlags if needed.
 package-win: deps
-	go run fyne.io/tools/cmd/fyne@latest package --release --app-id $(APP_ID) --os windows --icon $(ICON) --name $(APP_NAME)
 	mkdir -p dist
-	mv $(APP_NAME).exe dist/$(APP_NAME).exe
+	go build $(LDFLAGS_WIN) -o "dist/$(APP_FILE).exe" .
 
 package-linux: deps
 	go run fyne.io/tools/cmd/fyne@latest package --release --app-id $(APP_ID) --os linux --icon $(ICON) --name $(APP_NAME)

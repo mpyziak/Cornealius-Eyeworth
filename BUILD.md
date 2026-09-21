@@ -109,7 +109,7 @@ make run                 # build and run the app
 make upx / upx-win       # UPX-compress the built binary (needs upx on PATH)
 make package-linux       # fyne package -> dist/
 make package-darwin
-make package-win         # broken in this repo, see "Building a standalone bundle"
+make package-win         # go build + winres resources -> dist/
 make clean               # remove built binaries and dist/
 ```
 
@@ -129,9 +129,15 @@ go run fyne.io/tools/cmd/fyne@latest package --release \
   --os linux --icon assets/Logo.png --name "Cornealius Eyeworth"
 ```
 
-**Not on Windows.** `rsrc_windows_amd64.syso` already carries an icon and a
-manifest, and `fyne package` adds a second manifest the linker rejects. Use the
-`go build -H windowsgui` line above, which is what CI does. See `RELEASES.md`.
+**Not on Windows:** `make package-win` uses `go build`, not `fyne
+package`, and writes `dist/Cornealius-Eyeworth.exe`. Without `make`:
+
+```powershell
+go build -ldflags "-s -w -H windowsgui" -o "dist\Cornealius-Eyeworth.exe" .
+```
+
+The icon and manifest come from `rsrc_windows_amd64.syso` (`make winres`), so
+`fyne package` would embed a *second* manifest and the linker rejects duplicate. See also `RELEASES.md`.
 
 ---
 
