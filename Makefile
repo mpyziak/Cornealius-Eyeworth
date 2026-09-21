@@ -14,9 +14,11 @@ LDFLAGS_WIN  = -ldflags "-s -w -H windowsgui"
 DIAG_TAGS        = -tags diagnostics
 DIAG_SYSMON_TAGS = -tags diagnostics,sysmon
 
-# Fyne fork paths for the WatchTheme patch (see patches/fyne-theme_windows.go).
-FYNE_VER  = v2@v2.7.4
-FYNE_SRC  = $(shell go env GOPATH)/pkg/mod/fyne.io/fyne/$(FYNE_VER)
+# Fyne fork for the WatchTheme patch (see external-patches/fyne-theme_windows.go).
+# FYNE_TAG must match the fyne.io/fyne/v2 version in go.mod and FYNE_TAG in
+# .github/workflows/release.yml. Nothing enforces this.
+FYNE_TAG  = v2.7.4
+FYNE_REPO = https://github.com/fyne-io/fyne.git
 FYNE_FORK = ../fyne-v2-watchtheme-patch
 
 .PHONY: deps winres build build-win build-dev build-dev-win build-dev-sysmon build-dev-sysmon-win upx upx-win run patch-fyne package-win package-linux package-darwin cross-all clean
@@ -50,14 +52,18 @@ build-dev-sysmon-win:
 	go build $(LDFLAGS_WIN) $(DIAG_SYSMON_TAGS) -o $(BINARY).exe .
 
 # ── Fyne WatchTheme fork setup ───────────────────────────────────────────────
-# Creates ../fyne-v2-watchtheme-patch from the local module cache and applies
-# the debounce + ERROR_KEY_DELETED-recovery patch to internal/app/theme_windows.go.
-# Run once after cloning on a new machine. Safe to re-run if FYNE_FORK is absent.
+# Clones upstream Fyne at FYNE_TAG beside this repo, then overwrites
+# internal/app/theme_windows.go with the debounce + ERROR_KEY_DELETED-recovery
+# patch. Run once after cloning on a new machine. Safe to re-run if FYNE_FORK
+# is absent.
+#
+# This clones rather than copying out of the module cache: go.mod's replace
+# directive means Go never downloads fyne.io/fyne/v2, so on a clean machine the
+# cache is empty exactly when the fork is needed. CI bootstraps the same way.
 
 patch-fyne:
 	@if [ -d "$(FYNE_FORK)" ]; then echo "$(FYNE_FORK) already exists; delete it first to re-patch"; exit 1; fi
-	cp -r "$(FYNE_SRC)" "$(FYNE_FORK)"
-	chmod -R u+w "$(FYNE_FORK)"
+	git clone --depth 1 --branch $(FYNE_TAG) $(FYNE_REPO) "$(FYNE_FORK)"
 	cp external-patches/fyne-theme_windows.go "$(FYNE_FORK)/internal/app/theme_windows.go"
 	@echo "Fyne fork ready at $(FYNE_FORK)"
 

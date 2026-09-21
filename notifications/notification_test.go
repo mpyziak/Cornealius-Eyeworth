@@ -8,7 +8,6 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
 
-// TestAggregatedNotificationEmpty verifies aggregatedNotification returns empty for no reminders.
 func TestAggregatedNotificationEmpty(t *testing.T) {
 	title, content := aggregatedNotification([]scheduling.Reminder{})
 
@@ -17,7 +16,6 @@ func TestAggregatedNotificationEmpty(t *testing.T) {
 	}
 }
 
-// TestAggregatedNotificationSingle verifies aggregatedNotification combines title and content.
 func TestAggregatedNotificationSingle(t *testing.T) {
 	reminders := []scheduling.Reminder{
 		{NotificationCategory: scheduling.ReminderTypeEye, Message: "Look away"},
@@ -33,7 +31,6 @@ func TestAggregatedNotificationSingle(t *testing.T) {
 	}
 }
 
-// TestAggregatedNotificationMultiple verifies aggregatedNotification handles mixed reminders.
 func TestAggregatedNotificationMultiple(t *testing.T) {
 	reminders := []scheduling.Reminder{
 		{NotificationCategory: scheduling.ReminderTypeEye, Message: "Eye care"},
@@ -41,7 +38,6 @@ func TestAggregatedNotificationMultiple(t *testing.T) {
 	}
 	title, content := aggregatedNotification(reminders)
 
-	// Title should be from CombinedHeaders
 	found := false
 	for _, header := range i18n.Active.NotificationCombinedHeaders {
 		if title == header {
@@ -53,7 +49,6 @@ func TestAggregatedNotificationMultiple(t *testing.T) {
 		t.Errorf("aggregatedNotification title %q not in NotificationCombinedHeaders", title)
 	}
 
-	// Content should have both messages
 	if !strings.Contains(content, "Eye care") || !strings.Contains(content, "Stand up") {
 		t.Errorf("aggregatedNotification content missing expected messages: %q", content)
 	}

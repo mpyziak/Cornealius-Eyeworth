@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    # Remove this branch entry once the pipeline is proven — it exists so the
+    # Remove this branch entry once the pipeline is proven - it exists so the
     # workflow can be iterated on without cutting throwaway tags.
     branches: [deploy-pipeline-setup]
     tags: ['v*']
@@ -24,7 +24,7 @@ env:
   APP_ID: com.github.mpyziak.cornealius-eyeworth
   APP_NAME: Cornealius Eyeworth
   ICON: assets/Logo.png
-  # Must match the fyne.io/fyne/v2 version in go.mod — the patched fork is
+  # Must match the fyne.io/fyne/v2 version in go.mod - the patched fork is
   # rebuilt from this tag on every run.
   FYNE_TAG: v2.7.4
 
@@ -104,9 +104,9 @@ jobs:
           # sibling, so it is reconstructed from pinned upstream plus the single
           # patched file tracked in external-patches/.
           #
-          # Fetching a bare commit needs init+fetch; git clone cannot take a SHA.
-          # autocrlf is disabled so the check below is not confused by line endings
-          # on the Windows runner.
+          # init+fetch rather than clone: a clone cannot take a bare SHA, and
+          # FYNE_TAG is meant to become one (see RELEASES.md). autocrlf is off so
+          # the check below is not confused by line endings on the Windows runner.
           git init -q "$fork"
           git -C "$fork" config core.autocrlf false
           git -C "$fork" remote add origin https://github.com/fyne-io/fyne.git
@@ -118,7 +118,7 @@ jobs:
 
           # The fork must now differ from upstream in exactly the patched file.
           # Anything else means the patch did not land where it was meant to, or
-          # upstream is not the tree we expect — either way, do not ship it.
+          # upstream is not the tree we expect - either way, do not ship it.
           changed=$(git -C "$fork" status --porcelain)
           paths=$(printf '%s\n' "$changed" | awk 'NF {print $NF}')
           if [ "$paths" != "internal/app/theme_windows.go" ]; then

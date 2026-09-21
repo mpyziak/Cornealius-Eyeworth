@@ -1,15 +1,15 @@
 package scheduling
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 
 	"github.com/robfig/cron/v3"
 )
 
-// Runner is the schedule execution contract.
 type Runner interface {
-	Start(cronExpr string, onFire func())
+	Start(cronExpr string, onFire func()) error
 	Stop()
 }
 
@@ -18,56 +18,66 @@ const (
 	ReminderTypeStandup = "standup"
 )
 
-// ScheduleSpec describes the active schedule expressions that should be
-// running. A blank StandUpCron expression means the stand-up schedule is off.
 type ScheduleSpec struct {
 	EyeCron     string
-	StandUpCron string
+	StandUpCron string // blank turns the stand-up schedule off
 }
 
-// ApplySchedule starts or stops the provided runners based on spec.
-// This centralizes scheduler startup logic and keeps UI code focused on
-// behaviour rather than cron wiring.
-func ApplySchedule(eye Runner, standup Runner, spec ScheduleSpec, onFire func(notificationCategory string)) {
+// Returns the first rejected expression, and leaves that runner stopped.
+// Callers must surface or recover from it.
+func ApplySchedule(eye Runner, standup Runner, spec ScheduleSpec, onFire func(notificationCategory string)) error {
+	var firstErr error
+
 	if spec.EyeCron != "" {
-		eye.Start(spec.EyeCron, func() { onFire(ReminderTypeEye) })
+		if err := eye.Start(spec.EyeCron, func() { onFire(ReminderTypeEye) }); err != nil {
+			firstErr = fmt.Errorf("eye schedule %q: %w", spec.EyeCron, err)
+			eye.Stop()
+		}
 	} else {
 		eye.Stop()
 	}
 
 	if spec.StandUpCron != "" {
-		standup.Start(spec.StandUpCron, func() { onFire(ReminderTypeStandup) })
+		if err := standup.Start(spec.StandUpCron, func() { onFire(ReminderTypeStandup) }); err != nil {
+			if firstErr == nil {
+				firstErr = fmt.Errorf("stand-up schedule %q: %w", spec.StandUpCron, err)
+			}
+			standup.Stop()
+		}
 	} else {
 		standup.Stop()
 	}
+
+	return firstErr
 }
 
-// Scheduler wraps a robfig/cron instance and supports hot-restart when the
-// CRON expression changes.
 type Scheduler struct {
 	mu      sync.Mutex
 	crontab *cron.Cron
 }
 
-// Start stops any existing schedule and begins a new one. onFire is called each
-// time the expression triggers. The call is non-blocking; the scheduler runs in
-// its own goroutine managed by robfig/cron.
-func (s *Scheduler) Start(cronExpr string, onFire func()) {
+// Replaces any running schedule. Validates here rather than trusting the
+// parsing package - config.json expressions never go through it.
+func (s *Scheduler) Start(cronExpr string, onFire func()) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if s.crontab != nil {
 		s.crontab.Stop()
+		s.crontab = nil
 	}
 
 	normalized := strings.ReplaceAll(cronExpr, "?", "*")
 	c := cron.New(cron.WithSeconds())
-	_, _ = c.AddFunc(normalized, onFire) // expression is pre-validated by parsing package
+	if _, err := c.AddFunc(normalized, onFire); err != nil {
+		return err
+	}
 	c.Start()
 	s.crontab = c
+	return nil
 }
 
-// Stop halts the scheduler. Safe to call multiple times.
+// Safe to call repeatedly.
 func (s *Scheduler) Stop() {
 	s.mu.Lock()
 	defer s.mu.Unlock()

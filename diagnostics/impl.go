@@ -2,9 +2,7 @@
 
 package diagnostics
 
-// impl.go wires the dev-diagnostics implementation into this package when the
-// diagnostics build tag is set. The alias avoids a name collision: the
-// dev-diagnostics package is also named "diagnostics".
+// Aliased because dev-diagnostics is also package "diagnostics".
 import (
 	"fyne.io/fyne/v2"
 

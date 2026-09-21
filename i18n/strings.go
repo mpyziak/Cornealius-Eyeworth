@@ -1,5 +1,4 @@
-// Package i18n provides localised strings for Cornealius Eyeworth.
-// Call SetLanguage once at startup; then reference Active anywhere.
+// SetLanguage once at startup, then read Active.
 package i18n
 
 import (
@@ -8,18 +7,15 @@ import (
 	"fyne.io/fyne/v2/lang"
 )
 
-// Strings holds every user-visible string for one locale.
 type Strings struct {
 	AppName   string
 	AppTitle  string
 	GitHubUrl string
 
-	StatusServing string
-	// Format args: %s = description (e.g. "20, 40, 55")
-	ScheduleDescription string
-	// Format args: %s = next trigger time formatted as HH:mm
-	NextTrigger        string
-	NextTriggerStandUp string
+	StatusServing       string
+	ScheduleDescription string // %s = description, e.g. "20, 40, 55"
+	NextTrigger         string // %s = HH:mm
+	NextTriggerStandUp  string // %s = HH:mm
 
 	MenuOptions      string
 	MenuLanguage     string
@@ -76,36 +72,41 @@ type Strings struct {
 	ScheduleDescriptionSimple string // format: %s = "20, 40, 55"
 }
 
-// Active points to the currently selected locale. Defaults to English.
 var Active = &english
 
-// SetLanguage switches the active locale.
-// Pass nil for the OS default locale; if the system locale is unsupported, default to English.
-func SetLanguage(language *string) {
-	localeCode := ""
-	if language == nil {
-		localeCode = lang.SystemLocale().LanguageString()
-	} else {
-		localeCode = strings.ToLower(strings.TrimSpace(*language))
-	}
 
-	switch localeCode {
+func NormaliseLocale(code string) string {
+	return strings.ReplaceAll(strings.ToLower(strings.TrimSpace(code)), "_", "-")
+}
+
+func SetLanguage(language *string) {
+	raw := ""
+	if language == nil {
+		raw = lang.SystemLocale().LanguageString()
+	} else {
+		raw = *language
+	}
+	Active = localeFor(raw)
+}
+
+// Split out of SetLanguage so it is testable without the host's locale.
+// Normalise first: Windows hands over "pl-PL", upper-case region and all.
+func localeFor(raw string) *Strings {
+	switch NormaliseLocale(raw) {
 	case "de", "de-de", "de-at", "de-ch", "de-li", "de-lu":
-		Active = &german
+		return &german
 	case "pl", "pl-pl":
-		Active = &polish
+		return &polish
 	default:
-		Active = &english
+		return &english
 	}
 }
 
-// LanguageOption represents one entry in the language selector.
 type LanguageOption struct {
 	DisplayName string
 	Code        string // empty string = system default
 }
 
-// AvailableLanguages is the list shown in the Language dialog.
 var AvailableLanguages = []LanguageOption{
 	{"", ""}, // display name filled at runtime from Active.OptionsLanguageDefault
 	{"English", "en"},
@@ -113,9 +114,7 @@ var AvailableLanguages = []LanguageOption{
 	{"Polski", "pl"},
 }
 
-// ---------------------------------------------------------------------------
 // English (default)
-// ---------------------------------------------------------------------------
 
 var english = Strings{
 	AppName:   "Cornealius Eyeworth",
@@ -140,7 +139,7 @@ var english = Strings{
 	TrayTooltipNextTrigger: "Next reminder time",
 	TrayTooltipQuit:        "Quit the application",
 
-	ScheduleDialogTitle:       "Schedule — Cornealius Eyeworth",
+	ScheduleDialogTitle:       "Schedule - Cornealius Eyeworth",
 	OptionsInstruction:        "Minutes of each hour at which Cornealious shall remind you to rest your eyes (e.g. 20, 40, 55):",
 	OptionsStandUpInstruction: "Minutes of each hour at which Cornealius shall remind you to stand and stretch (e.g. 0, 15, 30, 45). Leave empty to disable:",
 	ScheduleCronInstruction:   `CRON (e.g. "0 20,40,55 * * * ?"):`,
@@ -153,12 +152,12 @@ var english = Strings{
 	ButtonCancel: "Cancel",
 	ButtonClose:  "Close",
 
-	AboutDialogTitle: "About — Cornealius Eyeworth",
+	AboutDialogTitle: "About - Cornealius Eyeworth",
 	AboutDescription: "A distinguished ocular butler who reminds you to rest your eyes at regular intervals.  Following the 20-20-20 Rule, with decorum.",
 	AboutVersion:     "Version 1.0  -  © 2026 mpyziak",
 
-	HelpDialogTitle: "How to use — Cornealius Eyeworth",
-	HelpBody: `Cornealius Eyeworth is your personal ocular butler. Once running, he discreetly watches the clock and delivers short, unintrusive notifications reminding you to practise basic eye hygiene — look away from your screen, blink, and let your eyes rest.
+	HelpDialogTitle: "How to use - Cornealius Eyeworth",
+	HelpBody: `Cornealius Eyeworth is your personal ocular butler. Once running, he discreetly watches the clock and delivers short, unintrusive notifications reminding you to practise basic eye hygiene - look away from your screen, blink, and let your eyes rest.
 
 You are in full control:
 
@@ -168,10 +167,10 @@ You are in full control:
 • Language  (Options › Language)
   Switch the interface language. A restart is required for the change to take effect.
 
-Cornealius runs quietly in the background. Simply leave the window open (minimising is fine) and he will do the rest — with considerable decorum.`,
+Cornealius runs quietly in the background. Simply leave the window open (minimising is fine) and he will do the rest - with considerable decorum.`,
 
 	NotificationOnDuty:          "Cornealius is on duty.",
-	NotificationMinimizedToTray: "Cornealius is still on duty — find him in the system tray.",
+	NotificationMinimizedToTray: "Cornealius is still on duty - find him in the system tray.",
 	NotificationDistanceGlanceHeaders: []string{
 		"Your eyes deserve an intermission.",
 		"A moment of respite for your weary eyes.",
@@ -238,9 +237,7 @@ Cornealius runs quietly in the background. Simply leave the window open (minimis
 	ScheduleDescriptionSimple: "Calls at minutes %s of every hour",
 }
 
-// ---------------------------------------------------------------------------
 // German
-// ---------------------------------------------------------------------------
 
 var german = Strings{
 	AppName:   "Cornealius Eyeworth",
@@ -283,7 +280,7 @@ var german = Strings{
 	AboutVersion:     "Version 1.0  -  © 2026 mpyziak",
 
 	HelpDialogTitle: "Verwendung - Cornealius Eyeworth",
-	HelpBody: `Cornealius Eyeworth ist Ihr persönlicher Augenbutler. Einmal gestartet, beobachtet er diskret die Uhr und liefert kurze, unaufdringliche Benachrichtigungen, die Sie an grundlegende Augenhygiene erinnern — schauen Sie vom Bildschirm weg, blinzeln Sie und lassen Sie Ihre Augen ausruhen.
+	HelpBody: `Cornealius Eyeworth ist Ihr persönlicher Augenbutler. Einmal gestartet, beobachtet er diskret die Uhr und liefert kurze, unaufdringliche Benachrichtigungen, die Sie an grundlegende Augenhygiene erinnern - schauen Sie vom Bildschirm weg, blinzeln Sie und lassen Sie Ihre Augen ausruhen.
 
 Sie haben die volle Kontrolle:
 
@@ -293,10 +290,10 @@ Sie haben die volle Kontrolle:
 • Sprache  (Optionen › Sprache)
   Wechseln Sie die Oberflächensprache. Ein Neustart ist erforderlich, damit die Änderung wirksam wird.
 
-Cornealius läuft still im Hintergrund. Lassen Sie das Fenster einfach offen (Minimieren ist in Ordnung) und er erledigt den Rest — mit beachtlichem Stil.`,
+Cornealius läuft still im Hintergrund. Lassen Sie das Fenster einfach offen (Minimieren ist in Ordnung) und er erledigt den Rest - mit beachtlichem Stil.`,
 
 	NotificationOnDuty:          "Cornealius ist im Dienst.",
-	NotificationMinimizedToTray: "Cornealius ist weiterhin im Dienst — Sie finden ihn in der Taskleiste.",
+	NotificationMinimizedToTray: "Cornealius ist weiterhin im Dienst - Sie finden ihn in der Taskleiste.",
 	NotificationDistanceGlanceHeaders: []string{
 		"Ihre Augen verdienen eine Pause.",
 		"Ein Moment der Erholung für Ihre müden Augen.",
@@ -334,7 +331,7 @@ Cornealius läuft still im Hintergrund. Lassen Sie das Fenster einfach offen (Mi
 		"Selbst das feinste Monokel bedarf gelegentlicher Pflege.",
 		"Fernsicht: ein Luxus, den Ihre Augen wirklich verdienen.",
 		"Auch Ihre Fokusmuskulatur braucht Dehnung.",
-		"20 Meter ins Nichts — ein Tonikum für die überarbeitete Netzhaut.",
+		"20 Meter ins Nichts - ein Tonikum für die überarbeitete Netzhaut.",
 		"Cornealius erinnert Sie: Bildschirme sind vergänglich, die Sehkraft soll nicht.",
 		"Ein Blick in die Ferne kostet nur einen Moment.",
 		"Ihre Augen haben Ihnen gut gedient. Erwidern Sie die Gunst.",
@@ -363,9 +360,7 @@ Cornealius läuft still im Hintergrund. Lassen Sie das Fenster einfach offen (Mi
 	ScheduleDescriptionSimple: "Ruft an den Minuten: %s jeder Stunde",
 }
 
-// ---------------------------------------------------------------------------
 // Polish
-// ---------------------------------------------------------------------------
 
 var polish = Strings{
 	AppName:   "Cornealius Eyeworth",
@@ -408,7 +403,7 @@ var polish = Strings{
 	AboutVersion:     "Wersja 1.0  -  © 2026 mpyziak",
 
 	HelpDialogTitle: "Jak używać - Cornealius Eyeworth",
-	HelpBody: `Cornealius Eyeworth to Twój osobisty kamerdyner oka. Po uruchomieniu dyskretnie śledzi zegar i wyświetla krótkie, nieuciążliwe powiadomienia przypominające o podstawowej higienie wzroku — oderwij wzrok od ekranu, mrugnij i daj oczom odpocząć.
+	HelpBody: `Cornealius Eyeworth to Twój osobisty kamerdyner oka. Po uruchomieniu dyskretnie śledzi zegar i wyświetla krótkie, nieuciążliwe powiadomienia przypominające o podstawowej higienie wzroku - oderwij wzrok od ekranu, mrugnij i daj oczom odpocząć.
 
 Masz pełną kontrolę:
 
@@ -418,10 +413,10 @@ Masz pełną kontrolę:
 • Język  (Opcje › Język)
   Zmień język interfejsu. Wymagane jest ponowne uruchomienie, aby zmiana weszła w życie.
 
-Cornealius działa cicho w tle. Wystarczy pozostawić okno otwarte (minimalizacja jest w porządku), a on zrobi resztę — z dużą klasą.`,
+Cornealius działa cicho w tle. Wystarczy pozostawić okno otwarte (minimalizacja jest w porządku), a on zrobi resztę - z dużą klasą.`,
 
 	NotificationOnDuty:          "Cornealius jest na służbie.",
-	NotificationMinimizedToTray: "Cornealius nadal jest na służbie — znajdziesz go w zasobniku systemowym.",
+	NotificationMinimizedToTray: "Cornealius nadal jest na służbie - znajdziesz go w zasobniku systemowym.",
 	NotificationDistanceGlanceHeaders: []string{
 		"Twoje oczy zasługują na przerwę.",
 		"Chwila wytchnienia dla Twoich zmęczonych oczu.",
@@ -458,9 +453,9 @@ Cornealius działa cicho w tle. Wystarczy pozostawić okno otwarte (minimalizacj
 		"Ludzkie oko nie zostało stworzone do wiecznego wpatrywania się w ekran.",
 		"Mruganie jest bezpłatne. Używaj go obficie.",
 		"Nawet najlepszy monokl wymaga okazjonalnej opieki.",
-		"Widzenie w dal — luksus, na który Twoje oczy w pełni zasługują.",
+		"Widzenie w dal - luksus, na który Twoje oczy w pełni zasługują.",
 		"Mięśnie akomodacji też potrzebują rozciągnięcia.",
-		"20 metrów przestrzeni — balsam dla przepracowanego oka.",
+		"20 metrów przestrzeni - balsam dla przepracowanego oka.",
 		"Cornealius przypomina: ekrany przemijają, wzrok nie powinien.",
 		"Krótkie spojrzenie w dal kosztuje jedynie chwilę.",
 		"Wpatrywanie się w monitor to zawód z góry przesądzony. Przegrasz.",

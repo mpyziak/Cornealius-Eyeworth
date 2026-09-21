@@ -1,8 +1,7 @@
 //go:build windows
 
-// Package notifications sends Windows balloon tip notifications via Shell_NotifyIcon.
-// This bypasses fyne.App.SendNotification(), which shells out to PowerShell and
-// can be blocked by AV scanners on some machines.
+// Shell_NotifyIcon rather than fyne.App.SendNotification: that one shells out to
+// PowerShell, which AV blocks on locked-down machines.
 package notifications
 
 import (
@@ -15,7 +14,7 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
 
-// notifyIconData mirrors NOTIFYICONDATAW on amd64 (cbSize = 976 bytes).
+// NOTIFYICONDATAW on amd64, cbSize 976.
 type notifyIconData struct {
 	Size            uint32
 	_               [4]byte
@@ -97,6 +96,6 @@ func SendReminders(_ fyne.App, reminders []scheduling.Reminder) {
 	if title == "" && content == "" {
 		return
 	}
-	log.Event("notification: reminder batch — count=%d", len(reminders))
+	log.Event("notification: reminder batch - count=%d", len(reminders))
 	showBalloon(title, content)
 }

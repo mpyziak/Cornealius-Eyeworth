@@ -1,16 +1,7 @@
 //go:build diagnostics
 
-// Package diagnostics is the optional dev-diagnostics implementation.
-// It provides structured, rotating file logging and a periodic memory sampler.
-// Compiled only when the diagnostics build tag is present; the production
-// binary uses the zero-cost stubs in diagnostics/noop.go instead.
-//
-// Log files are written next to the executable, named by UTC timestamp:
-//
-//	cornealius-2026-06-22T14-30-00Z.log
-//
-// When the current file reaches 10 MB a new file is opened automatically.
-// Memory usage is sampled every 30 seconds.
+// Rotating log files next to the exe
+// Release builds get diagnostics/noop.go instead.
 package diagnostics
 
 import (
@@ -40,9 +31,7 @@ var (
 	stopMem = make(chan struct{})
 )
 
-// Init opens the first log file in dir and starts the memory sampler.
-// dir is typically the directory of the executable.
-// Call Close() on shutdown to flush and stop the sampler.
+// Close() on shutdown, else the sampler keeps running.
 func Init(dir string) error {
 	mu.Lock()
 	defer mu.Unlock()
@@ -57,7 +46,6 @@ func Init(dir string) error {
 	return nil
 }
 
-// Close flushes and closes the current log file and stops background goroutines.
 func Close() {
 	stopSysmon()
 	close(stopMem)
@@ -72,31 +60,26 @@ func Close() {
 	}
 }
 
-// Info logs a plain informational message.
 func Info(format string, args ...any) {
 	write("INFO ", format, args...)
 	logMemory()
 }
 
-// Event logs a significant application event (cron fire, notification sent, etc.).
 func Event(format string, args ...any) {
 	write("EVENT", format, args...)
 	logMemory()
 }
 
-// Warn logs a warning.
 func Warn(format string, args ...any) {
 	write("WARN ", format, args...)
 	logMemory()
 }
 
-// Err logs an error (does not terminate the program).
+// Does not exit.
 func Err(format string, args ...any) {
 	write("ERROR", format, args...)
 	logMemory()
 }
-
-// ---- internal ---------------------------------------------------------------
 
 func write(level, format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
@@ -117,8 +100,7 @@ func write(level, format string, args ...any) {
 		_ = current.Sync()
 		_ = current.Close()
 		if err := openNewFile(); err != nil {
-			// Can't open new chunk — fall through and keep writing to old file
-			// (openNewFile already logged to stderr).
+			// Keep writing to the old file; openNewFile already told stderr.
 		}
 	}
 
@@ -127,7 +109,7 @@ func write(level, format string, args ...any) {
 	_ = logger // suppress unused warning; logger is kept for its prefix/flag behaviour
 }
 
-// openNewFile creates a new timestamped log file. Must be called with mu held.
+// Call with mu held.
 func openNewFile() error {
 	name := fmt.Sprintf("cornealius-%s.log", time.Now().UTC().Format(timestampLayout))
 	path := filepath.Join(logDir, name)
@@ -144,7 +126,6 @@ func openNewFile() error {
 	return nil
 }
 
-// memoryPoller samples runtime memory stats and writes them to the log every 30 s.
 func memoryPoller() {
 	ticker := time.NewTicker(memSamplePeriod)
 	defer ticker.Stop()
@@ -159,7 +140,7 @@ func memoryPoller() {
 	}
 }
 
-// prevMemStats holds values from the previous sample for delta calculations.
+// Previous sample, for deltas.
 var prevMemStats struct {
 	numGC        uint32
 	pauseTotalNs uint64

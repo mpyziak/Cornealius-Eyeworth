@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/mpyziak/cornealius-eyeworth/config"
+	"github.com/mpyziak/cornealius-eyeworth/i18n"
 )
 
 func strPtr(s string) *string { return &s }
@@ -45,6 +46,37 @@ func TestUpdatedConfigForLanguageClearingToDefaultPreservesCronExpressions(t *te
 	}
 	if updated.Language != nil {
 		t.Fatalf("Language should be nil, got %v", updated.Language)
+	}
+}
+
+func TestSelectedLanguageIndex(t *testing.T) {
+	options := []i18n.LanguageOption{
+		{DisplayName: "", Code: ""}, // system default
+		{DisplayName: "English", Code: "en"},
+		{DisplayName: "Deutsch", Code: "de"},
+		{DisplayName: "Polski", Code: "pl"},
+	}
+
+	tests := []struct {
+		name string
+		lang *string
+		want int
+	}{
+		{name: "nil selects system default", lang: nil, want: 0},
+		{name: "exact match", lang: strPtr("pl"), want: 3},
+		{name: "upper case", lang: strPtr("PL"), want: 3},
+		{name: "mixed case", lang: strPtr("De"), want: 2},
+		{name: "surrounding space", lang: strPtr("  en  "), want: 1},
+		{name: "unknown code falls back to default", lang: strPtr("fr"), want: 0},
+		{name: "empty string does not match the default entry", lang: strPtr(""), want: 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := selectedLanguageIndex(options, tt.lang); got != tt.want {
+				t.Fatalf("selectedLanguageIndex(%v) = %d, want %d", tt.lang, got, tt.want)
+			}
+		})
 	}
 }
 

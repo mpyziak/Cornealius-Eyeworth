@@ -6,7 +6,6 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
 
-// TestPickRandomEmpty verifies pickRandom returns empty string for empty list.
 func TestPickRandomEmpty(t *testing.T) {
 	result := pickRandom([]string{})
 	if result != "" {
@@ -14,7 +13,6 @@ func TestPickRandomEmpty(t *testing.T) {
 	}
 }
 
-// TestPickRandomSingle verifies pickRandom returns the only item.
 func TestPickRandomSingle(t *testing.T) {
 	items := []string{"only"}
 	result := pickRandom(items)
@@ -23,7 +21,6 @@ func TestPickRandomSingle(t *testing.T) {
 	}
 }
 
-// TestPickRandomValid verifies pickRandom returns an item from the list.
 func TestPickRandomValid(t *testing.T) {
 	items := []string{"a", "b", "c"}
 	for i := 0; i < 100; i++ {
@@ -41,7 +38,6 @@ func TestPickRandomValid(t *testing.T) {
 	}
 }
 
-// TestHasReminderTypeEmpty verifies hasReminderType returns false for empty list.
 func TestHasReminderTypeEmpty(t *testing.T) {
 	result := hasReminderType([]scheduling.Reminder{}, scheduling.ReminderTypeEye)
 	if result {
@@ -49,7 +45,6 @@ func TestHasReminderTypeEmpty(t *testing.T) {
 	}
 }
 
-// TestHasReminderTypePresent verifies hasReminderType finds a matching type.
 func TestHasReminderTypePresent(t *testing.T) {
 	reminders := []scheduling.Reminder{
 		{NotificationCategory: scheduling.ReminderTypeEye, Message: "test"},
@@ -60,7 +55,6 @@ func TestHasReminderTypePresent(t *testing.T) {
 	}
 }
 
-// TestHasReminderTypeAbsent verifies hasReminderType returns false when type is missing.
 func TestHasReminderTypeAbsent(t *testing.T) {
 	reminders := []scheduling.Reminder{
 		{NotificationCategory: scheduling.ReminderTypeEye, Message: "test"},

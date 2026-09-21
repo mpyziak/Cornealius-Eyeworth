@@ -7,40 +7,35 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/driver/desktop"
 
-	"github.com/mpyziak/cornealius-eyeworth/assets"
 	"github.com/mpyziak/cornealius-eyeworth/config"
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
 
-// Manager handles systray setup and lifecycle.
+// handles systray setup and lifecycle.
 type Manager struct {
 	app             fyne.App
 	windowFactory   func() fyne.Window // builds a fresh window each time it is shown
 	currentWindow   fyne.Window        // non-nil while the status window is visible
-	scheduleMenu    *fyne.MenuItem
 	nextTriggerMenu *fyne.MenuItem
 	setupCfg        *config.Config
 }
 
-// NewManager creates a new systray Manager.
+// creates a new systray Manager.
 func NewManager(app fyne.App) *Manager {
 	return &Manager{app: app}
 }
 
-// SetWindowFactory sets the function used to build the status window on demand.
 // Must be called before the first tray interaction.
 func (m *Manager) SetWindowFactory(f func() fyne.Window) {
 	m.windowFactory = f
 }
 
-// Setup stores the config and performs the real systray initialisation.
 func (m *Manager) Setup(cfg *config.Config) {
 	m.setupCfg = cfg
 	m.doSetup()
 }
 
-// doSetup performs the real systray initialisation.
 func (m *Manager) doSetup() {
 	desk, ok := m.app.(desktop.App)
 	if !ok {
@@ -73,31 +68,26 @@ func (m *Manager) doSetup() {
 		quitItem,
 	)
 
+	// The app icon must already be set before this call. Fyne's systray onReady
+	// reads fyne.CurrentApp().Icon() to build the tray icon, and it runs on its
+	// own goroutine released from inside SetSystemTrayMenu
 	desk.SetSystemTrayMenu(menu)
-	m.app.SetIcon(assets.Logo)
 }
 
-// UpdateLabels updates the schedule and next trigger labels in the tray menu.
+// Must be called on the main goroutine: fyne.MenuItem.Label is a plain struct
+// field with no synchronisation
 func (m *Manager) UpdateLabels(cfg *config.Config) {
 	S := i18n.Active
-	if m.scheduleMenu != nil {
-		m.scheduleMenu.Label = scheduling.Describe(cfg.CronExpression)
-	}
 	if m.nextTriggerMenu != nil {
 		m.nextTriggerMenu.Label = fmt.Sprintf(S.NextTrigger, scheduling.NextTrigger(cfg.CronExpression).Format("15:04"))
 	}
 	// Fyne's MenuItem automatically reflects changes to its Label if the menu is active.
 }
 
-// NotifyHidden records that the status window has been closed by means other
-// than the tray toggle (e.g. the window's own X button or its close intercept),
-// so the next tray click correctly opens a fresh window.
 func (m *Manager) NotifyHidden() {
 	m.currentWindow = nil
 }
 
-// toggleWindowVisibility opens a fresh status window when none is shown, or
-// closes the current one when it is already visible.
 func (m *Manager) toggleWindowVisibility() {
 	if m.currentWindow != nil {
 		w := m.currentWindow

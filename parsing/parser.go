@@ -1,4 +1,3 @@
-// Package parsing validates and converts schedule inputs.
 package parsing
 
 import (
@@ -11,7 +10,6 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-// ParseResult is the outcome of a parse operation.
 type ParseResult struct {
 	Valid      bool
 	Expression string // set when Valid == true; canonical Quartz CRON expression
@@ -21,18 +19,16 @@ type ParseResult struct {
 func ok(expr string) ParseResult  { return ParseResult{Valid: true, Expression: expr} }
 func fail(msg string) ParseResult { return ParseResult{Valid: false, Err: msg} }
 
-// quartzToRobfig replaces Quartz '?' wildcards with '*' for robfig/cron compatibility.
+// robfig/cron has no '?'.
 func quartzToRobfig(expr string) string {
 	return strings.ReplaceAll(expr, "?", "*")
 }
 
-// cronParser is a robfig/cron parser that understands seconds-first 6-field expressions.
+// Seconds-first, 6 fields.
 var cronParser = cron.NewParser(
 	cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow,
 )
 
-// ParseCron validates a Quartz-style 6-field CRON expression.
-// '?' is accepted and treated as '*'.
 func ParseCron(input string) ParseResult {
 	trimmed := strings.TrimSpace(input)
 	if trimmed == "" {
@@ -44,8 +40,7 @@ func ParseCron(input string) ParseResult {
 	return ok(trimmed)
 }
 
-// ParseMinutes converts a comma-separated list of minute values (e.g. "20,40,55")
-// into a canonical Quartz CRON expression such as "0 20,40,55 * * * ?".
+// "20,40,55" -> "0 20,40,55 * * * ?".
 func ParseMinutes(input string) ParseResult {
 	parts := strings.FieldsFunc(strings.TrimSpace(input), func(r rune) bool {
 		return r == ',' || r == ' '
@@ -85,9 +80,7 @@ func ParseMinutes(input string) ParseResult {
 	return ok("0 " + strings.Join(strs, ",") + " * * * ?")
 }
 
-// TryExtractSimpleMinutes returns the human-readable comma-separated minutes string
-// from a simple "0 m1,m2 * * * ?" expression (e.g. "20, 40, 55"), or an empty
-// string if the expression is not in that simple form.
+// Inverse of ParseMinutes. Empty string if the expression is not that shape.
 func TryExtractSimpleMinutes(cronExpr string) string {
 	parts := strings.Fields(cronExpr)
 	if len(parts) != 6 {

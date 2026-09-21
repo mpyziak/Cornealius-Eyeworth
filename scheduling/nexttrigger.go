@@ -11,8 +11,7 @@ var nextTriggerParser = cron.NewParser(
 	cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow,
 )
 
-// NextTrigger returns the next wall-clock time the given Quartz CRON expression
-// will fire. Falls back to one hour from now if the expression cannot be parsed.
+// Falls back to one hour out on a bad expression.
 func NextTrigger(cronExpr string) time.Time {
 	normalized := strings.ReplaceAll(cronExpr, "?", "*")
 	schedule, err := nextTriggerParser.Parse(normalized)

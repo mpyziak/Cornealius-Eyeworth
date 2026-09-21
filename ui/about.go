@@ -9,9 +9,12 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 )
 
-// ShowAboutDialog opens a standalone About window.
 func ShowAboutDialog(app fyne.App) {
 	S := i18n.Active
+
+	if focusExisting(dialogAbout) {
+		return
+	}
 
 	win := app.NewWindow(S.AboutDialogTitle)
 	win.SetFixedSize(true)
@@ -35,5 +38,6 @@ func ShowAboutDialog(app fyne.App) {
 		versionLabel,
 		btnRow,
 	)))
+	registerDialog(dialogAbout, win)
 	win.Show()
 }

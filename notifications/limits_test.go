@@ -1,0 +1,88 @@
+package notifications
+
+import (
+	"testing"
+	"unicode/utf16"
+
+	"github.com/mpyziak/cornealius-eyeworth/i18n"
+	"github.com/mpyziak/cornealius-eyeworth/scheduling"
+)
+
+// Not len(s) and not len([]rune(s)) - the German and Polish accents differ.
+func utf16Len(s string) int {
+	return len(utf16.Encode([]rune(s)))
+}
+
+func longest(items []string) (text string, n int) {
+	for _, s := range items {
+		if l := utf16Len(s); l > n {
+			text, n = s, l
+		}
+	}
+	return text, n
+}
+
+// The quips are constants, so an overlong one is a build-time defect. This is
+// why nothing truncates at runtime. Failures print the headroom.
+func TestNotificationsFitWin32BalloonLimits(t *testing.T) {
+	t.Cleanup(func() { i18n.SetLanguage(nil) })
+
+	for _, code := range []string{"en", "de", "pl"} {
+		c := code
+		i18n.SetLanguage(&c)
+		S := i18n.Active
+
+		t.Run(code, func(t *testing.T) {
+			// Every set a title can come from.
+			titleSets := map[string][]string{
+				"NotificationCombinedHeaders":       S.NotificationCombinedHeaders,
+				"NotificationMovementHeaders":       S.NotificationMovementHeaders,
+				"NotificationDistanceGlanceHeaders": S.NotificationDistanceGlanceHeaders,
+				"NotificationOnDuty":                {S.NotificationOnDuty},
+				"AppName":                           {S.AppName},
+			}
+			for name, set := range titleSets {
+				if len(set) == 0 {
+					t.Errorf("%s is empty", name)
+					continue
+				}
+				text, n := longest(set)
+				if n > MaxBalloonTitleUTF16 {
+					t.Errorf("%s: longest entry is %d UTF-16 units, limit %d (over by %d)\n  %q",
+						name, n, MaxBalloonTitleUTF16, n-MaxBalloonTitleUTF16, text)
+					continue
+				}
+				t.Logf("%-34s worst %3d / %d units (%d spare)",
+					name, n, MaxBalloonTitleUTF16, MaxBalloonTitleUTF16-n)
+			}
+
+			// Worst case: both schedules in one Buffer window, longest quip each.
+			standUp, _ := longest(S.NotificationMovementQuips)
+			eye, _ := longest(S.NotificationDistanceGlanceQuips)
+			if standUp == "" || eye == "" {
+				t.Fatal("quip sets must not be empty")
+			}
+
+			worst := aggregatedContent([]scheduling.Reminder{
+				{NotificationCategory: scheduling.ReminderTypeStandup, Message: standUp},
+				{NotificationCategory: scheduling.ReminderTypeEye, Message: eye},
+			})
+
+			if n := utf16Len(worst); n > MaxBalloonBodyUTF16 {
+				t.Errorf("worst-case aggregated body is %d UTF-16 units, limit %d (over by %d)\n%s",
+					n, MaxBalloonBodyUTF16, n-MaxBalloonBodyUTF16, worst)
+			} else {
+				t.Logf("%-34s worst %3d / %d units (%d spare)",
+					"aggregated body (standup+eye)", n, MaxBalloonBodyUTF16, MaxBalloonBodyUTF16-n)
+			}
+
+			for name, s := range map[string]string{
+				"NotificationMinimizedToTray": S.NotificationMinimizedToTray,
+			} {
+				if n := utf16Len(s); n > MaxBalloonBodyUTF16 {
+					t.Errorf("%s is %d UTF-16 units, limit %d", name, n, MaxBalloonBodyUTF16)
+				}
+			}
+		})
+	}
+}

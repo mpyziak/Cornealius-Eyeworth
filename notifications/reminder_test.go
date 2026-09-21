@@ -7,7 +7,6 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
 
-// TestNewReminderEye verifies NewReminder creates eye reminder with distance glance quip.
 func TestNewReminderEye(t *testing.T) {
 	reminder := NewReminder(scheduling.ReminderTypeEye)
 
@@ -28,7 +27,6 @@ func TestNewReminderEye(t *testing.T) {
 	}
 }
 
-// TestNewReminderStandup verifies NewReminder creates standup reminder with movement quip.
 func TestNewReminderStandup(t *testing.T) {
 	reminder := NewReminder(scheduling.ReminderTypeStandup)
 
@@ -49,7 +47,6 @@ func TestNewReminderStandup(t *testing.T) {
 	}
 }
 
-// TestNewReminderUnknown verifies NewReminder handles unknown type gracefully.
 func TestNewReminderUnknown(t *testing.T) {
 	reminder := NewReminder("unknown")
 

@@ -9,18 +9,20 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 
-	log "github.com/mpyziak/cornealius-eyeworth/diagnostics"
 	"github.com/mpyziak/cornealius-eyeworth/config"
+	log "github.com/mpyziak/cornealius-eyeworth/diagnostics"
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
-	"github.com/mpyziak/cornealius-eyeworth/notifications"
 	"github.com/mpyziak/cornealius-eyeworth/parsing"
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
 
-// ShowScheduleDialog opens a standalone schedule-editing window.
-// onSaved is called with the updated *config.Config when the user saves.
-func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched scheduling.Runner, onSaved func(*config.Config), buffer scheduling.ReminderAggregator) {
+// onFire must be the same callback ui.Run passed, not a local one.
+func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched scheduling.Runner, onSaved func(*config.Config), onFire func(string)) {
 	S := i18n.Active
+
+	if focusExisting(dialogSchedule) {
+		return
+	}
 
 	currentCfg, err := repo.Load()
 	if err != nil {
@@ -130,19 +132,22 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 			dialog.ShowError(saveErr, win)
 			return
 		}
-		log.Event("schedule saved — eye=%s standUp=%s", updated.CronExpression, updated.StandUpCronExpression)
+		log.Event("schedule saved - eye=%s standUp=%s", updated.CronExpression, updated.StandUpCronExpression)
 
-		scheduling.ApplySchedule(
+		if applyErr := scheduling.ApplySchedule(
 			eyeSched,
 			standUpSched,
 			scheduling.ScheduleSpec{
 				EyeCron:     updated.CronExpression,
 				StandUpCron: updated.StandUpCronExpression,
 			},
-			func(notificationCategory string) {
-				buffer.Add(notifications.NewReminder(notificationCategory))
-			},
-		)
+			onFire,
+		); applyErr != nil {
+			// Should be unreachable - both were validated above.
+			log.Err("saved schedule rejected by scheduler: %v", applyErr)
+			dialog.ShowError(applyErr, win)
+			return
+		}
 
 		win.Close()
 		onSaved(updated)
@@ -155,5 +160,6 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 	bottom := container.New(layout.NewVBoxLayout(), errorLabel, btnRow)
 
 	win.SetContent(container.NewBorder(nil, bottom, nil, nil, tabs))
+	registerDialog(dialogSchedule, win)
 	win.Show()
 }

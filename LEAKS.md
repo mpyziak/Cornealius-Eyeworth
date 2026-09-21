@@ -4,18 +4,18 @@ This file documents two memory-leak root causes found during profiling of
 Cornealius Eyeworth, together with the minimal patches that fix them in their
 respective upstream libraries.
 
-- **§1 (Fyne `WatchTheme`)** — workaround applied in this repository via
+- **§1 (Fyne `WatchTheme`)** - workaround applied in this repository via
   `go.mod replace` fork at `../fyne-v2-watchtheme-patch`.  See BUILD.md for
   setup instructions.  Upstream bug report template is in §1 below.
-- **§2 (GLFW HID)** — requires a C-level change to the vendored GLFW sources;
+- **§2 (GLFW HID)** - requires a C-level change to the vendored GLFW sources;
   not yet applied.  Upstream patch proposals are in §2 below.
 
 ---
 
-## 1 · `fyne.io/fyne/v2` — `WatchTheme` ignores `RegNotifyChangeKeyValue` return value; key deletion causes busy-spin flooding `funcQueue`
+## 1 · `fyne.io/fyne/v2` - `WatchTheme` ignores `RegNotifyChangeKeyValue` return value; key deletion causes busy-spin flooding `funcQueue`
 
 ### Affected file
-`internal/app/theme_windows.go` — function `WatchTheme`
+`internal/app/theme_windows.go` - function `WatchTheme`
 
 ### How it manifests
 `app.Run()` calls `settings.watchSettings()`, which calls `watchTheme(s)`.
@@ -30,7 +30,7 @@ event loop drains this queue at ~60 fps.
 
 When a Microsoft Teams call ends, Windows restores the Focus Assist /
 Do-Not-Disturb state that Teams had locked during the call.  This involves
-several rapid, successive writes to the Personalize key — 5–15 writes in under
+several rapid, successive writes to the Personalize key - 5–15 writes in under
 200 ms is typical.  Each write causes `WatchTheme` to wake up immediately
 (because `RegNotifyChangeKeyValue` re-arms on the next call) and enqueue one
 more `setupTheme` closure.  Closures pile up faster than the 60 fps loop drains
@@ -112,7 +112,7 @@ runs for the entire lifetime of the process and cannot be stopped even when
  }
 ```
 
-Simpler alternative (no async event, no stop-channel — just adds the debounce):
+Simpler alternative (no async event, no stop-channel - just adds the debounce):
 
 ```diff
 --- a/internal/app/theme_windows.go
@@ -151,23 +151,23 @@ Both log sessions show the same pattern; the 2026-06-24 run is cleaner:
 08:30:35.487  theme-registry write #1           → Fyne's synchronous RNCV wakes up, calls onChanged()
 08:30:35.497  theme-registry key DELETED        → RNCV returns ERROR_KEY_DELETED (1018)
                                                   Fyne: return value ignored, calls onChanged() anyway
-                                                  Fyne: tight loop — RNCV returns 1018 immediately every iteration
+                                                  Fyne: tight loop - RNCV returns 1018 immediately every iteration
                                                   HeapAlloc still ~1.32 MB (GC keeping up for now)
 08:30:35.616  key recreated (119 ms gap)        → Fyne's handle is still invalid; loop continues
-08:30:35.702  burst write #2 (our watcher sees it, Fyne can't — handle stale)
+08:30:35.702  burst write #2 (our watcher sees it, Fyne can't - handle stale)
 08:30:35.723  burst write #3
 08:30:35.738  burst write #4
 08:30:35.763  burst write #5
-08:30:37.471  12 × Settings.AddListener fires in 8 ms — the queued setupTheme closures drain
+08:30:37.471  12 × Settings.AddListener fires in 8 ms - the queued setupTheme closures drain
               HeapAlloc: 1.32 MB → 37.80 MB (+36 MB) in one event-loop frame
-              NumGC: 691 → 698 (7 GC cycles during drain — cannot keep up with allocation rate)
+              NumGC: 691 → 698 (7 GC cycles during drain - cannot keep up with allocation rate)
 ```
 
 The ~12 closures that survive (out of potentially thousands enqueued during the
 119 ms tight-loop window) are those that Fyne's 60 fps event loop had not yet
 drained by the time steady-state resumed.  Each `setupTheme` call resets the
 theme cache, walks every widget in every open window, and re-applies colour
-and font metrics — O(widgets) allocations per call.
+and font metrics - O(widgets) allocations per call.
 
 ### Workaround applied in this application
 
@@ -196,7 +196,7 @@ call-end event, heap stays at baseline, no multi-GB spike.
 
 ### Suggested bug report (submit to https://github.com/fyne-io/fyne)
 
-> **Title**: `WatchTheme` (Windows): `RegNotifyChangeKeyValue` return value ignored — key deletion causes infinite tight loop flooding `funcQueue`
+> **Title**: `WatchTheme` (Windows): `RegNotifyChangeKeyValue` return value ignored - key deletion causes infinite tight loop flooding `funcQueue`
 >
 > **Affected version**: v2.7.4 (latest at time of writing; `internal/app/theme_windows.go`)
 >
@@ -271,11 +271,11 @@ call-end event, heap stays at baseline, no multi-GB spike.
 
 ---
 
-## 2 · `github.com/go-gl/glfw/v3.3/glfw` — HID device notifications trigger DirectInput enumeration on every Bluetooth event
+## 2 · `github.com/go-gl/glfw/v3.3/glfw` - HID device notifications trigger DirectInput enumeration on every Bluetooth event
 
 ### Affected file
-`glfw/src/win32_init.c` — function `createHelperWindow`
-`glfw/src/win32_window.c` — `wndProc` case `WM_DEVICECHANGE`
+`glfw/src/win32_init.c` - function `createHelperWindow`
+`glfw/src/win32_window.c` - `wndProc` case `WM_DEVICECHANGE`
 
 ### How it manifests
 During `glfwInit`, GLFW creates a hidden helper window and registers it for
@@ -313,7 +313,7 @@ unnecessarily expensive.
 
 ### Proposed patch
 
-**Option A — Do not register for HID notifications at all (correct fix for
+**Option A - Do not register for HID notifications at all (correct fix for
 applications that do not use joystick hot-plug):**
 
 ```diff
@@ -337,11 +337,11 @@ applications that do not use joystick hot-plug):**
 +    /* Joystick hot-plug is handled by polling inside glfwPollEvents.        */
 +    /* Registering for GUID_DEVINTERFACE_HID causes WM_DEVICECHANGE to fire  */
 +    /* on every Bluetooth audio profile switch, which then triggers a full   */
-+    /* IDirectInput8_EnumDevices re-scan — expensive and problematic on      */
++    /* IDirectInput8_EnumDevices re-scan - expensive and problematic on      */
 +    /* machines with security agents that hook DirectInput.                  */
 ```
 
-**Option B — Add an init hint `GLFW_JOYSTICK_HOTPLUG` (feature request):**
+**Option B - Add an init hint `GLFW_JOYSTICK_HOTPLUG` (feature request):**
 
 Add a boolean init hint (default `GLFW_TRUE` for backward compat) that controls
 whether `RegisterDeviceNotificationW` is called, allowing applications that do
@@ -360,7 +360,7 @@ The underlying C library is <https://github.com/glfw/glfw>.  Both need the fix;
 the Go binding just ships the C sources vendored.
 
 ### Workaround in this application
-None possible at the application level — `RegisterDeviceNotificationW` is called
+None possible at the application level - `RegisterDeviceNotificationW` is called
 unconditionally inside `glfwInit`, which Fyne calls from `driver.Run()`.  The
 only application-level mitigation is to patch the vendored C source (see git
 history of this repository for the temporary vendor patch that was later
@@ -373,11 +373,11 @@ removed in favour of the `app.Driver().Run()` workaround for issue 1).
 | # | Library | Root cause | Upstream fix needed | App-level workaround |
 |---|---------|-----------|---------------------|----------------------|
 | 1 | `fyne-io/fyne` | `WatchTheme` ignores `RegNotifyChangeKeyValue` return value; key deletion causes infinite tight loop flooding funcQueue with `setupTheme` closures → 37 MB heap spike | Add ERROR_KEY_DELETED recovery + 300 ms debounce to `WatchTheme` | **Applied**: `go.mod replace` fork at `../fyne-v2-watchtheme-patch`; bug report template in §1 above |
-| 2 | `go-gl/glfw` | HID arrival triggers full DirectInput re-scan | Don't register for HID notifications / add opt-out hint | None — requires library patch |
+| 2 | `go-gl/glfw` | HID arrival triggers full DirectInput re-scan | Don't register for HID notifications / add opt-out hint | None - requires library patch |
 
 ---
 
-## Self-inflicted regression (resolved) — `SetParent(SystrayMonitor)` causes CPU loop
+## Self-inflicted regression (resolved) - `SetParent(SystrayMonitor)` causes CPU loop
 
 **Introduced and fixed in this repository.** Recorded here as a hard constraint
 so it is never reintroduced.
@@ -394,12 +394,12 @@ the main thread.  When `SetParent` is called on it from another thread, Windows
 delivers `WM_WINDOWPOSCHANGING/CHANGED/SIZE/MOVE` synchronously to the main-thread
 message queue.  GLFW's `wndProc` processes these and queries the window's geometry;
 a message-only window returns non-standard values, leaving GLFW in a state where it
-continuously issues resize/recheck calls — 100% CPU and a new GL allocation per
+continuously issues resize/recheck calls - 100% CPU and a new GL allocation per
 iteration.
 
 ### The rule
 **Never call `SetParent`, `SetWindowLongPtr`, `SetWindowPos`, or any other
 cross-thread Win32 style mutation on `SystrayMonitor`.**
-Only `SystrayClass` (the `fyne.io/systray` message pump — no GL context) is safe
+Only `SystrayClass` (the `fyne.io/systray` message pump - no GL context) is safe
 to reparent.  See `systray/systraypatch_win.go` and the "Systray window patching"
 section of `PROJECT_CONTEXT.md` for the full rationale.

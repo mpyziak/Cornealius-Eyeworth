@@ -1,4 +1,4 @@
-# Cornealius Eyeworth — Go + Fyne
+# Cornealius Eyeworth - Go + Fyne
 
 Cross-platform app for eye-rest reminders. Builds from the repository root and runs on Windows, Linux, and macOS.
 
@@ -9,23 +9,23 @@ Cross-platform app for eye-rest reminders. Builds from the repository root and r
 | Tool | Minimum version | Purpose | Install |
 |------|----------------|---------|---------|
 | **Go** | 1.22 | Build toolchain | https://go.dev/dl/ |
-| **C compiler** | any | CGO — required by Fyne's OpenGL backend | Linux: `sudo apt install gcc libgl1-mesa-dev xorg-dev` |
+| **C compiler** | any | CGO - required by Fyne's OpenGL backend | Linux: `sudo apt install gcc libgl1-mesa-dev xorg-dev` |
 | **MSYS2 / MinGW-w64** | any | CGO for Windows | see below |
 | **Xcode CLT** | any | CGO for macOS | `xcode-select --install` |
-| `fyne` CLI | optional | Packaging into distributables | `go install fyne.io/tools/cmd/fyne@latest@latest` |
+| `fyne` CLI | optional | Packaging into bundles | `go install fyne.io/tools/cmd/fyne@latest` |
 
 > Fyne uses CGO for OpenGL support. A C compiler is mandatory on every platform.
 
 ### Installing MinGW-w64 on Windows
 
-**Option A — winget**:
+**Option A - winget**:
 ```powershell
 winget install --id MSYS2.MSYS2
 # then inside MSYS2 shell:
 pacman -S mingw-w64-x86_64-gcc
 ```
 
-**Option B — portable **:
+**Option B - portable**:
 ```powershell
 # 1. Download the portable archive (via a local HTTP proxy if needed)
 Invoke-WebRequest `
@@ -33,7 +33,7 @@ Invoke-WebRequest `
   -Proxy "<PROXY>" `   # omit if no proxy is required
   -OutFile "$env:USERPROFILE\mingw64.7z"
 
-# 2. Extract (7-Zip required — https://www.7-zip.org)
+# 2. Extract (7-Zip required - https://www.7-zip.org)
 & "C:\Program Files\7-Zip\7z.exe" x "$env:USERPROFILE\mingw64.7z" -o"$env:USERPROFILE\mingw64" -y
 
 # 3. Add to PATH for the current session
@@ -57,7 +57,7 @@ $env:GONOSUMDB   = "*"
 
 ---
 
-## Quick start (development)
+## Quick start (Linux / macOS)
 
 ```bash
 go mod tidy          # download all dependencies (one-time, requires internet)
@@ -65,13 +65,9 @@ go build .           # compile
 ./cornealius-eyeworth
 ```
 
-## Running tests
+## Quick start (Windows)
 
-```bash
-go test ./...
-```
-
-**Windows** — run from PowerShell with GCC on `PATH`:
+From PowerShell, with GCC on `PATH`:
 
 ```powershell
 # If behind a proxy, set these first (see Prerequisites → Network / proxy):
@@ -83,24 +79,42 @@ go mod tidy
 go build -ldflags "-s -w -H windowsgui" -o cornealius-eyeworth.exe .
 ```
 
+`-H windowsgui` is what keeps a console window from opening behind the app. Drop
+it while debugging if you want `stdout` back.
+
+## Running tests
+
+```bash
+go test ./...
+```
+
+Nothing in the suite opens a window or a tray icon - it passes on Linux with
+`DISPLAY` unset, so CI needs no display server.
+
 ---
 
 ## Makefile targets
 
-The repository includes a `Makefile` with these useful targets:
-
 ```make
 make deps                # go mod tidy
-make build               # release build — no logging compiled in
+make winres              # regenerate rsrc_windows_amd64.syso (icon + manifest)
+make build               # release build - no logging compiled in
 make build-win           # release build, Windows GUI subsystem
 make build-dev           # logging enabled (diagnostics tag)
 make build-dev-win       # logging enabled, Windows GUI subsystem
 make build-dev-sysmon    # logging + OS event monitors (Windows only)
-make build-dev-sysmon-win
+make build-dev-sysmon-win # the same, Windows GUI subsystem
 make patch-fyne          # recreate the Fyne WatchTheme fork (run once per machine)
 make run                 # build and run the app
-make clean               # remove built binaries
+make upx / upx-win       # UPX-compress the built binary (needs upx on PATH)
+make package-win         # fyne package → dist/
+make package-linux
+make package-darwin
+make clean               # remove built binaries and dist/
 ```
+
+The `package-*` targets must run on the platform they name - none of this
+cross-compiles, because Fyne needs CGO and a matching C toolchain.
 
 ---
 
@@ -109,13 +123,13 @@ make clean               # remove built binaries
 `fyne package` produces a self-contained app bundle:
 
 ```bash
-# Windows — embed icon + single-file .exe (~25 MB, identical to stripped go build)
+# Windows: embed icon + single-file .exe (~25 MB, identical to stripped go build)
 go run fyne.io/tools/cmd/fyne@latest package --release --app-id "com.github.mpyziak.cornealius-eyeworth" --os windows --icon assets/Logo.png --name "Cornealius Eyeworth"
 
-# macOS — produces a .app bundle
+# macOS: produces a .app bundle
 go run fyne.io/tools/cmd/fyne@latest package --release --app-id "com.github.mpyziak.cornealius-eyeworth" --os darwin --icon assets/Logo.png --name "Cornealius Eyeworth"
 
-# Linux — produces an executable with .desktop file
+# Linux: produces an executable with .desktop file
 go run fyne.io/tools/cmd/fyne@latest package --release --app-id "com.github.mpyziak.cornealius-eyeworth" --os linux --icon assets/Logo.png --name "Cornealius Eyeworth"
 ```
 
@@ -123,46 +137,53 @@ go run fyne.io/tools/cmd/fyne@latest package --release --app-id "com.github.mpyz
 
 ## Fyne `WatchTheme` workaround (local module fork)
 
-This repository uses a patched local copy of `fyne.io/fyne/v2` to fix a
-Windows-only memory-leak bug in `WatchTheme` (see `LEAKS.md §1`).  The fix is
-wired via a `replace` directive in `go.mod`:
+`go.mod` points Fyne at a patched sibling checkout that fixes a Windows-only
+memory leak (`LEAKS.md §1`):
 
 ```
 replace fyne.io/fyne/v2 => ../fyne-v2-watchtheme-patch
 ```
 
-The patched fork must exist as a sibling directory.  If you clone this
-repository to a new machine or the sibling directory is missing, the build will
-fail with:
+A fresh clone does not have it, and the build fails:
 
 ```
 go: ../fyne-v2-watchtheme-patch: reading ../fyne-v2-watchtheme-patch/go.mod: open ...: no such file or directory
 ```
 
-**To recreate the fork:**
-
-> **Note**: verified against `fyne.io/fyne/v2 v2.7.4` — the latest release at
-> the time of writing.  Run `go list -m -versions fyne.io/fyne/v2` before
-> starting; if a newer version is available, upgrade `go.mod` first (`go get
-> fyne.io/fyne/v2@latest ; go mod tidy`) and re-apply the patch to the new
-> module cache entry.
+Fix it with `make patch-fyne`, or by hand on a box without `make`:
 
 ```powershell
-# 1. Copy the module from the local cache (read-only by default — strip that)
-$ver = "v2.7.4"
-$src = "$env:USERPROFILE\go\pkg\mod\fyne.io\fyne\$ver"
-$dst = "..\fyne-v2-watchtheme-patch"
+# 1. Clone upstream Fyne at the pinned tag, beside this repository
+git clone --depth 1 --branch v2.7.4 https://github.com/fyne-io/fyne.git ..\fyne-v2-watchtheme-patch
 
-Copy-Item -Recurse -Force $src $dst
-attrib -r "$dst\*.*" /s /d
-
-# 2. Open the single file that needs patching
-#    c:\Users\...\Projects\spikes\fyne-v2-watchtheme-patch\internal\app\theme_windows.go
+# 2. Overwrite the single file that carries the patch
+copy external-patches\fyne-theme_windows.go ..\fyne-v2-watchtheme-patch\internal\app\theme_windows.go
 ```
 
-Apply the following diff to `internal/app/theme_windows.go` in the copied
-directory (the patched version already committed in `../fyne-v2-watchtheme-patch`
-can be used as a reference):
+That is all of it. To confirm:
+
+```powershell
+# The fork itself compiles
+cd ..\fyne-v2-watchtheme-patch
+go build ./internal/app/ 2>&1
+
+# And the app builds against it, in all three profiles
+cd ..\Cornealius-Eyeworth
+go build -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
+go build -tags diagnostics -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
+go build -tags diagnostics,sysmon -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
+```
+
+> **`v2.7.4` is written in four places** - the clone command above, `FYNE_TAG` in
+> the `Makefile`, `FYNE_TAG` in `.github/workflows/release.yml`, and `go.mod`.
+> Nothing checks that they agree. Change all four together, and re-check the patch
+> against upstream: it replaces `theme_windows.go` wholesale, so an upstream
+> rewrite is discarded silently instead of conflicting.
+
+> Clone, don't copy out of the module cache. The `replace` in `go.mod` means Go
+> never downloads Fyne, so the cache is empty exactly when you need it.
+
+What the patch changes, for reference - step 2 already applied it:
 
 ```diff
 --- a/internal/app/theme_windows.go
@@ -215,49 +236,43 @@ can be used as a reference):
 ```
 
 Two changes:
-1. **`ERROR_KEY_DELETED` recovery** — Windows deletes and recreates `Themes\Personalize` during a full theme switch (Teams call-end, Focus Assist restore).  The original code ignores the `RegNotifyChangeKeyValue` return value, so when the key is deleted the call returns error 1018 immediately on every iteration — a busy-spin that enqueues thousands of `setupTheme` closures in under 200 ms.  The fix closes the stale handle and polls until the key is recreated.
-2. **300 ms debounce** — Teams/Focus Assist writes the key 3–5 more times after recreation.  The debounce collapses the burst into a single `onChanged()` call.
 
-```powershell
-# 3. Verify the fork builds
-cd ..\fyne-v2-watchtheme-patch
-go build ./internal/app/ 2>&1
+1. **`ERROR_KEY_DELETED` recovery.** A full theme switch deletes and recreates
+   `Themes\Personalize`. Upstream ignores the `RegNotifyChangeKeyValue` return, so
+   while the key is gone it spins at CPU speed, queueing thousands of `setupTheme`
+   closures. The patch reopens the handle instead.
+2. **300 ms debounce.** Teams writes the key another 3–5 times after recreating it.
 
-# 4. Back in the app — confirm all three build profiles compile
-cd ..\Cornealius-Eyeworth
-go build -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
-go build -tags diagnostics -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
-go build -tags diagnostics,sysmon -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
-```
+`LEAKS.md §1` has the log trace and the upstream bug report.
 
 ---
 
 ## Diagnostic builds
 
-Logging and OS event monitoring are **not compiled into release builds** at all.
-They live in `dev-diagnostics/` and are gated by two build tags:
+Logging and OS event monitoring are not in release builds at all. They live in
+`dev-diagnostics/`, behind two tags:
 
 | Tag | What it adds |
 |-----|--------------|
-| `diagnostics` | Rotating-file logger + 30-second memory sampler (`dev-diagnostics/`) |
-| `diagnostics,sysmon` | All of the above **plus** OS-level event monitors (Windows only) |
+| `diagnostics` | Rotating-file logger + 30-second memory sampler |
+| `diagnostics,sysmon` | Plus OS-level event monitors (Windows only) |
 
-The `sysmon` tag is meaningless without `diagnostics` — it only compiles code inside `dev-diagnostics/`.
+`sysmon` alone does nothing - it only gates code inside `dev-diagnostics/`.
 
-What `sysmon` adds:
-- Registry watcher on `HKCU\...\Themes\Personalize` (tracks burst writes that trigger Fyne's `setupTheme`)
-- A pinned OS-thread message pump that logs: HID / network device arrivals and removals (`WM_DEVICECHANGE`), power sleep/resume (`WM_POWERBROADCAST`), session lock/unlock/RDP (`WM_WTSSESSION_CHANGE`), display change, DPI change, theme change, system colour change, font change, `WM_COMPACTING`, and Group Policy `WM_SETTINGCHANGE`
-- Registry watcher on `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Group Policy\State` (GP update cycle ~90 min)
-- Fyne `Settings.AddListener` to correlate `setupTheme` calls with the registry bursts above
+`sysmon` watches `Themes\Personalize` and the Group Policy `State` key, runs a
+pinned message pump logging `WM_DEVICECHANGE`, `WM_POWERBROADCAST`,
+`WM_WTSSESSION_CHANGE`, DPI/display/theme/font changes and `WM_COMPACTING`, and
+hooks `Settings.AddListener` to line `setupTheme` calls up against the registry
+bursts. That combination is what identified both leaks in `LEAKS.md`.
 
 ```powershell
 # Standard build (no logging, no OS monitors)
 go build -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
 
-# Diagnostic build — logging only
+# Diagnostic build - logging only
 go build -tags diagnostics -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
 
-# Diagnostic build — logging + OS event monitoring (Windows only)
+# Diagnostic build - logging + OS event monitoring (Windows only)
 go build -tags diagnostics,sysmon -ldflags "-s -w -H windowsgui" -o "Cornealius Eyeworth.exe" .
 ```
 
@@ -269,25 +284,38 @@ Log files are written next to the executable, named by UTC timestamp (e.g. `corn
 
 ```
 ./
-├── main.go                 Entry point — loads config, sets locale, starts UI
+├── main.go                 Entry point - loads config, sets locale and icon, starts UI
 ├── assets/
-│   ├── assets.go           Embeds Logo.png as a Fyne resource
-│   └── Logo.png            App logo (embedded at compile time)
-├── config/config.go        Config struct + JSON persistence
-├── i18n/strings.go         Localised strings
-├── notifications/notifier.go  Cross-platform notifications via fyne.App
+│   ├── assets.go           Embeds the logo, the 64x64 icon and the .ico
+│   ├── gen/main.go         go:generate - rescales Logo.png to Logo64.png
+│   └── Logo.png            Source logo, 800x800
+├── config/                 Config struct, defaults, JSON persistence
+├── i18n/strings.go         Localised strings - English, German, Polish
+├── diagnostics/            Always-present logging interface; no-ops in release builds
+├── dev-diagnostics/        The real logger + memory sampler, behind build tags
+├── notifications/
+│   ├── notifier.go         !windows - sends via fyne.App
+│   ├── notifier_windows.go windows - Shell_NotifyIcon balloons via syscall
+│   ├── flusher.go          Connects scheduling.Buffer to the senders above
+│   ├── formatting.go       Batch → one title and one bulleted body
+│   └── limits.go           Win32 balloon buffer sizes, asserted by tests
 ├── parsing/parser.go       CRON and minutes parsing
 ├── scheduling/
-│   ├── scheduler.go        Hot-restartable CRON scheduler
+│   ├── scheduler.go        Hot-restartable CRON scheduler + ApplySchedule
+│   ├── buffer.go           Coalesces firings inside a 2s window
 │   ├── describer.go        Converts CRON to human-readable text
 │   └── nexttrigger.go      Computes next trigger time
-├── systray/systray.go      System tray integration and menu handling
+├── systray/
+│   ├── systray.go          Tray icon, menu, on-demand status window
+│   └── systraypatch_win.go HWND_MESSAGE reparent - see LEAKS.md
 ├── ui/
-│   ├── ui.go               Main window and app orchestration
-│   ├── schedule.go         Schedule dialog UI
-│   ├── language.go         Language selector UI
+│   ├── ui.go               Run() - wires everything; anchor + window factory
+│   ├── schedule.go         Schedule dialog
+│   ├── language.go         Language selector
+│   ├── dialogs.go          Single-instance registry for the dialogs above
 │   ├── about.go            About dialog
 │   └── help.go             Help dialog
+├── external-patches/       The one patched Fyne file, copied into the fork
 └── winres/                 Windows resource metadata for icon embedding
 ```
 

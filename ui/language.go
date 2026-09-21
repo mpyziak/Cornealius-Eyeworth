@@ -24,9 +24,27 @@ func updatedConfigForLanguage(existing *config.Config, newLang *string) *config.
 	}
 }
 
-// ShowLanguageDialog opens a standalone language-selection window.
+// Normalising both sides, so a hand-edited "PL" or "pl_PL" picks the same entry
+// i18n.SetLanguage will. 0 is the system default.
+func selectedLanguageIndex(options []i18n.LanguageOption, lang *string) int {
+	if lang == nil {
+		return 0
+	}
+	want := i18n.NormaliseLocale(*lang)
+	for i, opt := range options {
+		if opt.Code != "" && i18n.NormaliseLocale(opt.Code) == want {
+			return i
+		}
+	}
+	return 0
+}
+
 func ShowLanguageDialog(app fyne.App, repo config.Store) {
 	S := i18n.Active
+
+	if focusExisting(dialogLanguage) {
+		return
+	}
 
 	currentCfg, err := repo.Load()
 	if err != nil {
@@ -43,15 +61,7 @@ func ShowLanguageDialog(app fyne.App, repo config.Store) {
 		}
 	}
 
-	currentIdx := 0
-	if currentCfg.Language != nil {
-		for i, opt := range options {
-			if opt.Code == *currentCfg.Language {
-				currentIdx = i
-				break
-			}
-		}
-	}
+	currentIdx := selectedLanguageIndex(options, currentCfg.Language)
 
 	win := app.NewWindow(S.LanguageDialogTitle)
 	win.SetFixedSize(true)
@@ -109,5 +119,6 @@ func ShowLanguageDialog(app fyne.App, repo config.Store) {
 		layout.NewSpacer(),
 		btnRow,
 	)))
+	registerDialog(dialogLanguage, win)
 	win.Show()
 }

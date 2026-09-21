@@ -1,4 +1,3 @@
-// Package ui contains all Fyne UI code for Cornealius Eyeworth.
 package ui
 
 import (
@@ -27,12 +26,8 @@ const (
 	mainWinH float32 = 180
 )
 
-// statusState holds the current displayable status strings and, while a status
-// window is open, direct label pointers for live updates. Using direct label
-// references instead of fyne data bindings avoids accumulating binding
-// listeners from each window-open cycle — binding listeners are never cleaned
-// up automatically when a window is closed, causing a listener-per-cycle leak
-// that prevents old Label widgets from being garbage-collected.
+// Direct label pointers, not data bindings: Fyne never releases
+// binding listeners on window close, so each open/close cycle leaks one.
 type statusState struct {
 	mu sync.Mutex
 
@@ -66,7 +61,7 @@ func (s *statusState) update(c *config.Config) {
 	suntl := s.standUpNextTriggerLabel
 	s.mu.Unlock()
 
-	// Update live labels if the window is currently open.
+	// Update live labels if window is currently open.
 	if sl != nil {
 		sl.SetText(schedule)
 		ntl.SetText(nextTrigger)
@@ -99,18 +94,13 @@ func (s *statusState) snapshot() (schedule, nextTrigger, standUp, standUpNextTri
 	return s.schedule, s.nextTrigger, s.standUp, s.standUpNextTrigger
 }
 
-// Run is the application entry point for the UI layer.
 func Run(app fyne.App, cfg *config.Config, repo config.Store) {
-	app.SetIcon(assets.AppIcon)
-
 	status := &statusState{}
 	status.update(cfg)
 
-	// Anchor window: created first so it becomes Fyne's "master" window.
-	// It is never shown, so Windows never registers its HWND as a visible
-	// window and will not send DPI-change / screen-capture events to it.
-	// Its sole purpose is to keep Fyne's event loop alive after the
-	// on-demand status window is closed.
+	// Anchor window. Never shown - it only keeps the event loop alive once the
+	// status window closes. Showing it would register an HWND that receives
+	// DPI-change and screen-capture events.
 	_ = app.NewWindow("")
 
 	eyeScheduler := &scheduling.Scheduler{}
@@ -119,22 +109,47 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 
 	trayMgr := systray.NewManager(app)
 	trayMgr.Setup(cfg)
-	trayMgr.SetWindowFactory(windowFactory(app, repo, status, eyeScheduler, standUpScheduler, trayMgr, reminderBuffer))
 
-	scheduling.ApplySchedule(
+	// Every ApplySchedule caller must re-arm with this one. A local replacement
+	// drops the status and tray refresh.
+	onFire := cronCallback(repo, status, trayMgr, reminderBuffer)
+
+	trayMgr.SetWindowFactory(windowFactory(app, repo, status, eyeScheduler, standUpScheduler, trayMgr, onFire))
+
+	if err := scheduling.ApplySchedule(
 		eyeScheduler,
 		standUpScheduler,
 		scheduling.ScheduleSpec{
 			EyeCron:     cfg.CronExpression,
 			StandUpCron: cfg.StandUpCronExpression,
 		},
-		cronCallback(repo, status, trayMgr, reminderBuffer),
-	)
+		onFire,
+	); err != nil {
+		// A cron with no entries looks exactly like a working app that never
+		// fires, so fall back rather than run with empty.
+		log.Err("invalid schedule in config.json (%v) - falling back to defaults", err)
+		defaults := config.DefaultConfig()
+		cfg.CronExpression = defaults.CronExpression
+		cfg.StandUpCronExpression = defaults.StandUpCronExpression
+		status.update(cfg)
+		trayMgr.UpdateLabels(cfg)
+		if fallbackErr := scheduling.ApplySchedule(
+			eyeScheduler,
+			standUpScheduler,
+			scheduling.ScheduleSpec{
+				EyeCron:     cfg.CronExpression,
+				StandUpCron: cfg.StandUpCronExpression,
+			},
+			onFire,
+		); fallbackErr != nil {
+			log.Err("default schedule rejected too: %v", fallbackErr)
+		}
+	}
 
 	log.EnableUiDevDiagnosticsSettingsListener(app)
 
 	trayMgr.Run(func() { notifications.SendStartup(app) })
-	log.Info("event loop running — eye=%s standUp=%s", cfg.CronExpression, cfg.StandUpCronExpression)
+	log.Info("event loop running - eye=%s standUp=%s", cfg.CronExpression, cfg.StandUpCronExpression)
 	app.Run()
 
 	eyeScheduler.Stop()
@@ -143,10 +158,9 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 	log.Info("schedulers stopped, shutting down")
 }
 
-// windowFactory returns a function that builds a fresh status window each time
-// the user shows it. Closing the window calls win.Close(), which destroys the
-// HWND and frees the Fyne/GLFW OpenGL context, preventing GL resource
-// accumulation triggered by screen-share and DPI-change OS events.
+// A fresh window per show, closed rather than hidden. Hiding keeps the HWND
+// alive, and Windows keeps sending it DPI and screen-share events that Fyne
+// answers by reallocating GL buffers.
 func windowFactory(
 	app fyne.App,
 	repo config.Store,
@@ -154,14 +168,14 @@ func windowFactory(
 	eyeSched scheduling.Runner,
 	standUpSched scheduling.Runner,
 	trayMgr *systray.Manager,
-	buffer scheduling.ReminderAggregator,
+	onFire func(string),
 ) func() fyne.Window {
 	return func() fyne.Window {
 		log.Event("status window opened")
 		schedule, nextTrigger, standUp, standUpNextTrigger := status.snapshot()
 		win, sl, ntl, sul, suntl := buildMainWindow(app, schedule, nextTrigger, standUp, standUpNextTrigger)
 		status.attach(sl, ntl, sul, suntl)
-		win.SetMainMenu(buildMenu(app, repo, eyeSched, standUpSched, status.update, trayMgr, buffer))
+		win.SetMainMenu(buildMenu(app, repo, eyeSched, standUpSched, status.update, onFire))
 		win.SetOnClosed(func() {
 			log.Event("status window closed")
 			status.detach()
@@ -175,7 +189,6 @@ func windowFactory(
 	}
 }
 
-// cronCallback returns the function fired by both schedulers on each trigger.
 func cronCallback(
 	repo config.Store,
 	status *statusState,
@@ -183,26 +196,26 @@ func cronCallback(
 	buffer scheduling.ReminderAggregator,
 ) func(string) {
 	return func(notificationCategory string) {
-		log.Event("cron fired — category=%s", notificationCategory)
+		log.Event("cron fired - category=%s", notificationCategory)
 		buffer.Add(notifications.NewReminder(notificationCategory))
 		if latest, err := repo.Load(); err == nil {
-			status.update(latest)
-			trayMgr.UpdateLabels(latest)
+			// Cron's goroutine. Both calls touch Fyne widgets, which are
+			// main thread only.
+			fyne.Do(func() {
+				status.update(latest)
+				trayMgr.UpdateLabels(latest)
+			})
 		}
 	}
 }
 
-// buildMenu constructs the window menu bar.
-// All dialogs are opened from menu items so the parent window is always
-// visible when they appear — no resize juggling needed.
 func buildMenu(
 	app fyne.App,
 	repo config.Store,
 	eyeSched scheduling.Runner,
 	standUpSched scheduling.Runner,
 	updateStatus func(*config.Config),
-	trayMgr *systray.Manager,
-	buffer scheduling.ReminderAggregator,
+	onFire func(string),
 ) *fyne.MainMenu {
 	S := i18n.Active
 
@@ -212,7 +225,7 @@ func buildMenu(
 	return fyne.NewMainMenu(
 		fyne.NewMenu(S.MenuOptions,
 			fyne.NewMenuItem(S.MenuTriggerTimes, func() {
-				ShowScheduleDialog(app, repo, eyeSched, standUpSched, updateStatus, buffer)
+				ShowScheduleDialog(app, repo, eyeSched, standUpSched, updateStatus, onFire)
 			}),
 			fyne.NewMenuItem(S.MenuLanguage, func() {
 				ShowLanguageDialog(app, repo)
@@ -232,9 +245,6 @@ func buildMenu(
 	)
 }
 
-// buildMainWindow creates and configures the main status window.
-// It returns the window and the four status labels so the caller can register
-// them for live updates without using data bindings.
 func buildMainWindow(app fyne.App, schedule, nextTrigger, standUp, standUpNextTrigger string) (fyne.Window, *widget.Label, *widget.Label, *widget.Label, *widget.Label) {
 	S := i18n.Active
 

@@ -8,9 +8,7 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 )
 
-// Describe converts a Quartz CRON expression to a human-readable description.
-// Simple "0 m1,m2 * * * ?" patterns expand to a localised sentence;
-// anything more complex falls back to the raw expression.
+// Anything beyond "0 m1,m2 * * * ?" comes back as the raw expression.
 func Describe(cronExpr string) string {
 	parts := strings.Fields(cronExpr)
 	if len(parts) == 6 &&

@@ -9,9 +9,12 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 )
 
-// ShowHelpDialog opens a standalone Help window.
 func ShowHelpDialog(app fyne.App) {
 	S := i18n.Active
+
+	if focusExisting(dialogHelp) {
+		return
+	}
 
 	win := app.NewWindow(S.HelpDialogTitle)
 	win.SetFixedSize(true)
@@ -35,5 +38,6 @@ func ShowHelpDialog(app fyne.App) {
 		scroll,
 		btnRow,
 	)))
+	registerDialog(dialogHelp, win)
 	win.Show()
 }

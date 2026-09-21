@@ -8,7 +8,6 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
 
-// TestAggregatedContentEmpty verifies aggregatedContent returns empty string for no reminders.
 func TestAggregatedContentEmpty(t *testing.T) {
 	result := aggregatedContent([]scheduling.Reminder{})
 	if result != "" {
@@ -16,7 +15,6 @@ func TestAggregatedContentEmpty(t *testing.T) {
 	}
 }
 
-// TestAggregatedContentSingle verifies aggregatedContent formats a single reminder.
 func TestAggregatedContentSingle(t *testing.T) {
 	reminders := []scheduling.Reminder{
 		{NotificationCategory: scheduling.ReminderTypeEye, Message: "Look away"},
@@ -28,7 +26,6 @@ func TestAggregatedContentSingle(t *testing.T) {
 	}
 }
 
-// TestAggregatedContentMultiple verifies aggregatedContent orders by type, then preserves order.
 func TestAggregatedContentMultiple(t *testing.T) {
 	reminders := []scheduling.Reminder{
 		{NotificationCategory: scheduling.ReminderTypeEye, Message: "Eye care"},
@@ -42,12 +39,10 @@ func TestAggregatedContentMultiple(t *testing.T) {
 		t.Errorf("aggregatedContent produced %d lines, want 3", len(lines))
 	}
 
-	// Standup should come first in the ordering
 	if !strings.Contains(lines[0], "Stand up") {
 		t.Errorf("First line = %q, want it to contain standup reminder", lines[0])
 	}
 
-	// Eye reminders should follow
 	if !strings.Contains(lines[1], "Eye care") {
 		t.Errorf("Second line = %q, want \"Eye care\"", lines[1])
 	}
@@ -56,7 +51,6 @@ func TestAggregatedContentMultiple(t *testing.T) {
 	}
 }
 
-// TestAggregatedTitleEyeOnly verifies aggregatedTitle uses DistanceGlanceHeaders for eye-only.
 func TestAggregatedTitleEyeOnly(t *testing.T) {
 	reminders := []scheduling.Reminder{
 		{NotificationCategory: scheduling.ReminderTypeEye, Message: "test"},
@@ -75,7 +69,6 @@ func TestAggregatedTitleEyeOnly(t *testing.T) {
 	}
 }
 
-// TestAggregatedTitleStandupOnly verifies aggregatedTitle uses MovementHeaders for standup-only.
 func TestAggregatedTitleStandupOnly(t *testing.T) {
 	reminders := []scheduling.Reminder{
 		{NotificationCategory: scheduling.ReminderTypeStandup, Message: "test"},
@@ -94,7 +87,6 @@ func TestAggregatedTitleStandupOnly(t *testing.T) {
 	}
 }
 
-// TestAggregatedTitleBoth verifies aggregatedTitle uses CombinedHeaders for both types.
 func TestAggregatedTitleBoth(t *testing.T) {
 	reminders := []scheduling.Reminder{
 		{NotificationCategory: scheduling.ReminderTypeEye, Message: "test"},
