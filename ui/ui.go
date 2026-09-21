@@ -183,7 +183,7 @@ func windowFactory(
 		})
 		win.SetCloseIntercept(func() {
 			notifications.SendMinimizedToTray(app)
-			win.Close() // triggers SetOnClosed → detach + NotifyHidden
+			win.Close() // triggers SetOnClosed -> detach + NotifyHidden
 		})
 		return win
 	}

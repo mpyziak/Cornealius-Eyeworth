@@ -7,11 +7,6 @@ on:
     branches: [rc*]
     tags: ['v*']
   workflow_dispatch:
-    inputs:
-      macos:
-        description: Also build macOS
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -23,6 +18,10 @@ concurrency:
 env:
   APP_ID: com.github.mpyziak.cornealius-eyeworth
   APP_NAME: Cornealius Eyeworth
+  # Filename form of APP_NAME. The shipped executable carries no version, so that
+  # shortcuts, autostart entries and firewall rules keep working across updates.
+  # The version goes on the archive instead.
+  APP_FILE: Cornealius-Eyeworth
   ICON: assets/Logo.png
   # Must match the fyne.io/fyne/v2 version in go.mod - the patched fork is
   # rebuilt from this tag on every run.
@@ -40,19 +39,19 @@ jobs:
       - name: Select target platforms
         id: targets
         run: |
-          # macOS is opt-in. On a private repo it bills at 10x the rate of Linux
-          # against the 2,000 min/month free allowance; once this repo is public
-          # it is unmetered and can be enabled by default.
-          # Enable per-run via the "Run workflow" button, or permanently by
-          # moving the darwin entry into the default list below.
-          linux_windows='{"os":"ubuntu-latest","platform":"linux"},{"os":"windows-latest","platform":"windows"}'
-          darwin='{"os":"macos-latest","platform":"darwin"}'
+          # All three platforms build on every run. Note macOS bills at 10x the
+          # rate of Linux on a private repo - roughly 80 of the ~104 minutes a
+          # full run costs, against the 2,000 min/month allowance. It is
+          # unmetered once this repo is public. Drop the darwin entry below to
+          # go back to Linux and Windows only.
+          # macos-latest is Apple Silicon, so the darwin build is arm64 only and
+          # will not run on an Intel Mac. The platform name says so, since it
+          # ends up in the artifact filename.
+          linux='{"os":"ubuntu-latest","platform":"linux"}'
+          windows='{"os":"windows-latest","platform":"windows"}'
+          darwin='{"os":"macos-latest","platform":"macos-arm64"}'
 
-          if [ "${{ inputs.macos }}" = "true" ]; then
-            echo "matrix={\"include\":[$linux_windows,$darwin]}" >> "$GITHUB_OUTPUT"
-          else
-            echo "matrix={\"include\":[$linux_windows]}" >> "$GITHUB_OUTPUT"
-          fi
+          echo "matrix={\"include\":[$linux,$windows,$darwin]}" >> "$GITHUB_OUTPUT"
 
       - name: Derive version
         id: version
@@ -147,14 +146,18 @@ jobs:
               # rsrc_windows_amd64.syso (from make winres) already embeds an
               # icon and manifest, and fyne package adds a second manifest,
               # which lld-link rejects as a duplicate resource.
-              go build -ldflags "-s -w -H windowsgui" -o "dist/$ASSET.exe" .
+              mkdir -p staging
+              go build -ldflags "-s -w -H windowsgui" -o "staging/$APP_FILE.exe" .
+              # Compress-Archive rather than zip, which the Windows runner lacks.
+              powershell -NoProfile -Command \
+                "Compress-Archive -Path 'staging/$APP_FILE.exe' -DestinationPath 'dist/$ASSET.zip' -Force"
               ;;
             linux)
               fyne package --os linux --app-id "$APP_ID" \
                 --app-version "$VERSION" --icon "$ICON" --name "$APP_NAME"
               mv "$APP_NAME.tar.xz" "dist/$ASSET.tar.xz"
               ;;
-            darwin)
+            macos-arm64)
               fyne package --os darwin --app-id "$APP_ID" \
                 --app-version "$VERSION" --icon "$ICON" --name "$APP_NAME"
               ditto -c -k --keepParent "$APP_NAME.app" "dist/$ASSET.zip"

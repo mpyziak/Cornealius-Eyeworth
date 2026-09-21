@@ -2,25 +2,10 @@
 
 package diagnostics
 
-// sysmon_windows.go monitors the two OS-level event sources identified as
-// root causes of memory leaks (see LEAKS.md):
-//
-//  1. Registry writes to HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize;
-//     each write wakes Fyne's WatchTheme goroutine and enqueues an unbounded
-//     fyne.Do(setupTheme) call. Teams / Focus Assist writes this key 5-15 times
-//     in <200 ms when restoring after a call end. We watch the same key with an
-//     async event and log every write, annotating rapid bursts so the pattern is
-//     visible in the log.
-//
-//  2. WM_DEVICECHANGE / DBT_DEVICEARRIVAL on HID interfaces; each arrival
-//     causes GLFW to call IDirectInput8_EnumDevices, which corporate endpoint-
-//     security agents intercept, allocating scan context that is slow to free.
-//     A Bluetooth headset switching between HFP (call) and A2DP (media) profiles
-//     generates 1-3 of these events per switch. We register our own message-
-//     only window for the same GUID_DEVINTERFACE_HID notification and log each
-//     arrival/removal.
-//
-// Neither watcher affects application behaviour; they are purely observational.
+// Watches the two event sources behind the leaks in LEAKS.md
+// * writes to the Themes\Personalize registry key
+// * HID arrivals on WM_DEVICECHANGE.
+// Observational only - nothing here changes application behaviour.
 
 import (
 	"runtime"
@@ -31,8 +16,7 @@ import (
 	"fyne.io/fyne/v2"
 )
 
-// listener logs every theme-change notification. Purely observational:
-// it correlates OS-level Personalize registry writes (monitored by sysmon)
+// Lines setupTheme drains up against the registry writes logged below.
 func EnableUiDevDiagnosticsSettingsListener(app fyne.App) {
 	app.Settings().AddListener(func(_ fyne.Settings) {
 		Event("fyne: Settings.AddListener fired (setupTheme drained from funcQueue)")
@@ -196,12 +180,9 @@ func startSysmon() {
 
 // -- 3. Group Policy registry watcher -----------------------------------------
 
-// gpWatchKeys are the HKCU paths written by the GP engine at the end of every
-// successful policy refresh (GPUPDATE), at logon, and on "gpupdate /force".
-// Corporate machines typically refresh every 90 minutes.
-// Writes here without a corresponding WM_SETTINGCHANGE "Policy" within a few
-// seconds point to a background scheduled GP task rather than an interactive
-// GPUPDATE run.
+// Written at the end of every policy refresh
+// A write with no WM_SETTINGCHANGE "Policy" behind it is a scheduled task
+// rather than an interactive gpupdate.
 var gpWatchKeys = []string{
 	`Software\Microsoft\Windows\CurrentVersion\Group Policy\State`,
 	`Software\Microsoft\Windows\CurrentVersion\Group Policy\History`,
@@ -282,11 +263,9 @@ func stopSysmon() {
 
 const themeRegKey = `SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize`
 
-// errKeyDeleted is Windows error 1018 (ERROR_KEY_DELETED): returned by
-// RegNotifyChangeKeyValue when the watched key is deleted while the async
-// notification is armed. Windows deletes and recreates Themes\Personalize
-// during full theme switches (e.g. dark/light, Teams call restore). We
-// reopen the key and resume watching instead of exiting.
+// ERROR_KEY_DELETED. Windows deletes and recreates Themes\Personalize
+// during a full theme switch, so reopen the key rather than exiting
+// This is the same condition as handled by Fyne patch - see LEAKS.md.
 const errKeyDeleted = uintptr(1018)
 
 func openThemeKey() (syscall.Handle, error) {
@@ -328,8 +307,7 @@ func monitorThemeRegistry() {
 			procCloseHandle.Call(notifyEvt)
 			syscall.RegCloseKey(hKey)
 			if ret == errKeyDeleted {
-				// Windows deleted the key during a theme switch (ERROR_KEY_DELETED).
-				// Wait briefly for the key to be recreated, then resume watching.
+				// Deleted during a theme switch; wait for it to come back.
 				Event("system: theme-registry key deleted; full theme switch in progress (dark/light, Teams call restore); Fyne WatchTheme handle also invalidated; watching for key recreation")
 				for {
 					select {
@@ -442,36 +420,28 @@ var hidWndProc = syscall.NewCallback(func(hwnd, msg, wp, lp uintptr) uintptr {
 		}
 
 	case wmDisplayChange:
-		// Fires on resolution/depth change, screen-share start/stop, RDP attach, docking.
-		// Fyne calls reloadScale() -> SetDirty() on every visible canvas; GL framebuffer reallocated.
+		// Resolution/depth change, screen-share start/stop, RDP attach, docking.
 		depth := wp & 0xFFFF
 		width := lp & 0xFFFF
 		height := (lp >> 16) & 0xFFFF
 		Event("system: WM_DISPLAYCHANGE depth=%d resolution=%dx%d; Fyne reloadScale+SetDirty on all canvases; GL framebuffers reallocated", depth, width, height)
 
 	case wmDpiChanged:
-		// LOWORD(wParam) = new X DPI, HIWORD(wParam) = new Y DPI.
-		// Common triggers: docking/undocking, RDP client resize, VDI window resize, display-scaling GPO.
-		// Fyne responds with processResized -> RescaleContext -> GL framebuffer realloc on every visible window.
+		// Docking, RDP client resize, VDI resize, display-scaling GPO.
 		dpiX := wp & 0xFFFF
 		dpiY := (wp >> 16) & 0xFFFF
 		Event("system: WM_DPICHANGED new DPI x=%d y=%d; Fyne RescaleContext+GL framebuffer realloc on all visible windows", dpiX, dpiY)
 
 	case wmCompacting:
-		// Broadcast when the system is critically low on physical memory.
-		// Seeing this means the leak has already reached system-wide impact.
+		// If this shows up, the leak is already system-wide.
 		Event("system: WM_COMPACTING; system physical memory critically low; Windows compacting working sets")
 
 	case wmFontChange:
-		// Broadcast when the installed font set changes (e.g. GPO font deployment).
-		// Fyne rebuilds glyph texture atlases on next render; allocates GL texture memory.
 		Event("system: WM_FONTCHANGE; installed font set changed (GPO font deployment?); Fyne glyph atlas rebuilt on next render")
 
 	case wmSettingChange:
-		// "ImmersiveColorSet" = Teams/Focus Assist toggling dark mode.
-		// "Policy"            = GPUPDATE refresh completed (~90 min cycle on corporate machines).
-		// "Environment"       = environment variable change (some VPN clients).
-		// Correlate with theme-registry and GP-registry writes to identify the exact trigger.
+		// ImmersiveColorSet = Teams/Focus Assist toggling dark mode.
+		// Policy            = GPUPDATE finished. Environment = some VPN clients.
 		if lp != 0 {
 			param := syscall.UTF16ToString((*[128]uint16)(unsafe.Pointer(lp))[:])
 			if param == "Policy" {
@@ -484,11 +454,10 @@ var hidWndProc = syscall.NewCallback(func(hwnd, msg, wp, lp uintptr) uintptr {
 		}
 
 	case wmThemeChanged:
-		// Windows visual theme applied/switched; Fyne invalidates cache.ResetThemeCaches() on all windows.
 		Event("system: WM_THEMECHANGED; Fyne theme cache invalidated on all windows")
 
 	case wmSysColorChange:
-		// High-contrast toggle, accessibility changes; same listener chain as WM_THEMECHANGED.
+		// High-contrast and accessibility toggles.
 		Event("system: WM_SYSCOLORCHANGE; may trigger Fyne theme/settings listener cascade")
 
 	case wmWtsSessionChange:
@@ -605,20 +574,9 @@ func monitorHIDDevices() {
 
 // -- 4. Windows notification database watcher ---------------------------------
 
-// monitorNotifications watches the Windows Push Notification (WPN) platform
-// database directory for writes. The WPN service updates wpndatabase.db every
-// time a toast notification is delivered, regardless of the source app.
-// We log the trigger only; no notification content is read or stored.
-//
-// Common triggers:
-//   - Teams / Slack / Outlook message or meeting-reminder toasts
-//   - Windows Update, Security Center, Defender alerts
-//   - Calendar reminders, focus-session updates
-//   - Any app that uses the Windows notification platform
-//
-// This is useful for correlating memory-growth spikes with notification bursts,
-// since many notification senders (e.g. Teams) also update the theme-personalize
-// registry key at the same time (ending a call = notification + theme write).
+// wpndatabase.db is touched on every toast from any app
+// this dates notification bursts against memory growth
+// Ending a Teams call writes both this and the theme key
 func monitorNotifications() {
 	localAppData, _ := syscall.Getenv("LOCALAPPDATA")
 	if localAppData == "" {

@@ -1,4 +1,3 @@
-// Package assets embeds static resources (logo image) for use throughout the app.
 package assets
 
 //go:generate go run ./gen

@@ -12,34 +12,40 @@ git push origin v1.2.3
 ```
 
 The tag triggers a build of every enabled platform, then publishes a GitHub Release
-with the artifacts attached and auto-generated notes. Artifacts are named
+with the artifacts attached and auto-generated notes. Archives are named
 `Cornealius-Eyeworth-<tag>-<platform>`:
 
-| Platform | Runner | Artifact | Built with |
-|----------|--------|----------|------------|
-| Linux | `ubuntu-latest` | `.tar.xz` | `fyne package` |
-| Windows | `windows-latest` | `.exe` | `go build` (see below) |
-| macOS | `macos-latest` | `.zip` of `.app` | `fyne package` - **disabled** |
+| Platform | Runner | Archive | Contains | Built with |
+|----------|--------|---------|----------|------------|
+| Linux | `ubuntu-latest` | `.tar.xz` | `fyne package` layout | `fyne package` |
+| Windows | `windows-latest` | `.zip` | `Cornealius-Eyeworth.exe` | `go build` (see below) |
+| macOS (arm64) | `macos-latest` | `.zip` | `Cornealius Eyeworth.app` | `fyne package` |
 
 The version passed to `fyne package` is derived from the tag with the leading `v`
 stripped; a tag that is not semver falls back to `0.0.0`.
 
 ## Testing the pipeline
 
-The workflow also runs on pushes to `deploy-pipeline-setup`, so it can be iterated
-on without cutting throwaway tags. Branch builds produce artifacts (retained 7 days)
-but do **not** publish a release. Remove that branch from the `on.push.branches` list
-once the pipeline is proven.
+The workflow also runs on pushes to any `rc*` branch, so it can be iterated on
+without cutting throwaway tags. Branch builds produce artifacts (retained 7 days)
+but do **not** publish a release, and their archives are labelled with the commit
+SHA rather than a version. Narrow or remove the `on.push.branches` list once
+releases are cut from tags alone.
 
-## macOS is disabled
+## macOS is arm64 only
 
-On a private repo macOS bills at 10x Linux - roughly 80 of the 104 minutes a full
-three-platform run costs, against a 2,000 min/month allowance. Public repos are
-unmetered, so turn this on once the repo is.
+`macos-latest` is an Apple Silicon runner, so the macOS build is arm64 and will not
+launch on an Intel Mac - the platform is named `macos-arm64` so this is visible in
+the artifact filename. Intel users have to build from source (`BUILD.md`).
 
-- **Per run** - "Run workflow", tick *Also build macOS*. The button only appears
-  once the workflow is on the default branch.
-- **Permanently** - move the `darwin` entry into the default matrix in the `plan` job.
+If Intel binaries are ever needed, either add a `macos-13` entry to the matrix for a
+separate x86_64 artifact, or build both and merge them with `lipo` into a universal
+binary.
+
+Note macOS bills at 10x the Linux rate on a private repo - roughly 80 of the 104
+minutes a full three-platform run costs, against a 2,000 min/month allowance, so
+about 19 full runs a month. Public repos are unmetered. To drop macOS again, remove
+the `darwin` entry from the matrix in the `plan` job.
 
 ## Why Windows uses `go build` instead of `fyne package`
 

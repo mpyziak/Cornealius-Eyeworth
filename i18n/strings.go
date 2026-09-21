@@ -74,7 +74,6 @@ type Strings struct {
 
 var Active = &english
 
-
 func NormaliseLocale(code string) string {
 	return strings.ReplaceAll(strings.ToLower(strings.TrimSpace(code)), "_", "-")
 }

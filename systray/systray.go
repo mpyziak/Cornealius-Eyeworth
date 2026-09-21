@@ -1,4 +1,3 @@
-// Package systray handles system tray integration for Cornealius Eyeworth.
 package systray
 
 import (

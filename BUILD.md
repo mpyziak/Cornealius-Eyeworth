@@ -107,9 +107,9 @@ make build-dev-sysmon-win # the same, Windows GUI subsystem
 make patch-fyne          # recreate the Fyne WatchTheme fork (run once per machine)
 make run                 # build and run the app
 make upx / upx-win       # UPX-compress the built binary (needs upx on PATH)
-make package-win         # fyne package → dist/
-make package-linux
+make package-linux       # fyne package -> dist/
 make package-darwin
+make package-win         # broken in this repo, see "Building a standalone bundle"
 make clean               # remove built binaries and dist/
 ```
 
@@ -120,18 +120,18 @@ cross-compiles, because Fyne needs CGO and a matching C toolchain.
 
 ## Building a standalone bundle
 
-`fyne package` produces a self-contained app bundle:
+`make package-linux` and `make package-darwin` wrap `fyne package`, which produces a
+`.tar.xz` with a `.desktop` file and a `.app` bundle respectively. Without `make`:
 
 ```bash
-# Windows: embed icon + single-file .exe (~25 MB, identical to stripped go build)
-go run fyne.io/tools/cmd/fyne@latest package --release --app-id "com.github.mpyziak.cornealius-eyeworth" --os windows --icon assets/Logo.png --name "Cornealius Eyeworth"
-
-# macOS: produces a .app bundle
-go run fyne.io/tools/cmd/fyne@latest package --release --app-id "com.github.mpyziak.cornealius-eyeworth" --os darwin --icon assets/Logo.png --name "Cornealius Eyeworth"
-
-# Linux: produces an executable with .desktop file
-go run fyne.io/tools/cmd/fyne@latest package --release --app-id "com.github.mpyziak.cornealius-eyeworth" --os linux --icon assets/Logo.png --name "Cornealius Eyeworth"
+go run fyne.io/tools/cmd/fyne@latest package --release \
+  --app-id "com.github.mpyziak.cornealius-eyeworth" \
+  --os linux --icon assets/Logo.png --name "Cornealius Eyeworth"
 ```
+
+**Not on Windows.** `rsrc_windows_amd64.syso` already carries an icon and a
+manifest, and `fyne package` adds a second manifest the linker rejects. Use the
+`go build -H windowsgui` line above, which is what CI does. See `RELEASES.md`.
 
 ---
 
