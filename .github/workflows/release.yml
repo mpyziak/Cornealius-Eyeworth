@@ -4,7 +4,7 @@ on:
   push:
     # Remove this branch entry once the pipeline is proven - it exists so the
     # workflow can be iterated on without cutting throwaway tags.
-    branches: [deploy-pipeline-setup]
+    branches: [rc*]
     tags: ['v*']
   workflow_dispatch:
     inputs:
