@@ -53,18 +53,16 @@ jobs:
           # branch and just builds natively on an Intel runner.
           # macos-13 was retired in December 2025; macos-15-intel replaces it and
           # is the last x86_64 image Actions will offer, available until August
-          # 2027. Doubles the macOS cost of a tag build - two jobs at 10x.
+          # 2027. Doubles the macOS cost of every run - two jobs at 10x.
           darwin_amd64='{"os":"macos-15-intel","platform":"darwin","suffix":"macos-amd64"}'
           # ──────────────────────────────────────────────────────────────────
 
-          # macOS on tags only: 10x the Linux rate on a private repo, and a dry
-          # run proves nothing the tag build will not. Drop the condition once
-          # the repo is public and runners are unmetered.
-          if [ "$GITHUB_REF" != "${GITHUB_REF#refs/tags/}" ]; then
-            echo "matrix={\"include\":[$linux_amd64,$linux_arm64,$windows,$darwin,$darwin_amd64]}" >> "$GITHUB_OUTPUT"
-          else
-            echo "matrix={\"include\":[$linux_amd64,$linux_arm64,$windows]}" >> "$GITHUB_OUTPUT"
-          fi
+          # Everything builds on every run, branch pushes included, so a dry run
+          # exercises exactly what a tag will. The two macOS jobs bill at 10x the
+          # Linux rate on a private repo - roughly 160 macOS minutes per run
+          # against the 2,000/month allowance. Deliberate: a dry run that skips a
+          # platform does not tell you the release will work.
+          echo "matrix={\"include\":[$linux_amd64,$linux_arm64,$windows,$darwin,$darwin_amd64]}" >> "$GITHUB_OUTPUT"
 
       - name: Derive version
         id: version
