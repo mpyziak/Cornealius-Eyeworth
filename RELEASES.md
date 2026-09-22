@@ -1,8 +1,8 @@
 # Releasing
 
-Releases are built by GitHub Actions (`.github/workflows/release.yml`). Each platform
-is built natively on its own runner - there is no cross-compilation. For local builds
-on a single machine, see `BUILD.md`.
+Releases are built by GitHub Actions (`.github/workflows/release.yml`). Every target
+builds natively on its own runner - nothing cross-compiles, because Fyne needs CGO
+and a matching C toolchain. For local builds, see `BUILD.md`.
 
 ## Cutting a release
 
@@ -11,41 +11,38 @@ git tag -a v1.2.3 -m "Release v1.2.3"
 git push origin v1.2.3
 ```
 
-The tag triggers a build of every enabled platform, then publishes a GitHub Release
+The tag triggers a build of every platform, then publishes a GitHub Release
 with the artifacts attached and auto-generated notes. Archives are named
-`Cornealius-Eyeworth-<tag>-<platform>`:
+`Cornealius-Eyeworth-<tag>-<os>-<arch>`:
 
 | Platform | Runner | Archive | Contains | Built with |
 |----------|--------|---------|----------|------------|
-| Linux | `ubuntu-latest` | `.tar.xz` | binary + `.desktop` entry | `fyne package` |
-| Windows | `windows-latest` | `.zip` | `Cornealius-Eyeworth.exe` | `go build` (see below) |
-| macOS (arm64) | `macos-latest` | `.zip` | `Cornealius Eyeworth.app` | `fyne package` |
+| `linux-amd64` | `ubuntu-latest` | `.tar.xz` | binary + `.desktop` entry | `fyne package` |
+| `linux-arm64` | `ubuntu-24.04-arm` | `.tar.xz` | binary + `.desktop` entry | `fyne package` |
+| `windows-amd64` | `windows-latest` | `.zip` | `Cornealius-Eyeworth.exe` | `go build` (see below) |
+| `macos-arm64` | `macos-latest` | `.zip` | `Cornealius Eyeworth.app` | `fyne package` |
 
-The version passed to `fyne package` is derived from the tag with the leading `v`
-stripped; a tag that is not semver falls back to `0.0.0`.
+Both
+Linux entries share one apt step and one packaging branch. 
 
 ## Testing the pipeline
 
 The workflow also runs on pushes to any `rc*` branch, and from the "Run workflow"
 button, so it can be iterated on without cutting throwaway tags. Publishing is
 gated on the ref being a tag, so a branch run produces artifacts only (retained
-7 days), labelled with the commit SHA rather than a version. Narrow or remove the
-`on.push.branches` list once releases are cut from tags alone.
+7 days), labelled with the commit SHA rather than a version, and covering Linux and
+Windows only. Narrow or remove the `on.push.branches` list once releases are cut
+from tags alone.
 
-## macOS is arm64 only
+Since macOS is skipped on branches, a tag build exercises a path no dry run has -
+worth remembering the first time you tag.
 
-`macos-latest` is an Apple Silicon runner, so the macOS build is arm64 and will not
-launch on an Intel Mac - the platform is named `macos-arm64` so this is visible in
-the artifact filename. Intel users have to build from source (`BUILD.md`).
+## macOS: arm64, and tags only
 
-If Intel binaries are ever needed, either add a `macos-13` entry to the matrix for a
-separate x86_64 artifact, or build both and merge them with `lipo` into a universal
-binary.
+`macos-latest` is an Apple Silicon runner, so build will not launch on an Intel
+Mac. Intel users need to build from source (`BUILD.md`).
 
-Note macOS bills at 10x the Linux rate on a private repo - roughly 80 of the 104
-minutes a full three-platform run costs, against a 2,000 min/month allowance, so
-about 19 full runs a month. Public repos are unmetered. To drop macOS again, remove
-the `darwin` entry from the matrix in the `plan` job.
+**macOS builds on tags only.** It bills at 10x the Linux rate on a private repo.
 
 ## Why Windows uses `go build` instead of `fyne package`
 
@@ -56,8 +53,10 @@ keeps the existing winres metadata and matches what `make package-win` produces
 locally.
 
 Winres is kept as the source deliberately.
-`winres/winres.json` declares per-monitor-v2 DPI awareness, common-controls v6 and a
-Win10 minimum.
+`winres/winres.json` declares per-monitor-v2 DPI awareness, common-controls v6 and a Win10 minimum;
+fyne's template has none of them.
+
+That file also rules out `windows-arm64` for now.
 
 ## The Fyne patch in CI
 

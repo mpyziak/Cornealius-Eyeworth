@@ -2,8 +2,7 @@ name: Release
 
 on:
   push:
-    # Remove this branch entry once the pipeline is proven - it exists so the
-    # workflow can be iterated on without cutting throwaway tags.
+    # Dry runs without throwaway tags. Drop once the pipeline is proven.
     branches: [rc*]
     tags: ['v*']
   workflow_dispatch:
@@ -18,9 +17,8 @@ concurrency:
 env:
   APP_ID: com.github.mpyziak.cornealius-eyeworth
   APP_NAME: Cornealius Eyeworth
-  # Filename form of APP_NAME. The shipped executable carries no version, so that
-  # shortcuts, autostart entries and firewall rules keep working across updates.
-  # The version goes on the archive instead.
+  # Unversioned on purpose: shortcuts, autostart entries and firewall rules
+  # survive an update. The version goes on the archive.
   APP_FILE: Cornealius-Eyeworth
   ICON: assets/Logo.png
   # Must match the fyne.io/fyne/v2 version in go.mod - the patched fork is
@@ -39,19 +37,24 @@ jobs:
       - name: Select target platforms
         id: targets
         run: |
-          # All three platforms build on every run. Note macOS bills at 10x the
-          # rate of Linux on a private repo - roughly 80 of the ~104 minutes a
-          # full run costs, against the 2,000 min/month allowance. It is
-          # unmetered once this repo is public. Drop the darwin entry below to
-          # go back to Linux and Windows only.
-          # macos-latest is Apple Silicon, so the darwin build is arm64 only and
-          # will not run on an Intel Mac. The platform name says so, since it
-          # ends up in the artifact filename.
-          linux='{"os":"ubuntu-latest","platform":"linux"}'
-          windows='{"os":"windows-latest","platform":"windows"}'
-          darwin='{"os":"macos-latest","platform":"macos-arm64"}'
+          # "platform" picks the build branch below, "suffix" names the archive.
+          # Keeping them apart is what lets both Linux entries reuse one apt step
+          # and one packaging branch. Suffixes must stay unique - upload-artifact
+          # rejects duplicate names. No "-arm" alias for ubuntu-latest exists, so
+          # that runner pins a version and has to be bumped by hand.
+          linux_amd64='{"os":"ubuntu-latest","platform":"linux","suffix":"linux-amd64"}'
+          linux_arm64='{"os":"ubuntu-24.04-arm","platform":"linux","suffix":"linux-arm64"}'
+          windows='{"os":"windows-latest","platform":"windows","suffix":"windows-amd64"}'
+          darwin='{"os":"macos-latest","platform":"darwin","suffix":"macos-arm64"}'
 
-          echo "matrix={\"include\":[$linux,$windows,$darwin]}" >> "$GITHUB_OUTPUT"
+          # macOS on tags only: 10x the Linux rate on a private repo, and a dry
+          # run proves nothing the tag build will not. Drop the condition once
+          # the repo is public and runners are unmetered.
+          if [ "$GITHUB_REF" != "${GITHUB_REF#refs/tags/}" ]; then
+            echo "matrix={\"include\":[$linux_amd64,$linux_arm64,$windows,$darwin]}" >> "$GITHUB_OUTPUT"
+          else
+            echo "matrix={\"include\":[$linux_amd64,$linux_arm64,$windows]}" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Derive version
         id: version
@@ -69,7 +72,7 @@ jobs:
           echo "version=${version:-0.0.0}" >> "$GITHUB_OUTPUT"
 
   build:
-    name: Build ${{ matrix.platform }}
+    name: Build ${{ matrix.suffix }}
     needs: plan
     strategy:
       fail-fast: false
@@ -80,11 +83,11 @@ jobs:
         shell: bash
     env:
       VERSION: ${{ needs.plan.outputs.version }}
-      ASSET: Cornealius-Eyeworth-${{ needs.plan.outputs.label }}-${{ matrix.platform }}
+      ASSET: Cornealius-Eyeworth-${{ needs.plan.outputs.label }}-${{ matrix.suffix }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: stable
 
@@ -98,14 +101,12 @@ jobs:
         run: |
           fork=../fyne-v2-watchtheme-patch
 
-          # go.mod replaces fyne.io/fyne/v2 with a sibling checkout carrying the
-          # WatchTheme fix (see BUILD.md / LEAKS.md §1). A fresh clone has no such
-          # sibling, so it is reconstructed from pinned upstream plus the single
-          # patched file tracked in external-patches/.
+          # go.mod points at a sibling checkout no fresh clone has, so rebuild it
+          # from pinned upstream plus our one patched file (LEAKS.md §1).
           #
           # init+fetch rather than clone: a clone cannot take a bare SHA, and
-          # FYNE_TAG is meant to become one (see RELEASES.md). autocrlf is off so
-          # the check below is not confused by line endings on the Windows runner.
+          # FYNE_TAG is meant to become one. autocrlf off so the check below is
+          # not confused by line endings on the Windows runner.
           git init -q "$fork"
           git -C "$fork" config core.autocrlf false
           git -C "$fork" remote add origin https://github.com/fyne-io/fyne.git
@@ -115,9 +116,8 @@ jobs:
           cp external-patches/fyne-theme_windows.go \
             "$fork/internal/app/theme_windows.go"
 
-          # The fork must now differ from upstream in exactly the patched file.
-          # Anything else means the patch did not land where it was meant to, or
-          # upstream is not the tree we expect - either way, do not ship it.
+          # Anything other than exactly that file means the patch missed, or
+          # upstream is not the tree we expect. Either way, do not ship it.
           changed=$(git -C "$fork" status --porcelain)
           paths=$(printf '%s\n' "$changed" | awk 'NF {print $NF}')
           if [ "$paths" != "internal/app/theme_windows.go" ]; then
@@ -142,10 +142,9 @@ jobs:
           mkdir -p dist
           case "${{ matrix.platform }}" in
             windows)
-              # Built with go build rather than fyne package: the committed
-              # rsrc_windows_amd64.syso (from make winres) already embeds an
-              # icon and manifest, and fyne package adds a second manifest,
-              # which lld-link rejects as a duplicate resource.
+              # go build, not fyne package: rsrc_windows_amd64.syso already has
+              # the icon and manifest, and fyne would add a second manifest that
+              # lld-link rejects. See RELEASES.md.
               mkdir -p staging
               go build -ldflags "-s -w -H windowsgui" -o "staging/$APP_FILE.exe" .
               # Compress-Archive rather than zip, which the Windows runner lacks.
@@ -157,16 +156,16 @@ jobs:
                 --app-version "$VERSION" --icon "$ICON" --name "$APP_NAME"
               mv "$APP_NAME.tar.xz" "dist/$ASSET.tar.xz"
               ;;
-            macos-arm64)
+            darwin)
               fyne package --os darwin --app-id "$APP_ID" \
                 --app-version "$VERSION" --icon "$ICON" --name "$APP_NAME"
               ditto -c -k --keepParent "$APP_NAME.app" "dist/$ASSET.zip"
               ;;
           esac
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.platform }}
+          name: ${{ matrix.suffix }}
           path: dist/*
           if-no-files-found: error
           # Short retention keeps private-repo runs clear of the 500 MB cap.
@@ -180,7 +179,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: dist
           merge-multiple: true
