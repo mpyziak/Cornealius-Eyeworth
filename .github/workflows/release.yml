@@ -80,7 +80,7 @@ jobs:
           echo "version=${version:-0.0.0}" >> "$GITHUB_OUTPUT"
 
   build:
-    name: Build ${{ matrix.suffix }}
+    name: Build and test ${{ matrix.suffix }}
     needs: plan
     strategy:
       fail-fast: false
@@ -136,6 +136,37 @@ jobs:
             exit 1
           fi
           echo "Fyne fork verified: patch applied, no other drift."
+
+      - name: Test
+        env:
+          # -race needs cgo. Every platform here already builds Fyne with it,
+          # so the toolchain is present; set it explicitly because the Windows
+          # runner defaults to 0 whenever gcc is not found on PATH.
+          CGO_ENABLED: '1'
+        run: |
+          # Not "go test ./..." - that pattern cannot be used on Windows.
+          # external-patches/ is patch source for the fork step above, not
+          # module code, and the _windows.go suffix keeps it invisible on Linux
+          # and macOS. On the Windows runner it resolves to a real package that
+          # imports fyne.io/fyne/v2/internal/theme, which the Go tool refuses
+          # ("use of internal package not allowed"), and one unloadable package
+          # makes the whole ./... pattern fail before anything is tested.
+          #
+          # -e keeps the listing going past it so the rest can be named
+          # explicitly. It only tolerates *listing* errors: every package below
+          # is still compiled and run as usual, so one that genuinely does not
+          # build still fails this step rather than being skipped.
+          pkgs=$(go list -e ./... | grep -v '/external-patches$')
+          if [ -z "$pkgs" ]; then
+            echo "::error::Package list came back empty - go list failed."
+            exit 1
+          fi
+
+          # -shuffle=on catches order dependencies, which this suite is exposed
+          # to because the i18n tests share package-level state (Locales,
+          # Active). -count=1 because setup-go restores the build cache between
+          # runs, and a cached PASS would otherwise hide a regression.
+          go test -race -shuffle=on -count=1 $pkgs
 
       - name: Install fyne CLI
         if: matrix.platform != 'windows'
