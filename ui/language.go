@@ -51,7 +51,7 @@ func ShowLanguageDialog(app fyne.App, repo config.Store) {
 		return
 	}
 
-	options := i18n.AvailableLanguages
+	options := i18n.AvailableLanguages()
 	labels := make([]string, len(options))
 	for i, opt := range options {
 		if opt.DisplayName == "" {

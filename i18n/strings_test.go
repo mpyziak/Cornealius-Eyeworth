@@ -1,18 +1,18 @@
 package i18n
 
-import "testing"
+import (
+	"reflect"
+	"regexp"
+	"testing"
+)
 
 func localeName(s *Strings) string {
-	switch s {
-	case &english:
-		return "english"
-	case &german:
-		return "german"
-	case &polish:
-		return "polish"
-	default:
-		return "unknown"
+	for _, l := range Locales {
+		if l.Strings == s {
+			return l.Codes[0]
+		}
 	}
+	return "unknown"
 }
 
 func TestNormaliseLocale(t *testing.T) {
@@ -46,23 +46,32 @@ func TestLocaleFor(t *testing.T) {
 		{"de-DE", &german},
 		{"de-AT", &german},
 		{"de-CH", &german},
+		{"fr-FR", &french},
+		{"fr-CA", &french},
+		{"el-GR", &greek},
 
 		// LANG on Linux.
 		{"pl_PL", &polish},
 		{"de_AT", &german},
+		{"fr_BE", &french},
+		{"el_CY", &greek},
 
 		// Hand-edited config.json.
 		{"PL", &polish},
 		{"  De  ", &german},
+		{"FR", &french},
+		{"El", &greek},
 
 		{"pl", &polish},
 		{"de", &german},
 		{"en", &english},
+		{"fr", &french},
+		{"el", &greek},
 		{"de-li", &german},
 		{"de-lu", &german},
 
-		{"fr-FR", &english},
 		{"es", &english},
+		{"gr", &english}, // country code, not the language code
 		{"", &english},
 	}
 
@@ -98,4 +107,105 @@ func TestSetLanguageSystemDefault(t *testing.T) {
 		t.Fatalf("SetLanguage(nil) left Active pointing at an unknown locale table")
 	}
 	t.Logf("system locale resolved to: %s", localeName(Active))
+}
+
+func TestDisabledLocaleIsNeitherResolvedNorOffered(t *testing.T) {
+	var fr *Locale
+	for i := range Locales {
+		if Locales[i].Strings == &french {
+			fr = &Locales[i]
+		}
+	}
+	if fr == nil {
+		t.Fatal("french is not registered in Locales")
+	}
+	was := fr.Enabled
+	t.Cleanup(func() { fr.Enabled = was })
+
+	fr.Enabled = false
+
+	for _, code := range []string{"fr", "fr-FR", "fr_CA"} {
+		if got := localeFor(code); got != &english {
+			t.Errorf("localeFor(%q) with french disabled = %s, want en", code, localeName(got))
+		}
+	}
+	for _, opt := range AvailableLanguages() {
+		if opt.Code == "fr" {
+			t.Errorf("AvailableLanguages() offers disabled french: %+v", opt)
+		}
+	}
+
+	fr.Enabled = true
+	if got := localeFor("fr-FR"); got != &french {
+		t.Errorf("localeFor(\"fr-FR\") with french enabled = %s, want fr", localeName(got))
+	}
+}
+
+func TestAvailableLanguagesStartsWithSystemDefault(t *testing.T) {
+	options := AvailableLanguages()
+	if len(options) == 0 || options[0] != (LanguageOption{"", ""}) {
+		t.Fatalf("AvailableLanguages()[0] = %+v, want the system-default entry", options)
+	}
+	for _, opt := range options[1:] {
+		if opt.Code == "" || opt.DisplayName == "" {
+			t.Errorf("AvailableLanguages() has a blank entry after the default: %+v", opt)
+		}
+	}
+}
+
+func TestLocaleCodesAreNormalisedAndUnique(t *testing.T) {
+	owner := map[string]string{}
+	for _, l := range Locales {
+		if len(l.Codes) == 0 {
+			t.Errorf("%s has no codes", l.DisplayName)
+			continue
+		}
+		for _, c := range l.Codes {
+			if c != NormaliseLocale(c) {
+				t.Errorf("%s: code %q is not normalised, localeFor would never match it", l.DisplayName, c)
+			}
+			if prev, dup := owner[c]; dup {
+				t.Errorf("code %q is claimed by both %s and %s", c, prev, l.DisplayName)
+			}
+			owner[c] = l.DisplayName
+		}
+	}
+}
+
+var formatVerb = regexp.MustCompile(`%[a-z]`)
+
+// A struct literal that omits a field compiles fine and shows the user an
+// empty label, so every locale is checked field by field against English.
+func TestLocalesAreComplete(t *testing.T) {
+	en := reflect.ValueOf(english)
+	typ := en.Type()
+
+	for _, l := range Locales {
+		v := reflect.ValueOf(*l.Strings)
+		t.Run(l.Codes[0], func(t *testing.T) {
+			for i := 0; i < typ.NumField(); i++ {
+				name := typ.Field(i).Name
+				switch f := v.Field(i); f.Kind() {
+				case reflect.String:
+					if f.String() == "" {
+						t.Errorf("%s is empty", name)
+						continue
+					}
+					want := len(formatVerb.FindAllString(en.Field(i).String(), -1))
+					if got := len(formatVerb.FindAllString(f.String(), -1)); got != want {
+						t.Errorf("%s has %d format verbs, English has %d: %q", name, got, want, f.String())
+					}
+				case reflect.Slice:
+					if f.Len() == 0 {
+						t.Errorf("%s is empty", name)
+					}
+					for j := 0; j < f.Len(); j++ {
+						if f.Index(j).String() == "" {
+							t.Errorf("%s[%d] is empty", name, j)
+						}
+					}
+				}
+			}
+		})
+	}
 }

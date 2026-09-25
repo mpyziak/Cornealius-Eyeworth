@@ -296,7 +296,9 @@ Log files are written next to the executable, named by UTC timestamp (e.g. `corn
 │   ├── gen/main.go         go:generate - rescales Logo.png to Logo64.png
 │   └── Logo.png            Source logo, 800x800
 ├── config/                 Config struct, defaults, JSON persistence
-├── i18n/strings.go         Localised strings - English, German, Polish
+├── i18n/
+│   ├── strings.go          Strings struct, Locales registry (Enabled flag), SetLanguage
+│   └── en.go de.go pl.go fr.go el.go   One table per language
 ├── diagnostics/            Always-present logging interface; no-ops in release builds
 ├── dev-diagnostics/        The real logger + memory sampler, behind build tags
 ├── notifications/
@@ -322,6 +324,7 @@ Log files are written next to the executable, named by UTC timestamp (e.g. `corn
 │   ├── about.go            About dialog
 │   └── help.go             Help dialog
 ├── external-patches/       The one patched Fyne file, copied into the fork
+├── tools/i18n-export/      All locales → CSV for Google Sheets (make i18n-export)
 └── winres/                 Windows resource metadata for icon embedding
 ```
 
@@ -348,6 +351,26 @@ The Simple mode lets you enter just the minute values (e.g. `20, 40, 55`).
 
 ## Adding a language
 
-1. Add a new `Strings` variable in `i18n/strings.go`.
-2. Add a `case "xx":` branch in `SetLanguage()`.
-3. Add a row to `ui/language.go`'s `options` slice.
+1. Add `i18n/xx.go` holding a `Strings` variable; copy `en.go` as the template.
+2. Register it in `Locales` in `i18n/strings.go`: codes (bare `xx` first, then
+   any region forms such as `xx-yy`, all lower-case), display name, and
+   `Enabled`. The language dialog and locale resolution both read from there.
+3. `go test ./...` - fails on any field left empty, a `%s` count that differs
+   from English, a code another locale already claims, or a notification that
+   overflows a Win32 balloon.
+
+Set `Enabled: false` to keep a finished table out of the app (not offered, not
+resolved; those users get English) without deleting it.
+
+### Exporting for review
+
+```bash
+make i18n-export                  # dist/i18n-strings.csv, Greek left out
+make i18n-export I18N_EXCLUDE=    # every locale
+```
+
+In Google Sheets use **File › Import › Upload**, and untick *Convert text to
+numbers, dates, and formulas*. Multi-line cells (`HelpBody`) only survive an
+import, not a paste. Notification pools get a row per index; they are random
+pools, so a row lines up across columns only where a translation kept the
+English order.

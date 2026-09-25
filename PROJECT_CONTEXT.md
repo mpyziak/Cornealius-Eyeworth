@@ -29,7 +29,8 @@ no longer exists in this repo.
 main.go              Entry point: loads config, sets locale, starts Fyne app + ui.Run()
 assets/              Embeds Logo.png (Fyne resource) and Logo.ico (systray + window icon)
 config/              Config struct (CronExpression, StandUpCronExpression, Language) + JSON repo
-i18n/                Strings struct, SetLanguage(), Active global; English / Deutsch / Polski
+i18n/                Strings struct, Locales registry (Enabled flag), SetLanguage(), Active global
+  en/de/pl/fr/el.go  One table per language: English / Deutsch / Polski / Français / Ελληνικά
 notifications/       Platform-split notification senders
   notifier.go        !windows: wraps fyne.App.SendNotification()
   notifier_windows.go windows: Shell_NotifyIcon balloon tips via direct Win32 syscalls
@@ -47,6 +48,7 @@ ui/
   language.go        ShowLanguageDialog()
   about.go           ShowAboutDialog()
   help.go            ShowHelpDialog()
+tools/i18n-export/   All locales → CSV for Google Sheets (make i18n-export)
 winres/winres.json   Windows resource manifest (icon, version info) for go-winres
 rsrc_windows_amd64.syso  Compiled Windows resources (auto-linked by go build)
 ```

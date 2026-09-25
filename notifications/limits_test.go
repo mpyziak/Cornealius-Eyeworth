@@ -24,15 +24,12 @@ func longest(items []string) (text string, n int) {
 
 // The quips are constants, so an overlong one is a build-time defect. This is
 // why nothing truncates at runtime. Failures print the headroom.
+// Disabled locales included: switching one on must not ship an overlong quip.
 func TestNotificationsFitWin32BalloonLimits(t *testing.T) {
-	t.Cleanup(func() { i18n.SetLanguage(nil) })
+	for _, l := range i18n.Locales {
+		S := l.Strings
 
-	for _, code := range []string{"en", "de", "pl"} {
-		c := code
-		i18n.SetLanguage(&c)
-		S := i18n.Active
-
-		t.Run(code, func(t *testing.T) {
+		t.Run(l.Codes[0], func(t *testing.T) {
 			// Every set a title can come from.
 			titleSets := map[string][]string{
 				"NotificationCombinedHeaders":       S.NotificationCombinedHeaders,

@@ -22,7 +22,7 @@ FYNE_TAG  = v2.7.4
 FYNE_REPO = https://github.com/fyne-io/fyne.git
 FYNE_FORK = ../fyne-v2-watchtheme-patch
 
-.PHONY: deps winres build build-win build-dev build-dev-win build-dev-sysmon build-dev-sysmon-win upx upx-win run patch-fyne package-win package-linux package-darwin clean
+.PHONY: deps winres build build-win build-dev build-dev-win build-dev-sysmon build-dev-sysmon-win upx upx-win run patch-fyne package-win package-linux package-darwin i18n-export clean
 
 deps:
 	go mod tidy
@@ -89,6 +89,17 @@ package-darwin: deps
 	go run fyne.io/tools/cmd/fyne@latest package --release --app-id $(APP_ID) --os darwin --icon $(ICON) --name $(APP_NAME)
 	mkdir -p dist
 	mv $(APP_NAME).app dist/$(APP_NAME).app
+
+# ── Translations ─────────────────────────────────────────────────────────────
+# Every locale's strings as one CSV, a row per key and a column per language,
+# for Google Sheets (File › Import). Greek is kept out of the sheet by default;
+# `make i18n-export I18N_EXCLUDE=` includes it.
+
+I18N_EXCLUDE ?= el
+
+i18n-export:
+	mkdir -p dist
+	go run ./tools/i18n-export -exclude "$(I18N_EXCLUDE)" -o dist/i18n-strings.csv
 
 clean:
 	$(RM) $(BINARY) $(BINARY).exe
