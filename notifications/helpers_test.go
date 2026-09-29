@@ -23,7 +23,7 @@ func TestPickRandomSingle(t *testing.T) {
 
 func TestPickRandomValid(t *testing.T) {
 	items := []string{"a", "b", "c"}
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		result := pickRandom(items)
 		found := false
 		for _, item := range items {

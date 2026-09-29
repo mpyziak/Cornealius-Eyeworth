@@ -39,7 +39,7 @@ func patchTrayWindowsWhenReady() {
 
 	var systrayHwnd uintptr
 
-	for i := 0; i < maxAttempts; i++ {
+	for range maxAttempts {
 		if systrayHwnd == 0 {
 			// "SystrayClass" is a constant literal with no embedded NUL;
 			// UTF16PtrFromString only fails on one.

@@ -97,7 +97,7 @@ func writeCSV(w io.Writer, locales []i18n.Locale) error {
 	}
 
 	typ := reflect.TypeOf(i18n.Strings{})
-	for f := 0; f < typ.NumField(); f++ {
+	for f := range typ.NumField() {
 		field := typ.Field(f)
 		switch field.Type.Kind() {
 		case reflect.String:
@@ -114,7 +114,7 @@ func writeCSV(w io.Writer, locales []i18n.Locale) error {
 			for _, t := range tables {
 				n = max(n, t.Field(f).Len())
 			}
-			for j := 0; j < n; j++ {
+			for j := range n {
 				row := []string{fmt.Sprintf("%s[%d]", field.Name, j)}
 				for _, t := range tables {
 					cell := ""
