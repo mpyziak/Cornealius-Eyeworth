@@ -17,7 +17,7 @@ import (
 )
 
 // Lines setupTheme drains up against the registry writes logged below.
-func EnableUiDevDiagnosticsSettingsListener(app fyne.App) {
+func EnableUIDevDiagnosticsSettingsListener(app fyne.App) {
 	app.Settings().AddListener(func(_ fyne.Settings) {
 		Event("fyne: Settings.AddListener fired (setupTheme drained from funcQueue)")
 	})

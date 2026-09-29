@@ -297,7 +297,7 @@ Log files are written next to the executable, named by UTC timestamp (e.g. `corn
 │   └── Logo.png            Source logo, 800x800
 ├── config/                 Config struct, defaults, JSON persistence
 ├── i18n/
-│   ├── strings.go          Strings struct, Locales registry (Enabled flag), SetLanguage
+│   ├── strings.go          Strings struct, locales registry (Enabled flag), Locales() copy, SetLanguage
 │   └── en.go de.go pl.go fr.go el.go   One table per language
 ├── diagnostics/            Always-present logging interface; no-ops in release builds
 ├── dev-diagnostics/        The real logger + memory sampler, behind build tags
@@ -352,7 +352,7 @@ The Simple mode lets you enter just the minute values (e.g. `20, 40, 55`).
 ## Adding a language
 
 1. Add `i18n/xx.go` holding a `Strings` variable; copy `en.go` as the template.
-2. Register it in `Locales` in `i18n/strings.go`: codes (bare `xx` first, then
+2. Register it in `locales` in `i18n/strings.go`: codes (bare `xx` first, then
    any region forms such as `xx-yy`, all lower-case), display name, and
    `Enabled`. The language dialog and locale resolution both read from there.
 3. `go test ./...` - fails on any field left empty, a `%s` count that differs

@@ -29,7 +29,7 @@ no longer exists in this repo.
 main.go              Entry point: loads config, sets locale, starts Fyne app + ui.Run()
 assets/              Embeds Logo.png (Fyne resource) and Logo.ico (systray + window icon)
 config/              Config struct (CronExpression, StandUpCronExpression, Language) + JSON repo
-i18n/                Strings struct, Locales registry (Enabled flag), SetLanguage(), Active global
+i18n/                Strings struct, locales registry (Enabled flag), read-only via Locales(), SetLanguage(), Active global
   en/de/pl/fr/el.go  One table per language: English / Deutsch / Polski / Français / Ελληνικά
 notifications/       Platform-split notification senders
   notifier.go        !windows: wraps fyne.App.SendNotification()

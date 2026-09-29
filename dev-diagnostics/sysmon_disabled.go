@@ -8,4 +8,4 @@ import "fyne.io/fyne/v2"
 
 func startSysmon()                                      {}
 func stopSysmon()                                       {}
-func EnableUiDevDiagnosticsSettingsListener(_ fyne.App) {}
+func EnableUIDevDiagnosticsSettingsListener(_ fyne.App) {}

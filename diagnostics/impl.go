@@ -15,6 +15,6 @@ func Info(format string, args ...any)  { devdiag.Info(format, args...) }
 func Event(format string, args ...any) { devdiag.Event(format, args...) }
 func Warn(format string, args ...any)  { devdiag.Warn(format, args...) }
 func Err(format string, args ...any)   { devdiag.Err(format, args...) }
-func EnableUiDevDiagnosticsSettingsListener(app fyne.App) {
-	devdiag.EnableUiDevDiagnosticsSettingsListener(app)
+func EnableUIDevDiagnosticsSettingsListener(app fyne.App) {
+	devdiag.EnableUIDevDiagnosticsSettingsListener(app)
 }
