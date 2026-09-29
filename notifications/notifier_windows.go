@@ -97,12 +97,6 @@ func SendMinimizedToTray(_ fyne.App) {
 	showBalloon(i18n.Active.AppName, i18n.Active.NotificationMinimizedToTray)
 }
 
-// SendReminder sends a single eye-care reminder.
-func SendReminder(_ fyne.App) {
-	diagnostics.Event("notification: reminder (eye)")
-	showBalloon(pickRandom(i18n.Active.NotificationDistanceGlanceHeaders), pickRandom(i18n.Active.NotificationDistanceGlanceQuips))
-}
-
 // SendReminders sends every buffered reminder as one aggregated
 // notification.
 func SendReminders(_ fyne.App, reminders []scheduling.Reminder) {
