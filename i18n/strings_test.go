@@ -3,11 +3,12 @@ package i18n
 import (
 	"reflect"
 	"regexp"
+	"slices"
 	"testing"
 )
 
 func localeName(s *Strings) string {
-	for _, l := range Locales {
+	for _, l := range locales {
 		if l.Strings == s {
 			return l.Codes[0]
 		}
@@ -76,7 +77,7 @@ func TestLocaleFor(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		if got := localeFor(tt.raw); got != tt.want {
+		if got := localeFor(locales, tt.raw); got != tt.want {
 			t.Errorf("localeFor(%q) = %s, want %s",
 				tt.raw, localeName(got), localeName(tt.want))
 		}
@@ -88,8 +89,7 @@ func TestSetLanguageExplicit(t *testing.T) {
 
 	for _, code := range []string{"pl-PL", "PL", "pl_PL"} {
 		Active = &english
-		c := code
-		SetLanguage(&c)
+		SetLanguage(&code)
 		if Active != &polish {
 			t.Errorf("SetLanguage(%q) = %s, want polish", code, localeName(Active))
 		}
@@ -110,34 +110,40 @@ func TestSetLanguageSystemDefault(t *testing.T) {
 }
 
 func TestDisabledLocaleIsNeitherResolvedNorOffered(t *testing.T) {
-	var fr *Locale
-	for i := range Locales {
-		if Locales[i].Strings == &french {
-			fr = &Locales[i]
-		}
+	registry := Locales()
+	fr := slices.IndexFunc(registry, func(l Locale) bool { return l.Strings == &french })
+	if fr < 0 {
+		t.Fatal("french is not registered in locales")
 	}
-	if fr == nil {
-		t.Fatal("french is not registered in Locales")
-	}
-	was := fr.Enabled
-	t.Cleanup(func() { fr.Enabled = was })
-
-	fr.Enabled = false
+	registry[fr].Enabled = false
 
 	for _, code := range []string{"fr", "fr-FR", "fr_CA"} {
-		if got := localeFor(code); got != &english {
+		if got := localeFor(registry, code); got != &english {
 			t.Errorf("localeFor(%q) with french disabled = %s, want en", code, localeName(got))
 		}
 	}
-	for _, opt := range AvailableLanguages() {
+	for _, opt := range languageOptions(registry) {
 		if opt.Code == "fr" {
-			t.Errorf("AvailableLanguages() offers disabled french: %+v", opt)
+			t.Errorf("languageOptions() offers disabled french: %+v", opt)
 		}
 	}
 
-	fr.Enabled = true
-	if got := localeFor("fr-FR"); got != &french {
+	registry[fr].Enabled = true
+	if got := localeFor(registry, "fr-FR"); got != &french {
 		t.Errorf("localeFor(\"fr-FR\") with french enabled = %s, want fr", localeName(got))
+	}
+}
+
+// Locales hands out a copy, so a caller flipping Enabled cannot reach the
+// registry the app resolves against.
+func TestLocalesReturnsACopy(t *testing.T) {
+	registry := Locales()
+	for i := range registry {
+		registry[i].Enabled = false
+		registry[i].Codes[0] = "xx"
+	}
+	if got := localeFor(locales, "fr"); got != &french {
+		t.Errorf("localeFor(\"fr\") after mutating Locales() = %s, want fr", localeName(got))
 	}
 }
 
@@ -155,7 +161,7 @@ func TestAvailableLanguagesStartsWithSystemDefault(t *testing.T) {
 
 func TestLocaleCodesAreNormalisedAndUnique(t *testing.T) {
 	owner := map[string]string{}
-	for _, l := range Locales {
+	for _, l := range locales {
 		if len(l.Codes) == 0 {
 			t.Errorf("%s has no codes", l.DisplayName)
 			continue
@@ -180,10 +186,10 @@ func TestLocalesAreComplete(t *testing.T) {
 	en := reflect.ValueOf(english)
 	typ := en.Type()
 
-	for _, l := range Locales {
+	for _, l := range locales {
 		v := reflect.ValueOf(*l.Strings)
 		t.Run(l.Codes[0], func(t *testing.T) {
-			for i := 0; i < typ.NumField(); i++ {
+			for i := range typ.NumField() {
 				name := typ.Field(i).Name
 				switch f := v.Field(i); f.Kind() {
 				case reflect.String:
@@ -199,7 +205,7 @@ func TestLocalesAreComplete(t *testing.T) {
 					if f.Len() == 0 {
 						t.Errorf("%s is empty", name)
 					}
-					for j := 0; j < f.Len(); j++ {
+					for j := range f.Len() {
 						if f.Index(j).String() == "" {
 							t.Errorf("%s[%d] is empty", name, j)
 						}

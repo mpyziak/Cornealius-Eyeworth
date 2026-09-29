@@ -5,12 +5,11 @@ package i18n
 var german = Strings{
 	AppName:   "Cornealius Eyeworth",
 	AppTitle:  "Cornealius Eyeworth",
-	GitHubUrl: "https://github.com/mpyziak/Cornealius-Eyeworth",
+	GitHubURL: "https://github.com/mpyziak/Cornealius-Eyeworth",
 
-	StatusServing:       "● Im Dienst",
-	ScheduleDescription: "Zeitplan: %s",
-	NextTrigger:         "Nächste Augenpflege: %s",
-	NextTriggerStandUp:  "Nächste Rückenpflege: %s",
+	StatusServing:      "● Im Dienst",
+	NextTrigger:        "Nächste Augenpflege: %s",
+	NextTriggerStandUp: "Nächste Rückenpflege: %s",
 
 	MenuOptions:      "Optionen ⚙️",
 	MenuLanguage:     "Sprache... 🌐",
@@ -21,9 +20,7 @@ var german = Strings{
 	MenuGitHub:       "GitHub... 📄",
 	MenuQuit:         "Beenden",
 
-	TrayTooltipShowHide:    "Cornealius rufen/entlassen",
-	TrayTooltipNextTrigger: "Nächste Erinnerungszeit",
-	TrayTooltipQuit:        "Beenden",
+	TrayTooltipShowHide: "Cornealius rufen/entlassen",
 
 	ScheduleDialogTitle:       "Zeitplan - Cornealius Eyeworth",
 	OptionsInstruction:        "Minuten jeder Stunde, in denen Cornealius Sie an die Augenpause erinnern soll (z.B. 20, 40, 55):",
@@ -31,8 +28,6 @@ var german = Strings{
 	ScheduleCronInstruction:   `CRON-Ausdruck (z. B. "0 20,40,55 * * * ?"):`,
 	ScheduleStandardToggle:    "Standard",
 	ScheduleAdvancedToggle:    "Erweitert",
-	ScheduleEyeToggle:         "Augenpflege",
-	ScheduleStandUpToggle:     "Aufstehen",
 
 	ButtonSave:   "Speichern",
 	ButtonCancel: "Abbrechen",

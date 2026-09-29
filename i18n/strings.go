@@ -1,24 +1,28 @@
-// SetLanguage once at startup, then read Active.
+// Package i18n holds the translated UI strings. Call SetLanguage once at
+// startup, then read Active.
 //
-// Each language's table lives in its own file (en.go, de.go, ...); Locales
-// below is the one place that decides which of them the app can use.
+// Each language's table lives in its own file (en.go, de.go, ...); the
+// registry returned by Locales is the one place that decides which of them
+// the app can use.
 package i18n
 
 import (
+	"slices"
 	"strings"
 
 	"fyne.io/fyne/v2/lang"
 )
 
+// Strings is one language's complete set of UI text. Every locale must fill
+// every field; TestLocalesAreComplete enforces it.
 type Strings struct {
 	AppName   string
 	AppTitle  string
-	GitHubUrl string
+	GitHubURL string
 
-	StatusServing       string
-	ScheduleDescription string // %s = description, e.g. "20, 40, 55"
-	NextTrigger         string // %s = HH:mm
-	NextTriggerStandUp  string // %s = HH:mm
+	StatusServing      string
+	NextTrigger        string // %s = HH:mm
+	NextTriggerStandUp string // %s = HH:mm
 
 	MenuOptions      string
 	MenuLanguage     string
@@ -29,9 +33,7 @@ type Strings struct {
 	MenuGitHub       string
 	MenuQuit         string
 
-	TrayTooltipShowHide    string
-	TrayTooltipNextTrigger string
-	TrayTooltipQuit        string
+	TrayTooltipShowHide string
 
 	ScheduleDialogTitle       string
 	OptionsInstruction        string
@@ -39,8 +41,6 @@ type Strings struct {
 	ScheduleCronInstruction   string
 	ScheduleStandardToggle    string
 	ScheduleAdvancedToggle    string
-	ScheduleEyeToggle         string
-	ScheduleStandUpToggle     string
 
 	ButtonSave   string
 	ButtonCancel string
@@ -75,6 +75,7 @@ type Strings struct {
 	ScheduleDescriptionSimple string // format: %s = "20, 40, 55"
 }
 
+// Locale is one entry in the language registry.
 type Locale struct {
 	// Codes[0] is what the language dialog writes to config.json. The rest are
 	// the region-qualified forms that also resolve here; the list is
@@ -87,7 +88,9 @@ type Locale struct {
 	Strings *Strings
 }
 
-var Locales = []Locale{
+// Unexported so Enabled stays a compile-time switch: nothing outside this
+// file can flip it, reorder entries or swap a table at runtime.
+var locales = []Locale{
 	{
 		Codes:       []string{"en"},
 		DisplayName: "English",
@@ -120,51 +123,70 @@ var Locales = []Locale{
 	},
 }
 
+// Locales returns a copy of the registry, disabled locales included, in
+// dialog order. The Strings tables it points to are shared and must not be
+// modified.
+func Locales() []Locale {
+	out := slices.Clone(locales)
+	for i := range out {
+		out[i].Codes = slices.Clone(out[i].Codes)
+	}
+	return out
+}
+
+// Active is the table the UI reads from. SetLanguage assigns it.
 var Active = &english
 
+// NormaliseLocale lower-cases code, trims it and turns "_" into "-", so
+// "pl_PL" and " pl-PL " both become "pl-pl".
 func NormaliseLocale(code string) string {
 	return strings.ReplaceAll(strings.ToLower(strings.TrimSpace(code)), "_", "-")
 }
 
+// SetLanguage points Active at the table for language, or at the OS locale's
+// table when language is nil. Anything unrecognised or disabled gets English.
 func SetLanguage(language *string) {
-	raw := ""
+	var raw string
 	if language == nil {
 		raw = lang.SystemLocale().LanguageString()
 	} else {
 		raw = *language
 	}
-	Active = localeFor(raw)
+	Active = localeFor(locales, raw)
 }
 
-// Split out of SetLanguage so it is testable without the host's locale.
+// Split out of SetLanguage so it is testable without the host's locale, and
+// takes the registry so tests can pass a modified copy.
 // Normalise first: Windows hands over "pl-PL", upper-case region and all.
-func localeFor(raw string) *Strings {
+func localeFor(registry []Locale, raw string) *Strings {
 	code := NormaliseLocale(raw)
-	for _, l := range Locales {
-		if !l.Enabled {
-			continue
-		}
-		for _, c := range l.Codes {
-			if c == code {
-				return l.Strings
-			}
+	for _, l := range registry {
+		if l.Enabled && slices.Contains(l.Codes, code) {
+			return l.Strings
 		}
 	}
 	return &english
 }
 
+// LanguageOption is one row of the language dialog.
 type LanguageOption struct {
 	DisplayName string
 	Code        string // empty string = system default
 }
 
+// AvailableLanguages lists the dialog's choices: the system default first,
+// then every enabled locale.
 func AvailableLanguages() []LanguageOption {
-	options := []LanguageOption{
-		{"", ""}, // display name filled at runtime from Active.OptionsLanguageDefault
-	}
-	for _, l := range Locales {
+	return languageOptions(locales)
+}
+
+func languageOptions(registry []Locale) []LanguageOption {
+	options := make([]LanguageOption, 0, len(registry)+1)
+	// Display name filled at runtime from Active.OptionsLanguageDefault.
+	options = append(options, LanguageOption{DisplayName: "", Code: ""})
+	for _, l := range registry {
 		if l.Enabled {
-			options = append(options, LanguageOption{l.DisplayName, l.Codes[0]})
+			options = append(options, LanguageOption{DisplayName: l.DisplayName, Code: l.Codes[0]})
 		}
 	}
 	return options

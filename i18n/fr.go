@@ -8,12 +8,11 @@ package i18n
 var french = Strings{
 	AppName:   "Cornealius Eyeworth",
 	AppTitle:  "Cornealius Eyeworth",
-	GitHubUrl: "https://github.com/mpyziak/Cornealius-Eyeworth",
+	GitHubURL: "https://github.com/mpyziak/Cornealius-Eyeworth",
 
-	StatusServing:       "● En service",
-	ScheduleDescription: "Horaires : %s",
-	NextTrigger:         "Prochain soin des yeux : %s",
-	NextTriggerStandUp:  "Prochain soin du dos : %s",
+	StatusServing:      "● En service",
+	NextTrigger:        "Prochain soin des yeux : %s",
+	NextTriggerStandUp: "Prochain soin du dos : %s",
 
 	MenuOptions:      "Options ⚙️",
 	MenuLanguage:     "Langue... 🌐",
@@ -24,9 +23,7 @@ var french = Strings{
 	MenuGitHub:       "GitHub... 📄",
 	MenuQuit:         "Quitter",
 
-	TrayTooltipShowHide:    "Appeler/Congédier Cornealius",
-	TrayTooltipNextTrigger: "Heure du prochain rappel",
-	TrayTooltipQuit:        "Quitter l’application",
+	TrayTooltipShowHide: "Appeler/Congédier Cornealius",
 
 	ScheduleDialogTitle:       "Horaires - Cornealius Eyeworth",
 	OptionsInstruction:        "Minutes de chaque heure auxquelles Cornealius vous rappellera de reposer vos yeux (p. ex. 20, 40, 55) :",
@@ -34,8 +31,6 @@ var french = Strings{
 	ScheduleCronInstruction:   "Expression CRON (p. ex. « 0 20,40,55 * * * ? ») :",
 	ScheduleStandardToggle:    "Standard",
 	ScheduleAdvancedToggle:    "Avancé",
-	ScheduleEyeToggle:         "Soin des yeux",
-	ScheduleStandUpToggle:     "Se lever",
 
 	ButtonSave:   "Enregistrer",
 	ButtonCancel: "Annuler",

@@ -11,7 +11,7 @@ import (
 
 func export(t *testing.T, exclude string) [][]string {
 	t.Helper()
-	locales, err := selectLocales(i18n.Locales, exclude)
+	locales, err := selectLocales(i18n.Locales(), exclude)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,13 +42,13 @@ func TestExcludeDropsTheColumn(t *testing.T) {
 			t.Fatalf("header still has el: %v", rows[0])
 		}
 	}
-	if len(rows[0]) != len(i18n.Locales) { // key column + all but one locale
-		t.Fatalf("header = %v, want key + %d locales", rows[0], len(i18n.Locales)-1)
+	if len(rows[0]) != len(i18n.Locales()) { // key column + all but one locale
+		t.Fatalf("header = %v, want key + %d locales", rows[0], len(i18n.Locales())-1)
 	}
 }
 
 func TestUnknownExcludeCodeIsAnError(t *testing.T) {
-	if _, err := selectLocales(i18n.Locales, "el,gr"); err == nil {
+	if _, err := selectLocales(i18n.Locales(), "el,gr"); err == nil {
 		t.Fatal(`selectLocales(..., "el,gr") accepted "gr"`)
 	}
 }
@@ -61,19 +61,30 @@ func TestCellsRoundTrip(t *testing.T) {
 		col[h] = i
 	}
 
-	help := find(rows, "HelpBody")
-	if help == nil || help[col["en"]] != i18n.Locales[0].Strings.HelpBody {
-		t.Errorf("HelpBody did not round-trip")
-	}
-
-	var french *i18n.Strings
-	for _, l := range i18n.Locales {
-		if l.Codes[0] == "fr" {
+	var english, french *i18n.Strings
+	for _, l := range i18n.Locales() {
+		switch l.Codes[0] {
+		case "en":
+			english = l.Strings
+		case "fr":
 			french = l.Strings
 		}
 	}
-	if next := find(rows, "NextTrigger"); next == nil || next[col["fr"]] != french.NextTrigger {
-		t.Errorf("French NextTrigger did not round-trip")
+
+	help := find(rows, "HelpBody")
+	if help == nil {
+		t.Fatal("HelpBody row missing from export")
+	}
+	if got := help[col["en"]]; got != english.HelpBody {
+		t.Errorf("HelpBody[en] = %q, want %q", got, english.HelpBody)
+	}
+
+	next := find(rows, "NextTrigger")
+	if next == nil {
+		t.Fatal("NextTrigger row missing from export")
+	}
+	if got := next[col["fr"]]; got != french.NextTrigger {
+		t.Errorf("NextTrigger[fr] = %q, want %q", got, french.NextTrigger)
 	}
 }
 
@@ -87,7 +98,7 @@ func TestShorterPoolsArePaddedWithBlanks(t *testing.T) {
 	}
 
 	longest := 0
-	for _, l := range i18n.Locales {
+	for _, l := range i18n.Locales() {
 		longest = max(longest, len(l.Strings.NotificationDistanceGlanceHeaders))
 	}
 	for j := 0; j < longest; j++ {

@@ -5,12 +5,11 @@ package i18n
 var polish = Strings{
 	AppName:   "Cornealius Eyeworth",
 	AppTitle:  "Cornealius Eyeworth",
-	GitHubUrl: "https://github.com/mpyziak/Cornealius-Eyeworth",
+	GitHubURL: "https://github.com/mpyziak/Cornealius-Eyeworth",
 
-	StatusServing:       "● Na służbie",
-	ScheduleDescription: "Harmonogram: %s",
-	NextTrigger:         "Najbliższa chwila dla oczu: %s",
-	NextTriggerStandUp:  "Najbliższa chwila dla pleców: %s",
+	StatusServing:      "● Na służbie",
+	NextTrigger:        "Najbliższa chwila dla oczu: %s",
+	NextTriggerStandUp: "Najbliższa chwila dla pleców: %s",
 
 	MenuOptions:      "Opcje ⚙️",
 	MenuLanguage:     "Język... 🌐",
@@ -21,9 +20,7 @@ var polish = Strings{
 	MenuGitHub:       "GitHub... 📄",
 	MenuQuit:         "Zamknij",
 
-	TrayTooltipShowHide:    "Zawołaj/Odeślij Cornealiusa",
-	TrayTooltipNextTrigger: "Czas następnego przypomnienia",
-	TrayTooltipQuit:        "Zamknij aplikację",
+	TrayTooltipShowHide: "Zawołaj/Odeślij Cornealiusa",
 
 	ScheduleDialogTitle:       "Harmonogram - Cornealius Eyeworth",
 	OptionsInstruction:        "Minuty każdej godziny, w których Cornealius przypomni Ci o odpoczynku dla oczu (np. 20, 40, 55):",
@@ -31,8 +28,6 @@ var polish = Strings{
 	ScheduleCronInstruction:   `Wyrażenie CRON (np. "0 20,40,55 * * * ?"):`,
 	ScheduleStandardToggle:    "Standardowe",
 	ScheduleAdvancedToggle:    "Zaawansowane",
-	ScheduleEyeToggle:         "Opieka oczna",
-	ScheduleStandUpToggle:     "Wstań",
 
 	ButtonSave:   "Zapisz",
 	ButtonCancel: "Anuluj",
