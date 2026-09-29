@@ -8,23 +8,29 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
+// Runner starts and stops a single cron schedule. Scheduler is its only
+// implementation.
 type Runner interface {
 	Start(cronExpr string, onFire func()) error
 	Stop()
 }
 
+// ReminderTypeEye and ReminderTypeStandup identify which schedule fired,
+// for onFire callbacks and Reminder.NotificationCategory.
 const (
 	ReminderTypeEye     = "eye"
 	ReminderTypeStandup = "standup"
 )
 
+// ScheduleSpec is the pair of cron expressions ApplySchedule installs.
 type ScheduleSpec struct {
 	EyeCron     string
 	StandUpCron string // blank turns the stand-up schedule off
 }
 
-// Returns the first rejected expression, and leaves that runner stopped.
-// Callers must surface or recover from it.
+// ApplySchedule starts or stops eye and standup according to spec. It
+// returns the first rejected expression and leaves that runner stopped;
+// callers must surface or recover from it.
 func ApplySchedule(eye Runner, standup Runner, spec ScheduleSpec, onFire func(notificationCategory string)) error {
 	var firstErr error
 
@@ -51,13 +57,15 @@ func ApplySchedule(eye Runner, standup Runner, spec ScheduleSpec, onFire func(no
 	return firstErr
 }
 
+// Scheduler is a Runner backed by a robfig/cron schedule.
 type Scheduler struct {
 	mu      sync.Mutex
 	crontab *cron.Cron
 }
 
-// Replaces any running schedule. Validates here rather than trusting the
-// parsing package - config.json expressions never go through it.
+// Start replaces any running schedule with cronExpr, calling onFire each
+// time it triggers. Validates here rather than trusting the parsing
+// package - config.json expressions never go through it.
 func (s *Scheduler) Start(cronExpr string, onFire func()) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -77,7 +85,7 @@ func (s *Scheduler) Start(cronExpr string, onFire func()) error {
 	return nil
 }
 
-// Safe to call repeatedly.
+// Stop stops the running schedule, if any. Safe to call repeatedly.
 func (s *Scheduler) Stop() {
 	s.mu.Lock()
 	defer s.mu.Unlock()

@@ -9,6 +9,8 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 )
 
+// ShowHelpDialog opens the "How to use" window, or focuses it if already
+// open.
 func ShowHelpDialog(app fyne.App) {
 	S := i18n.Active
 

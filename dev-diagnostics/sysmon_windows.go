@@ -17,7 +17,9 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-// Lines setupTheme drains up against the registry writes logged below.
+// EnableUIDevDiagnosticsSettingsListener wires a Fyne settings-change
+// listener into the log, whose lines setupTheme drains up against the
+// registry writes logged elsewhere in this file.
 func EnableUIDevDiagnosticsSettingsListener(app fyne.App) {
 	app.Settings().AddListener(func(_ fyne.Settings) {
 		Event("fyne: Settings.AddListener fired (setupTheme drained from funcQueue)")

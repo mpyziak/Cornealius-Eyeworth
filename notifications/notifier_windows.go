@@ -1,8 +1,9 @@
 //go:build windows
 
+package notifications
+
 // Shell_NotifyIcon rather than fyne.App.SendNotification: that one shells out to
 // PowerShell, which AV blocks on locked-down machines.
-package notifications
 
 import (
 	"syscall"
@@ -84,21 +85,26 @@ func showBalloon(title, message string) {
 	}
 }
 
+// SendStartup notifies that the app has started.
 func SendStartup(_ fyne.App) {
 	diagnostics.Event("notification: startup")
 	showBalloon(i18n.Active.NotificationOnDuty, pickRandom(i18n.Active.NotificationDistanceGlanceQuips))
 }
 
+// SendMinimizedToTray notifies that the window was minimized to the tray.
 func SendMinimizedToTray(_ fyne.App) {
 	diagnostics.Event("notification: minimized-to-tray")
 	showBalloon(i18n.Active.AppName, i18n.Active.NotificationMinimizedToTray)
 }
 
+// SendReminder sends a single eye-care reminder.
 func SendReminder(_ fyne.App) {
 	diagnostics.Event("notification: reminder (eye)")
 	showBalloon(pickRandom(i18n.Active.NotificationDistanceGlanceHeaders), pickRandom(i18n.Active.NotificationDistanceGlanceQuips))
 }
 
+// SendReminders sends every buffered reminder as one aggregated
+// notification.
 func SendReminders(_ fyne.App, reminders []scheduling.Reminder) {
 	title, content := aggregatedNotification(reminders)
 	if title == "" && content == "" {

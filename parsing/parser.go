@@ -11,6 +11,8 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 )
 
+// ParseResult is the outcome of parsing user input into a Quartz CRON
+// expression.
 type ParseResult struct {
 	Valid      bool
 	Expression string // set when Valid == true; canonical Quartz CRON expression
@@ -30,6 +32,7 @@ var cronParser = cron.NewParser(
 	cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow,
 )
 
+// ParseCron validates input as a Quartz CRON expression.
 func ParseCron(input string) ParseResult {
 	trimmed := strings.TrimSpace(input)
 	if trimmed == "" {
@@ -41,7 +44,8 @@ func ParseCron(input string) ParseResult {
 	return ok(trimmed)
 }
 
-// "20,40,55" -> "0 20,40,55 * * * ?".
+// ParseMinutes turns a comma/space-separated minute list, e.g. "20,40,55",
+// into the equivalent Quartz CRON expression "0 20,40,55 * * * ?".
 func ParseMinutes(input string) ParseResult {
 	parts := strings.FieldsFunc(strings.TrimSpace(input), func(r rune) bool {
 		return r == ',' || r == ' '
@@ -81,7 +85,9 @@ func ParseMinutes(input string) ParseResult {
 	return ok("0 " + strings.Join(strs, ",") + " * * * ?")
 }
 
-// Inverse of ParseMinutes. Empty string if the expression is not that shape.
+// TryExtractSimpleMinutes is the inverse of ParseMinutes: it returns the
+// minute list an expression of the shape "0 m1,m2 * * * ?" was built from,
+// or "" if cronExpr is not that shape.
 func TryExtractSimpleMinutes(cronExpr string) string {
 	parts := strings.Fields(cronExpr)
 	if len(parts) != 6 {

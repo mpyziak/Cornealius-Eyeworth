@@ -6,6 +6,8 @@ package diagnostics
 
 import "fyne.io/fyne/v2"
 
-func startSysmon()                                      {}
-func stopSysmon()                                       {}
+func startSysmon() {}
+func stopSysmon()  {}
+
+// EnableUIDevDiagnosticsSettingsListener is a no-op without -tags sysmon.
 func EnableUIDevDiagnosticsSettingsListener(_ fyne.App) {}

@@ -10,6 +10,7 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
 
+// SendStartup notifies that the app has started.
 func SendStartup(app fyne.App) {
 	diagnostics.Event("notification: startup")
 	app.SendNotification(&fyne.Notification{
@@ -18,6 +19,7 @@ func SendStartup(app fyne.App) {
 	})
 }
 
+// SendMinimizedToTray notifies that the window was minimized to the tray.
 func SendMinimizedToTray(app fyne.App) {
 	diagnostics.Event("notification: minimized-to-tray")
 	app.SendNotification(&fyne.Notification{
@@ -26,6 +28,7 @@ func SendMinimizedToTray(app fyne.App) {
 	})
 }
 
+// SendReminder sends a single eye-care reminder.
 func SendReminder(app fyne.App) {
 	diagnostics.Event("notification: reminder (eye)")
 	app.SendNotification(&fyne.Notification{
@@ -34,6 +37,8 @@ func SendReminder(app fyne.App) {
 	})
 }
 
+// SendReminders sends every buffered reminder as one aggregated
+// notification.
 func SendReminders(app fyne.App, reminders []scheduling.Reminder) {
 	title, content := aggregatedNotification(reminders)
 	if title == "" && content == "" {

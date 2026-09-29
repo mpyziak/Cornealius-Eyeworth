@@ -11,7 +11,7 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
 
-// handles systray setup and lifecycle.
+// Manager handles systray setup and lifecycle.
 type Manager struct {
 	app             fyne.App
 	windowFactory   func() fyne.Window // builds a fresh window each time it is shown
@@ -20,16 +20,18 @@ type Manager struct {
 	setupCfg        *config.Config
 }
 
-// creates a new systray Manager.
+// NewManager creates a new systray Manager for app.
 func NewManager(app fyne.App) *Manager {
 	return &Manager{app: app}
 }
 
-// Must be called before the first tray interaction.
+// SetWindowFactory sets the function used to build a fresh status window
+// each time it is shown. Must be called before the first tray interaction.
 func (m *Manager) SetWindowFactory(f func() fyne.Window) {
 	m.windowFactory = f
 }
 
+// Setup builds and installs the tray menu from cfg.
 func (m *Manager) Setup(cfg *config.Config) {
 	m.setupCfg = cfg
 	m.doSetup()
@@ -73,8 +75,9 @@ func (m *Manager) doSetup() {
 	desk.SetSystemTrayMenu(menu)
 }
 
-// Must be called on the main goroutine: fyne.MenuItem.Label is a plain struct
-// field with no synchronisation
+// UpdateLabels refreshes the tray menu's next-trigger text from cfg. Must
+// be called on the main goroutine: fyne.MenuItem.Label is a plain struct
+// field with no synchronisation.
 func (m *Manager) UpdateLabels(cfg *config.Config) {
 	S := i18n.Active
 	if m.nextTriggerMenu != nil {
@@ -83,6 +86,7 @@ func (m *Manager) UpdateLabels(cfg *config.Config) {
 	// Fyne's MenuItem automatically reflects changes to its Label if the menu is active.
 }
 
+// NotifyHidden tells the Manager the status window is no longer visible.
 func (m *Manager) NotifyHidden() {
 	m.currentWindow = nil
 }

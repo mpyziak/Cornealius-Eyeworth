@@ -16,7 +16,9 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
 
-// onFire must be the same callback ui.Run passed, not a local one.
+// ShowScheduleDialog opens the schedule-editing window, or focuses it if
+// already open. onFire must be the same callback ui.Run passed, not a
+// local one.
 func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched scheduling.Runner, onSaved func(*config.Config), onFire func(string)) {
 	S := i18n.Active
 
