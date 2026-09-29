@@ -6,8 +6,6 @@ package diagnostics
 
 import (
 	"fmt"
-	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -26,9 +24,9 @@ var (
 	logDir  string
 	current *os.File
 	written int64
-	logger  *log.Logger
 
-	stopMem = make(chan struct{})
+	closeOnce sync.Once
+	stopMem   = make(chan struct{})
 )
 
 // Close() on shutdown, else the sampler keeps running.
@@ -47,17 +45,19 @@ func Init(dir string) error {
 }
 
 func Close() {
-	stopSysmon()
-	close(stopMem)
+	closeOnce.Do(func() {
+		stopSysmon()
+		close(stopMem)
 
-	mu.Lock()
-	defer mu.Unlock()
+		mu.Lock()
+		defer mu.Unlock()
 
-	if current != nil {
-		_ = current.Sync()
-		_ = current.Close()
-		current = nil
-	}
+		if current != nil {
+			_ = current.Sync()
+			_ = current.Close()
+			current = nil
+		}
+	})
 }
 
 func Info(format string, args ...any) {
@@ -92,21 +92,26 @@ func write(level, format string, args ...any) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	if logger == nil {
+	if current == nil {
 		return
 	}
 
 	if written+int64(len(line)) > maxFileSize {
-		_ = current.Sync()
-		_ = current.Close()
-		if err := openNewFile(); err != nil {
-			// Keep writing to the old file; openNewFile already told stderr.
+		old := current
+		if err := openNewFile(); err == nil {
+			_ = old.Sync()
+			_ = old.Close()
+		} else {
+			// Rotation failed; record it in the still-open old file and keep
+			// appending there rather than losing every line until the next
+			// successful rotation.
+			fmt.Fprintf(old, "[%s] ERROR rotate log file: %v\n",
+				time.Now().UTC().Format("2006-01-02T15:04:05.000Z"), err)
 		}
 	}
 
 	n, _ := fmt.Fprint(current, line)
 	written += int64(n)
-	_ = logger // suppress unused warning; logger is kept for its prefix/flag behaviour
 }
 
 // Call with mu held.
@@ -116,13 +121,11 @@ func openNewFile() error {
 
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "dev-diagnostics: cannot open log file %s: %v\n", path, err)
 		return err
 	}
 
 	current = f
 	written = 0
-	logger = log.New(io.Discard, "", 0) // placeholder; actual writing done via fmt.Fprint
 	return nil
 }
 
@@ -149,12 +152,14 @@ var prevMemStats struct {
 func logMemory() {
 	var ms runtime.MemStats
 	runtime.ReadMemStats(&ms)
-
 	goroutines := runtime.NumGoroutine()
+
+	mu.Lock()
 	gcDelta := ms.NumGC - prevMemStats.numGC
 	pauseDelta := ms.PauseTotalNs - prevMemStats.pauseTotalNs
 	prevMemStats.numGC = ms.NumGC
 	prevMemStats.pauseTotalNs = ms.PauseTotalNs
+	mu.Unlock()
 
 	write("MEM  ",
 		"HeapAlloc=%s HeapSys=%s HeapIdle=%s HeapInuse=%s HeapReleased=%s Sys=%s "+

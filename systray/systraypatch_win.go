@@ -41,6 +41,8 @@ func patchTrayWindowsWhenReady() {
 
 	for i := 0; i < maxAttempts; i++ {
 		if systrayHwnd == 0 {
+			// "SystrayClass" is a constant literal with no embedded NUL;
+			// UTF16PtrFromString only fails on one.
 			cls, _ := syscall.UTF16PtrFromString("SystrayClass")
 			systrayHwnd, _, _ = procFindWinP.Call(uintptr(unsafe.Pointer(cls)), 0)
 		}
@@ -51,6 +53,9 @@ func patchTrayWindowsWhenReady() {
 	}
 
 	if systrayHwnd != 0 {
+		// Best-effort: a failed SetParent just leaves SystrayClass enumerable,
+		// which is the pre-patch behaviour this whole file exists to improve
+		// on - not a regression worth surfacing to the user.
 		procSetPar.Call(systrayHwnd, hwndMessage)
 	}
 	// Never reparent SystrayMonitor. It is a GLFW-managed window with an OpenGL context.
