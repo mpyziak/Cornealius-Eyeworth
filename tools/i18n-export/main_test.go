@@ -101,7 +101,7 @@ func TestShorterPoolsArePaddedWithBlanks(t *testing.T) {
 	for _, l := range i18n.Locales() {
 		longest = max(longest, len(l.Strings.NotificationDistanceGlanceHeaders))
 	}
-	for j := 0; j < longest; j++ {
+	for j := range longest {
 		key := fmt.Sprintf("NotificationDistanceGlanceHeaders[%d]", j)
 		if find(rows, key) == nil {
 			t.Errorf("missing row %s", key)

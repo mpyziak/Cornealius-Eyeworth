@@ -1,7 +1,7 @@
 package notifications
 
 import (
-	"math/rand"
+	"math/rand/v2"
 
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
@@ -10,7 +10,7 @@ func pickRandom(items []string) string {
 	if len(items) == 0 {
 		return ""
 	}
-	return items[rand.Intn(len(items))]
+	return items[rand.IntN(len(items))]
 }
 
 func hasReminderType(reminders []scheduling.Reminder, notificationCategory string) bool {

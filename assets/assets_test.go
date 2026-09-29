@@ -44,8 +44,8 @@ func TestIconMatchesLogo(t *testing.T) {
 	xdraw.CatmullRom.Scale(fresh, fresh.Bounds(), source, source.Bounds(), xdraw.Over, nil)
 
 	var sum, n float64
-	for y := 0; y < iconSize; y++ {
-		for x := 0; x < iconSize; x++ {
+	for y := range iconSize {
+		for x := range iconSize {
 			cr, cg, cb, ca := committed.At(x, y).RGBA()
 			fr, fg, fb, fa := fresh.At(x, y).RGBA()
 			for _, d := range [4]float64{
