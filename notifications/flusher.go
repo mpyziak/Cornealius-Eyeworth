@@ -2,6 +2,7 @@ package notifications
 
 import (
 	"fyne.io/fyne/v2"
+
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
 

@@ -6,8 +6,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mpyziak/cornealius-eyeworth/i18n"
 	"github.com/robfig/cron/v3"
+
+	"github.com/mpyziak/cornealius-eyeworth/i18n"
 )
 
 type ParseResult struct {
