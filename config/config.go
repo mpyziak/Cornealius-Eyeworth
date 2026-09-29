@@ -5,25 +5,31 @@ import (
 	"os"
 )
 
+// Config is the application's persisted settings.
 type Config struct {
 	CronExpression        string  `json:"CronExpression"`
 	StandUpCronExpression string  `json:"StandUpCronExpression"`
 	Language              *string `json:"Language"`
 }
 
+// Store loads and saves a Config. Repository is its only implementation.
 type Store interface {
 	Load() (*Config, error)
 	Save(*Config) error
 }
 
+// Repository is a Store backed by a JSON file on disk.
 type Repository struct {
 	path string
 }
 
+// NewRepository returns a Repository that reads and writes path.
 func NewRepository(path string) *Repository {
 	return &Repository{path: path}
 }
 
+// Load reads the Config from disk, creating it with DefaultConfig's values
+// if it does not yet exist.
 func (r *Repository) Load() (*Config, error) {
 	data, err := os.ReadFile(r.path)
 	if err != nil {
@@ -43,6 +49,7 @@ func (r *Repository) Load() (*Config, error) {
 	return &cfg, nil
 }
 
+// Save writes cfg to disk as JSON.
 func (r *Repository) Save(cfg *Config) error {
 	data, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {

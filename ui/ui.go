@@ -94,6 +94,8 @@ func (s *statusState) snapshot() (schedule, nextTrigger, standUp, standUpNextTri
 	return s.schedule, s.nextTrigger, s.standUp, s.standUpNextTrigger
 }
 
+// Run wires up the schedulers, tray, and status window, and blocks in the
+// Fyne event loop until the app quits.
 func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 	status := &statusState{}
 	status.update(cfg)

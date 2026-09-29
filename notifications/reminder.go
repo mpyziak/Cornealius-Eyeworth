@@ -5,6 +5,8 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
 
+// NewReminder builds the Reminder for notificationCategory, picking its
+// message text from the matching i18n quip pool.
 func NewReminder(notificationCategory string) scheduling.Reminder {
 	switch notificationCategory {
 	case scheduling.ReminderTypeStandup:

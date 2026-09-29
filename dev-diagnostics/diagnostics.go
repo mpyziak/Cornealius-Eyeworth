@@ -1,7 +1,5 @@
 //go:build diagnostics
 
-// Rotating log files next to the exe
-// Release builds get diagnostics/noop.go instead.
 package diagnostics
 
 import (
@@ -29,7 +27,8 @@ var (
 	stopMem   = make(chan struct{})
 )
 
-// Close() on shutdown, else the sampler keeps running.
+// Init starts the rotating-file logger and memory sampler, writing log
+// files under dir. Call Close on shutdown, else the sampler keeps running.
 func Init(dir string) error {
 	mu.Lock()
 	defer mu.Unlock()
@@ -44,6 +43,8 @@ func Init(dir string) error {
 	return nil
 }
 
+// Close stops the sampler and closes the current log file. Safe to call
+// more than once.
 func Close() {
 	closeOnce.Do(func() {
 		stopSysmon()
@@ -60,22 +61,26 @@ func Close() {
 	})
 }
 
+// Info logs an informational line, followed by a memory sample.
 func Info(format string, args ...any) {
 	write("INFO ", format, args...)
 	logMemory()
 }
 
+// Event logs a notable but non-error occurrence, followed by a memory
+// sample.
 func Event(format string, args ...any) {
 	write("EVENT", format, args...)
 	logMemory()
 }
 
+// Warn logs a recoverable problem, followed by a memory sample.
 func Warn(format string, args ...any) {
 	write("WARN ", format, args...)
 	logMemory()
 }
 
-// Does not exit.
+// Err logs an error, followed by a memory sample. Does not exit.
 func Err(format string, args ...any) {
 	write("ERROR", format, args...)
 	logMemory()

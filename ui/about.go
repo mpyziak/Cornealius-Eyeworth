@@ -9,6 +9,7 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 )
 
+// ShowAboutDialog opens the About window, or focuses it if already open.
 func ShowAboutDialog(app fyne.App) {
 	S := i18n.Active
 
