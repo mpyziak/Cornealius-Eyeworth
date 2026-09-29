@@ -5,12 +5,11 @@ package i18n
 var greek = Strings{
 	AppName:   "Cornealius Eyeworth",
 	AppTitle:  "Cornealius Eyeworth",
-	GitHubUrl: "https://github.com/mpyziak/Cornealius-Eyeworth",
+	GitHubURL: "https://github.com/mpyziak/Cornealius-Eyeworth",
 
-	StatusServing:       "● Σε υπηρεσία",
-	ScheduleDescription: "Πρόγραμμα: %s",
-	NextTrigger:         "Επόμενη φροντίδα ματιών: %s",
-	NextTriggerStandUp:  "Επόμενη φροντίδα πλάτης: %s",
+	StatusServing:      "● Σε υπηρεσία",
+	NextTrigger:        "Επόμενη φροντίδα ματιών: %s",
+	NextTriggerStandUp: "Επόμενη φροντίδα πλάτης: %s",
 
 	MenuOptions:      "Επιλογές ⚙️",
 	MenuLanguage:     "Γλώσσα... 🌐",
@@ -21,9 +20,7 @@ var greek = Strings{
 	MenuGitHub:       "GitHub... 📄",
 	MenuQuit:         "Έξοδος",
 
-	TrayTooltipShowHide:    "Κλήση/Αποπομπή του Cornealius",
-	TrayTooltipNextTrigger: "Ώρα επόμενης υπενθύμισης",
-	TrayTooltipQuit:        "Έξοδος από την εφαρμογή",
+	TrayTooltipShowHide: "Κλήση/Αποπομπή του Cornealius",
 
 	ScheduleDialogTitle:       "Πρόγραμμα - Cornealius Eyeworth",
 	OptionsInstruction:        "Λεπτά κάθε ώρας κατά τα οποία ο Cornealius θα σας υπενθυμίζει να ξεκουράσετε τα μάτια σας (π.χ. 20, 40, 55):",
@@ -31,8 +28,6 @@ var greek = Strings{
 	ScheduleCronInstruction:   "Έκφραση CRON (π.χ. «0 20,40,55 * * * ?»):",
 	ScheduleStandardToggle:    "Βασικό",
 	ScheduleAdvancedToggle:    "Προηγμένο",
-	ScheduleEyeToggle:         "Φροντίδα ματιών",
-	ScheduleStandUpToggle:     "Σηκωθείτε",
 
 	ButtonSave:   "Αποθήκευση",
 	ButtonCancel: "Ακύρωση",

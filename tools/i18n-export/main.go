@@ -11,37 +11,44 @@ import (
 	"io"
 	"os"
 	"reflect"
+	"slices"
 	"strings"
 
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 )
 
 func main() {
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func run() (err error) {
 	out := flag.String("o", "", "output file (default stdout)")
 	exclude := flag.String("exclude", "", "comma-separated locale codes to leave out, e.g. el")
 	flag.Parse()
 
-	locales, err := selectLocales(i18n.Locales, *exclude)
+	locales, err := selectLocales(i18n.Locales(), *exclude)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(2)
+		return err
 	}
 
 	var w io.Writer = os.Stdout
 	if *out != "" {
-		f, err := os.Create(*out)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
+		f, ferr := os.Create(*out)
+		if ferr != nil {
+			return ferr
 		}
-		defer f.Close()
+		defer func() {
+			if cerr := f.Close(); err == nil {
+				err = cerr
+			}
+		}()
 		w = f
 	}
 
-	if err := writeCSV(w, locales); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	return writeCSV(w, locales)
 }
 
 // Disabled locales are exported too; the flag only governs the running app.
@@ -62,8 +69,13 @@ func selectLocales(all []i18n.Locale, exclude string) ([]i18n.Locale, error) {
 		}
 		kept = append(kept, l)
 	}
-	for c := range skip {
-		return nil, fmt.Errorf("-exclude: no locale with code %q", c)
+	if len(skip) > 0 {
+		unknown := make([]string, 0, len(skip))
+		for c := range skip {
+			unknown = append(unknown, c)
+		}
+		slices.Sort(unknown)
+		return nil, fmt.Errorf("-exclude: no locale with code(s) %q", unknown)
 	}
 	return kept, nil
 }
