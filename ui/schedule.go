@@ -24,8 +24,16 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 		return
 	}
 
+	win := app.NewWindow(S.ScheduleDialogTitle)
+	win.SetFixedSize(true)
+	win.Resize(fyne.NewSize(500, 350))
+	win.CenterOnScreen()
+
 	currentCfg, err := repo.Load()
 	if err != nil {
+		diagnostics.Err("open schedule dialog: cannot load config.json (%v)", err)
+		win.Show()
+		dialog.ShowError(err, win)
 		return
 	}
 
@@ -85,11 +93,6 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 
 	errorLabel := widget.NewLabel("")
 	errorLabel.Importance = widget.DangerImportance
-
-	win := app.NewWindow(S.ScheduleDialogTitle)
-	win.SetFixedSize(true)
-	win.Resize(fyne.NewSize(500, 350))
-	win.CenterOnScreen()
 
 	saveBtn := widget.NewButton(S.ButtonSave, func() {
 		var eyeResult parsing.ParseResult

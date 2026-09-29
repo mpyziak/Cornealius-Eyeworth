@@ -8,6 +8,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 
 	"github.com/mpyziak/cornealius-eyeworth/config"
+	"github.com/mpyziak/cornealius-eyeworth/diagnostics"
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 )
 
@@ -46,8 +47,16 @@ func ShowLanguageDialog(app fyne.App, repo config.Store) {
 		return
 	}
 
+	win := app.NewWindow(S.LanguageDialogTitle)
+	win.SetFixedSize(true)
+	win.Resize(fyne.NewSize(450, 175))
+	win.CenterOnScreen()
+
 	currentCfg, err := repo.Load()
 	if err != nil {
+		diagnostics.Err("open language dialog: cannot load config.json (%v)", err)
+		win.Show()
+		dialog.ShowError(err, win)
 		return
 	}
 
@@ -62,11 +71,6 @@ func ShowLanguageDialog(app fyne.App, repo config.Store) {
 	}
 
 	currentIdx := selectedLanguageIndex(options, currentCfg.Language)
-
-	win := app.NewWindow(S.LanguageDialogTitle)
-	win.SetFixedSize(true)
-	win.Resize(fyne.NewSize(450, 175))
-	win.CenterOnScreen()
 
 	instrLabel := widget.NewLabel(S.OptionsLanguageLabel)
 

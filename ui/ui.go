@@ -198,7 +198,9 @@ func cronCallback(
 	return func(notificationCategory string) {
 		diagnostics.Event("cron fired - category=%s", notificationCategory)
 		buffer.Add(notifications.NewReminder(notificationCategory))
-		if latest, err := repo.Load(); err == nil {
+		if latest, err := repo.Load(); err != nil {
+			diagnostics.Err("cron fired: cannot load config.json (%v) - labels not refreshed", err)
+		} else {
 			// Cron's goroutine. Both calls touch Fyne widgets, which are
 			// main thread only.
 			fyne.Do(func() {
