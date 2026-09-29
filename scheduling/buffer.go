@@ -77,7 +77,7 @@ func (b *Buffer) flushLocked() {
 		return
 	}
 	pending := b.pending
-	b.pending = []Reminder{}
+	b.pending = nil
 	b.timer = nil
 
 	b.mu.Unlock()
