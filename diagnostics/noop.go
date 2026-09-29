@@ -11,4 +11,4 @@ func Info(_ string, _ ...any)                           {}
 func Event(_ string, _ ...any)                          {}
 func Warn(_ string, _ ...any)                           {}
 func Err(_ string, _ ...any)                            {}
-func EnableUiDevDiagnosticsSettingsListener(_ fyne.App) {}
+func EnableUIDevDiagnosticsSettingsListener(_ fyne.App) {}

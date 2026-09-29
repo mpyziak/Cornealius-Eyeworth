@@ -9,4 +9,4 @@ func stopSysmon()  {}
 
 // noop on non-Windows: listener's purpose is to correlate with
 // the theme-registry watcher, which is Windows-only
-func EnableUiDevDiagnosticsSettingsListener(_ fyne.App) {}
+func EnableUIDevDiagnosticsSettingsListener(_ fyne.App) {}
