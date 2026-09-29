@@ -146,7 +146,7 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 		}
 	}
 
-	log.EnableUiDevDiagnosticsSettingsListener(app)
+	log.EnableUIDevDiagnosticsSettingsListener(app)
 
 	trayMgr.Run(func() { notifications.SendStartup(app) })
 	log.Info("event loop running - eye=%s standUp=%s", cfg.CronExpression, cfg.StandUpCronExpression)
@@ -238,7 +238,7 @@ func buildMenu(
 			fyne.NewMenuItem(S.MenuAbout, func() { ShowAboutDialog(app) }),
 			fyne.NewMenuItemSeparator(),
 			fyne.NewMenuItem(S.MenuGitHub, func() {
-				u, _ := url.Parse(S.GitHubUrl)
+				u, _ := url.Parse(S.GitHubURL)
 				_ = app.OpenURL(u)
 			}),
 		),

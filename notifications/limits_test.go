@@ -26,7 +26,7 @@ func longest(items []string) (text string, n int) {
 // why nothing truncates at runtime. Failures print the headroom.
 // Disabled locales included: switching one on must not ship an overlong quip.
 func TestNotificationsFitWin32BalloonLimits(t *testing.T) {
-	for _, l := range i18n.Locales {
+	for _, l := range i18n.Locales() {
 		S := l.Strings
 
 		t.Run(l.Codes[0], func(t *testing.T) {
