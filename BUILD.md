@@ -163,7 +163,7 @@ Fix it with `make patch-fyne`, or by hand on a box without `make`:
 git clone --depth 1 --branch v2.7.4 https://github.com/fyne-io/fyne.git ..\fyne-v2-watchtheme-patch
 
 # 2. Overwrite the single file that carries the patch
-copy external-patches\fyne-theme_windows.go ..\fyne-v2-watchtheme-patch\internal\app\theme_windows.go
+copy _external-patches\fyne-theme_windows.go ..\fyne-v2-watchtheme-patch\internal\app\theme_windows.go
 ```
 
 That is all of it. To confirm:
@@ -323,7 +323,7 @@ Log files are written next to the executable, named by UTC timestamp (e.g. `corn
 │   ├── dialogs.go          Single-instance registry for the dialogs above
 │   ├── about.go            About dialog
 │   └── help.go             Help dialog
-├── external-patches/       The one patched Fyne file, copied into the fork
+├── _external-patches/      The one patched Fyne file, copied into the fork
 ├── tools/i18n-export/      All locales → CSV for Google Sheets (make i18n-export)
 └── winres/                 Windows resource metadata for icon embedding
 ```
