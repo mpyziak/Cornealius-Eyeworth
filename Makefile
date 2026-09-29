@@ -15,7 +15,7 @@ LDFLAGS_WIN  = -ldflags "-s -w -H windowsgui"
 DIAG_TAGS        = -tags diagnostics
 DIAG_SYSMON_TAGS = -tags diagnostics,sysmon
 
-# Fyne fork for the WatchTheme patch (see external-patches/fyne-theme_windows.go).
+# Fyne fork for the WatchTheme patch (see _external-patches/fyne-theme_windows.go).
 # FYNE_TAG must match the fyne.io/fyne/v2 version in go.mod and FYNE_TAG in
 # .github/workflows/release.yml. Nothing enforces this.
 FYNE_TAG  = v2.7.4
@@ -61,7 +61,7 @@ build-dev-sysmon-win:
 patch-fyne:
 	@if [ -d "$(FYNE_FORK)" ]; then echo "$(FYNE_FORK) already exists; delete it first to re-patch"; exit 1; fi
 	git clone --depth 1 --branch $(FYNE_TAG) $(FYNE_REPO) "$(FYNE_FORK)"
-	cp external-patches/fyne-theme_windows.go "$(FYNE_FORK)/internal/app/theme_windows.go"
+	cp _external-patches/fyne-theme_windows.go "$(FYNE_FORK)/internal/app/theme_windows.go"
 	@echo "Fyne fork ready at $(FYNE_FORK)"
 
 # Run UPX over the already-stripped binary for another ~50% reduction.

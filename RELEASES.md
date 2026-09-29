@@ -62,7 +62,7 @@ That file also rules out `windows-arm64` for now.
 
 `go.mod` replaces `fyne.io/fyne/v2` with `../fyne-v2-watchtheme-patch`, which does
 not exist on a fresh clone. Every build rebuilds it: fetch upstream at `FYNE_TAG`,
-copy `external-patches/fyne-theme_windows.go` over `internal/app/theme_windows.go`.
+copy `_external-patches/fyne-theme_windows.go` over `internal/app/theme_windows.go`.
 The build fails unless the fork differs from upstream in exactly that one file.
 
 `FYNE_TAG` must match `go.mod` and the `Makefile`'s copy. Nothing enforces it.

@@ -121,7 +121,7 @@ jobs:
           git -C "$fork" fetch -q --depth 1 origin "$FYNE_TAG"
           git -C "$fork" checkout -q --detach FETCH_HEAD
 
-          cp external-patches/fyne-theme_windows.go \
+          cp _external-patches/fyne-theme_windows.go \
             "$fork/internal/app/theme_windows.go"
 
           # Anything other than exactly that file means the patch missed, or
@@ -144,29 +144,16 @@ jobs:
           # runner defaults to 0 whenever gcc is not found on PATH.
           CGO_ENABLED: '1'
         run: |
-          # Not "go test ./..." - that pattern cannot be used on Windows.
-          # external-patches/ is patch source for the fork step above, not
-          # module code, and the _windows.go suffix keeps it invisible on Linux
-          # and macOS. On the Windows runner it resolves to a real package that
-          # imports fyne.io/fyne/v2/internal/theme, which the Go tool refuses
-          # ("use of internal package not allowed"), and one unloadable package
-          # makes the whole ./... pattern fail before anything is tested.
+          # _external-patches/ (leading underscore) is patch source for the
+          # fork step above, not module code; the Go tool skips directories
+          # named that way in "./..." on every platform, so plain go test
+          # ./... is safe here even on the Windows runner.
           #
-          # -e keeps the listing going past it so the rest can be named
-          # explicitly. It only tolerates *listing* errors: every package below
-          # is still compiled and run as usual, so one that genuinely does not
-          # build still fails this step rather than being skipped.
-          pkgs=$(go list -e ./... | grep -v '/external-patches$')
-          if [ -z "$pkgs" ]; then
-            echo "::error::Package list came back empty - go list failed."
-            exit 1
-          fi
-
           # -shuffle=on catches order dependencies, which this suite is exposed
           # to because the i18n tests share package-level state (Locales,
           # Active). -count=1 because setup-go restores the build cache between
           # runs, and a cached PASS would otherwise hide a regression.
-          go test -race -shuffle=on -count=1 $pkgs
+          go test -race -shuffle=on -count=1 ./...
 
       - name: Install fyne CLI
         if: matrix.platform != 'windows'
