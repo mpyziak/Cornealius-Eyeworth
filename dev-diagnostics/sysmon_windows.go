@@ -14,6 +14,7 @@ import (
 	"unsafe"
 
 	"fyne.io/fyne/v2"
+	"golang.org/x/sys/windows"
 )
 
 // Lines setupTheme drains up against the registry writes logged below.
@@ -371,6 +372,10 @@ var hidWndProc = syscall.NewCallback(func(hwnd, msg, wp, lp uintptr) uintptr {
 		if wp == dbtDevNodesChanged {
 			Event("system: WM_DEVICECHANGE DBT_DEVNODES_CHANGED; device tree changed")
 		} else if lp != 0 {
+			// lParam is a WndProc-supplied pointer to a DEV_BROADCAST_HDR (or a
+			// longer struct sharing its layout); converting it is inherent to
+			// Win32 callbacks like this one, not an accidental unsafe use. The
+			// go vet warning below is expected.
 			hdr := (*devBroadcastHdr)(unsafe.Pointer(lp))
 			switch hdr.DeviceType {
 			case dbtDevtypDeviceIface:
@@ -440,7 +445,12 @@ var hidWndProc = syscall.NewCallback(func(hwnd, msg, wp, lp uintptr) uintptr {
 		// ImmersiveColorSet = Teams/Focus Assist toggling dark mode.
 		// Policy            = GPUPDATE finished. Environment = some VPN clients.
 		if lp != 0 {
-			param := syscall.UTF16ToString((*[128]uint16)(unsafe.Pointer(lp))[:])
+			// lParam is a WndProc-supplied pointer to a NUL-terminated string;
+			// converting it is inherent to Win32 callbacks (the go vet warning
+			// below is expected). UTF16PtrToString walks to the real NUL
+			// instead of assuming a fixed-size window that may over- or
+			// under-read the sender's buffer.
+			param := windows.UTF16PtrToString((*uint16)(unsafe.Pointer(lp)))
 			if param == "Policy" {
 				Event("system: WM_SETTINGCHANGE param=%q; GROUP POLICY REFRESH; correlate with GP-registry writes to confirm GPUPDATE cycle", param)
 			} else {

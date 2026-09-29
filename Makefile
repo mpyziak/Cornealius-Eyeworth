@@ -22,13 +22,28 @@ FYNE_TAG  = v2.7.4
 FYNE_REPO = https://github.com/fyne-io/fyne.git
 FYNE_FORK = ../fyne-v2-watchtheme-patch
 
-.PHONY: deps winres build build-win build-dev build-dev-win build-dev-sysmon build-dev-sysmon-win upx upx-win run patch-fyne package-win package-linux package-darwin i18n-export clean
+.PHONY: deps winres build build-win build-dev build-dev-win build-dev-sysmon build-dev-sysmon-win upx upx-win run patch-fyne package-win package-linux package-darwin i18n-export clean check check-windows
 
 deps:
 	go mod tidy
 
 winres:
 	go run github.com/tc-hib/go-winres@latest make
+
+# ── Checks ───────────────────────────────────────────────────────────────────
+
+check:
+	gofmt -l . | (! grep .)
+	go vet ./...
+	go test -race ./...
+
+# Windows-tagged code (dev-diagnostics, notifications, systray) is invisible
+# to the plain `check` target above on a non-Windows machine; vet it too.
+# -unsafeptr=false: sysmon_windows.go converts WndProc lParam values to
+# pointers, which vet always flags; that's inherent to Win32 callbacks, not
+# a bug, and is commented at each call site.
+check-windows:
+	GOOS=windows go vet -tags "diagnostics sysmon" -unsafeptr=false ./dev-diagnostics ./notifications ./systray
 
 # ── Release builds (no diagnostics compiled in) ───────────────────────────────
 
