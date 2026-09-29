@@ -52,6 +52,8 @@ var (
 )
 
 func msgOnlyWindow() uintptr {
+	// systrayClass is a constant literal with no embedded NUL; UTF16PtrFromString
+	// only fails on one.
 	cls, _ := syscall.UTF16PtrFromString(systrayClass)
 	hwnd, _, _ := procFindWindow.Call(uintptr(unsafe.Pointer(cls)), 0)
 	return hwnd
@@ -70,11 +72,16 @@ func showBalloon(title, message string) {
 	nid.ID = systrayIconID
 	nid.Flags = nifInfo
 	nid.InfoFlags = 0
+	// title/message come from i18n tables or reminder text, never with an
+	// embedded NUL; UTF16FromString only fails on one.
 	t16, _ := syscall.UTF16FromString(title)
 	copy(nid.InfoTitle[:], t16)
 	m16, _ := syscall.UTF16FromString(message)
 	copy(nid.Info[:], m16)
-	procShellNotify.Call(nimModify, uintptr(unsafe.Pointer(&nid)))
+	if ret, _, _ := procShellNotify.Call(nimModify, uintptr(unsafe.Pointer(&nid))); ret == 0 {
+		// A failed balloon is invisible to the user otherwise.
+		diagnostics.Warn("notification: Shell_NotifyIconW(NIM_MODIFY) failed")
+	}
 }
 
 func SendStartup(_ fyne.App) {

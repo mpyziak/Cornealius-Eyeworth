@@ -240,8 +240,9 @@ func buildMenu(
 			fyne.NewMenuItem(S.MenuAbout, func() { ShowAboutDialog(app) }),
 			fyne.NewMenuItemSeparator(),
 			fyne.NewMenuItem(S.MenuGitHub, func() {
+				// GitHubURL is a constant well-formed URL; url.Parse cannot fail on it.
 				u, _ := url.Parse(S.GitHubURL)
-				_ = app.OpenURL(u)
+				_ = app.OpenURL(u) // best-effort; no channel to report a failed browser launch to
 			}),
 		),
 	)

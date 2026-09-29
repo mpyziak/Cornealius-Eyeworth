@@ -162,7 +162,7 @@ var (
 
 var sysmonStop syscall.Handle // manual-reset event, set by stopSysmon()
 
-// startSysmon creates the shared stop event and launches both monitor goroutines.
+// startSysmon creates the shared stop event and launches all four monitor goroutines.
 // Called from Init() after the log file is open.
 func startSysmon() {
 	h, _, _ := procCreateEvent.Call(0, 1 /*manual-reset*/, 0, 0)
@@ -251,7 +251,7 @@ func monitorGPRegistry() {
 	}
 }
 
-// stopSysmon signals both monitor goroutines to exit.
+// stopSysmon signals all four monitor goroutines to exit.
 // Called from Close() before the log file is closed.
 func stopSysmon() {
 	if sysmonStop != 0 {
@@ -310,9 +310,6 @@ func monitorThemeRegistry() {
 				// Deleted during a theme switch; wait for it to come back.
 				Event("system: theme-registry key deleted; full theme switch in progress (dark/light, Teams call restore); Fyne WatchTheme handle also invalidated; watching for key recreation")
 				for {
-					select {
-					default:
-					}
 					// Check stop event without blocking.
 					stopHandles := [1]uintptr{uintptr(sysmonStop)}
 					r, _, _ := procWaitForMulti.Call(1, uintptr(unsafe.Pointer(&stopHandles[0])), 0, 100 /*ms*/)
