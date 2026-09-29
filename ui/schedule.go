@@ -10,7 +10,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 
 	"github.com/mpyziak/cornealius-eyeworth/config"
-	log "github.com/mpyziak/cornealius-eyeworth/diagnostics"
+	"github.com/mpyziak/cornealius-eyeworth/diagnostics"
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 	"github.com/mpyziak/cornealius-eyeworth/parsing"
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
@@ -132,7 +132,7 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 			dialog.ShowError(saveErr, win)
 			return
 		}
-		log.Event("schedule saved - eye=%s standUp=%s", updated.CronExpression, updated.StandUpCronExpression)
+		diagnostics.Event("schedule saved - eye=%s standUp=%s", updated.CronExpression, updated.StandUpCronExpression)
 
 		if applyErr := scheduling.ApplySchedule(
 			eyeSched,
@@ -144,7 +144,7 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 			onFire,
 		); applyErr != nil {
 			// Should be unreachable - both were validated above.
-			log.Err("saved schedule rejected by scheduler: %v", applyErr)
+			diagnostics.Err("saved schedule rejected by scheduler: %v", applyErr)
 			dialog.ShowError(applyErr, win)
 			return
 		}

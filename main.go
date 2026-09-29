@@ -3,7 +3,7 @@
 package main
 
 import (
-	syslog "log"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -12,7 +12,7 @@ import (
 
 	"github.com/mpyziak/cornealius-eyeworth/assets"
 	"github.com/mpyziak/cornealius-eyeworth/config"
-	log "github.com/mpyziak/cornealius-eyeworth/diagnostics"
+	"github.com/mpyziak/cornealius-eyeworth/diagnostics"
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 	"github.com/mpyziak/cornealius-eyeworth/ui"
 )
@@ -22,27 +22,27 @@ func main() {
 	// be fatal: under -H windowsgui there is no console to print why.
 	exePath, err := os.Executable()
 	if err != nil {
-		syslog.Printf("warning: cannot resolve executable path (%v); using working directory", err)
+		log.Printf("warning: cannot resolve executable path (%v); using working directory", err)
 		exePath = "."
 	}
 	exeDir := filepath.Dir(exePath)
 	cfgPath := filepath.Join(exeDir, "config.json")
 
-	if err := log.Init(exeDir); err != nil {
-		syslog.Printf("warning: logging unavailable: %v", err)
+	if err := diagnostics.Init(exeDir); err != nil {
+		log.Printf("warning: logging unavailable: %v", err)
 	}
-	defer log.Close()
-	log.Info("app starting - exe=%s", exePath)
+	defer diagnostics.Close()
+	diagnostics.Info("app starting - exe=%s", exePath)
 
 	repo := config.NewRepository(cfgPath)
 	cfg, err := repo.Load()
 	if err != nil {
 		// Leave the bad file alone so the user can repair it.
-		log.Err("cannot load config.json (%v) - starting with defaults", err)
-		syslog.Printf("warning: cannot load config.json (%v); starting with defaults", err)
+		diagnostics.Err("cannot load config.json (%v) - starting with defaults", err)
+		log.Printf("warning: cannot load config.json (%v); starting with defaults", err)
 		cfg = config.DefaultConfig()
 	}
-	log.Info("config loaded - eye=%s standUp=%s lang=%s", cfg.CronExpression, cfg.StandUpCronExpression, cfg.Language)
+	diagnostics.Info("config loaded - eye=%s standUp=%s lang=%s", cfg.CronExpression, cfg.StandUpCronExpression, cfg.Language)
 
 	i18n.SetLanguage(cfg.Language)
 
@@ -52,7 +52,7 @@ func main() {
 	// own goroutine, so a later SetIcon races that read.
 	a.SetIcon(assets.Icon)
 
-	log.Info("UI starting")
+	diagnostics.Info("UI starting")
 	ui.Run(a, cfg, repo)
-	log.Info("app exiting")
+	diagnostics.Info("app exiting")
 }

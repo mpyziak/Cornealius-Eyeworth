@@ -14,7 +14,7 @@ import (
 
 	"github.com/mpyziak/cornealius-eyeworth/assets"
 	"github.com/mpyziak/cornealius-eyeworth/config"
-	log "github.com/mpyziak/cornealius-eyeworth/diagnostics"
+	"github.com/mpyziak/cornealius-eyeworth/diagnostics"
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 	"github.com/mpyziak/cornealius-eyeworth/notifications"
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
@@ -127,7 +127,7 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 	); err != nil {
 		// A cron with no entries looks exactly like a working app that never
 		// fires, so fall back rather than run with empty.
-		log.Err("invalid schedule in config.json (%v) - falling back to defaults", err)
+		diagnostics.Err("invalid schedule in config.json (%v) - falling back to defaults", err)
 		defaults := config.DefaultConfig()
 		cfg.CronExpression = defaults.CronExpression
 		cfg.StandUpCronExpression = defaults.StandUpCronExpression
@@ -142,20 +142,20 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 			},
 			onFire,
 		); fallbackErr != nil {
-			log.Err("default schedule rejected too: %v", fallbackErr)
+			diagnostics.Err("default schedule rejected too: %v", fallbackErr)
 		}
 	}
 
-	log.EnableUIDevDiagnosticsSettingsListener(app)
+	diagnostics.EnableUIDevDiagnosticsSettingsListener(app)
 
 	trayMgr.Run(func() { notifications.SendStartup(app) })
-	log.Info("event loop running - eye=%s standUp=%s", cfg.CronExpression, cfg.StandUpCronExpression)
+	diagnostics.Info("event loop running - eye=%s standUp=%s", cfg.CronExpression, cfg.StandUpCronExpression)
 	app.Run()
 
 	eyeScheduler.Stop()
 	standUpScheduler.Stop()
 	reminderBuffer.Close()
-	log.Info("schedulers stopped, shutting down")
+	diagnostics.Info("schedulers stopped, shutting down")
 }
 
 // A fresh window per show, closed rather than hidden. Hiding keeps the HWND
@@ -171,13 +171,13 @@ func windowFactory(
 	onFire func(string),
 ) func() fyne.Window {
 	return func() fyne.Window {
-		log.Event("status window opened")
+		diagnostics.Event("status window opened")
 		schedule, nextTrigger, standUp, standUpNextTrigger := status.snapshot()
 		win, sl, ntl, sul, suntl := buildMainWindow(app, schedule, nextTrigger, standUp, standUpNextTrigger)
 		status.attach(sl, ntl, sul, suntl)
 		win.SetMainMenu(buildMenu(app, repo, eyeSched, standUpSched, status.update, onFire))
 		win.SetOnClosed(func() {
-			log.Event("status window closed")
+			diagnostics.Event("status window closed")
 			status.detach()
 			trayMgr.NotifyHidden()
 		})
@@ -196,7 +196,7 @@ func cronCallback(
 	buffer scheduling.ReminderAggregator,
 ) func(string) {
 	return func(notificationCategory string) {
-		log.Event("cron fired - category=%s", notificationCategory)
+		diagnostics.Event("cron fired - category=%s", notificationCategory)
 		buffer.Add(notifications.NewReminder(notificationCategory))
 		if latest, err := repo.Load(); err == nil {
 			// Cron's goroutine. Both calls touch Fyne widgets, which are

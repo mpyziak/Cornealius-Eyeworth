@@ -9,7 +9,8 @@ import (
 	"unsafe"
 
 	"fyne.io/fyne/v2"
-	log "github.com/mpyziak/cornealius-eyeworth/diagnostics"
+
+	"github.com/mpyziak/cornealius-eyeworth/diagnostics"
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
@@ -77,17 +78,17 @@ func showBalloon(title, message string) {
 }
 
 func SendStartup(_ fyne.App) {
-	log.Event("notification: startup")
+	diagnostics.Event("notification: startup")
 	showBalloon(i18n.Active.NotificationOnDuty, pickRandom(i18n.Active.NotificationDistanceGlanceQuips))
 }
 
 func SendMinimizedToTray(_ fyne.App) {
-	log.Event("notification: minimized-to-tray")
+	diagnostics.Event("notification: minimized-to-tray")
 	showBalloon(i18n.Active.AppName, i18n.Active.NotificationMinimizedToTray)
 }
 
 func SendReminder(_ fyne.App) {
-	log.Event("notification: reminder (eye)")
+	diagnostics.Event("notification: reminder (eye)")
 	showBalloon(pickRandom(i18n.Active.NotificationDistanceGlanceHeaders), pickRandom(i18n.Active.NotificationDistanceGlanceQuips))
 }
 
@@ -96,6 +97,6 @@ func SendReminders(_ fyne.App, reminders []scheduling.Reminder) {
 	if title == "" && content == "" {
 		return
 	}
-	log.Event("notification: reminder batch - count=%d", len(reminders))
+	diagnostics.Event("notification: reminder batch - count=%d", len(reminders))
 	showBalloon(title, content)
 }

@@ -7,9 +7,10 @@ import (
 	"time"
 	"unsafe"
 )
-	// hwndMessage is the HWND_MESSAGE pseudo-parent (-3 as uintptr).
-	// A window whose parent is HWND_MESSAGE is a "message-only window"
 
+// hwndMessage is the HWND_MESSAGE pseudo-parent (-3 as uintptr). A window
+// whose parent is HWND_MESSAGE is a "message-only window": it never appears
+// on screen or in the taskbar, but still receives its messages.
 const (
 	hwndMessage uintptr = ^uintptr(2) // HWND_MESSAGE, (HWND)(LONG_PTR)(-3)
 )
