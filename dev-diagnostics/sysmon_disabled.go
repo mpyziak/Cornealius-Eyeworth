@@ -1,6 +1,6 @@
 //go:build diagnostics && !sysmon
 
-package diagnostics
+package devdiag
 
 // No-op stubs used when the binary is built without -tags sysmon
 

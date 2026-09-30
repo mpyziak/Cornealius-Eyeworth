@@ -1,6 +1,6 @@
 //go:build diagnostics
 
-package diagnostics
+package devdiag
 
 import (
 	"fmt"

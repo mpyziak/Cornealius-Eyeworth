@@ -2,11 +2,10 @@
 
 package diagnostics
 
-// Aliased because dev-diagnostics is also package "diagnostics".
 import (
 	"fyne.io/fyne/v2"
 
-	devdiag "github.com/mpyziak/cornealius-eyeworth/dev-diagnostics"
+	"github.com/mpyziak/cornealius-eyeworth/dev-diagnostics"
 )
 
 // Init starts the rotating-file logger and memory sampler under dir. Call
