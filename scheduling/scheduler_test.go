@@ -61,6 +61,50 @@ func TestApplyScheduleStopsOnEmptyExpression(t *testing.T) {
 	}
 }
 
+func TestApplyScheduleStopsOnEmptyEyeExpression(t *testing.T) {
+	eye, standup := &fakeRunner{}, &fakeRunner{}
+
+	if err := ApplySchedule(eye, standup,
+		Spec{EyeCron: "", StandUpCron: "0 55 * * * ?"},
+		func(Category) {}); err != nil {
+		t.Fatalf("ApplySchedule returned %v, want nil", err)
+	}
+
+	if eye.started != 0 {
+		t.Errorf("eye started %d times for an empty expression, want 0", eye.started)
+	}
+	if eye.stopped != 1 {
+		t.Errorf("eye stopped %d times, want 1", eye.stopped)
+	}
+}
+
+func TestApplyScheduleReportsFirstErrorWhenBothFail(t *testing.T) {
+	eyeErr := errors.New("bad eye expression")
+	standupErr := errors.New("bad standup expression")
+	eye := &fakeRunner{startErr: eyeErr}
+	standup := &fakeRunner{startErr: standupErr}
+
+	err := ApplySchedule(eye, standup,
+		Spec{EyeCron: "nonsense", StandUpCron: "also nonsense"},
+		func(Category) {})
+
+	if err == nil {
+		t.Fatal("ApplySchedule returned nil, want the eye runner's error")
+	}
+	if !errors.Is(err, eyeErr) {
+		t.Errorf("error %v does not wrap the eye runner's error (source order), want it first", err)
+	}
+	if errors.Is(err, standupErr) {
+		t.Errorf("error %v wraps the standup runner's error, want only the first (eye)", err)
+	}
+	if eye.stopped != 1 {
+		t.Errorf("failed eye runner stopped %d times, want 1", eye.stopped)
+	}
+	if standup.stopped != 1 {
+		t.Errorf("failed standup runner stopped %d times, want 1", standup.stopped)
+	}
+}
+
 // Stopped, not running with no entries - that looks like a working app.
 func TestApplyScheduleReportsAndStopsOnStartError(t *testing.T) {
 	boom := errors.New("bad expression")
