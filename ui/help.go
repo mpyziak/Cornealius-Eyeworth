@@ -12,26 +12,26 @@ import (
 // ShowHelpDialog opens the "How to use" window, or focuses it if already
 // open.
 func ShowHelpDialog(app fyne.App) {
-	S := i18n.Active
+	str := i18n.Active
 
 	if focusExisting(dialogHelp) {
 		return
 	}
 
-	win := app.NewWindow(S.HelpDialogTitle)
+	win := app.NewWindow(str.HelpDialogTitle)
 	win.SetFixedSize(true)
 	win.Resize(fyne.NewSize(450, 450))
 	win.CenterOnScreen()
 
-	titleLabel := widget.NewLabelWithStyle(S.AppTitle, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	titleLabel := widget.NewLabelWithStyle(str.AppTitle, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
-	bodyLabel := widget.NewLabel(S.HelpBody)
+	bodyLabel := widget.NewLabel(str.HelpBody)
 	bodyLabel.Wrapping = fyne.TextWrapWord
 
 	scroll := container.NewScroll(bodyLabel)
 	scroll.SetMinSize(fyne.NewSize(400, 350))
 
-	closeBtn := widget.NewButton(S.ButtonClose, func() { win.Close() })
+	closeBtn := widget.NewButton(str.ButtonClose, func() { win.Close() })
 	btnRow := container.NewHBox(layout.NewSpacer(), closeBtn)
 
 	win.SetContent(container.NewPadded(container.New(layout.NewVBoxLayout(),

@@ -27,16 +27,16 @@ func longest(items []string) (text string, n int) {
 // Disabled locales included: switching one on must not ship an overlong quip.
 func TestNotificationsFitWin32BalloonLimits(t *testing.T) {
 	for _, l := range i18n.Locales() {
-		S := l.Strings
+		str := l.Strings
 
 		t.Run(l.Codes[0], func(t *testing.T) {
 			// Every set a title can come from.
 			titleSets := map[string][]string{
-				"NotificationCombinedHeaders":       S.NotificationCombinedHeaders,
-				"NotificationMovementHeaders":       S.NotificationMovementHeaders,
-				"NotificationDistanceGlanceHeaders": S.NotificationDistanceGlanceHeaders,
-				"NotificationOnDuty":                {S.NotificationOnDuty},
-				"AppName":                           {S.AppName},
+				"NotificationCombinedHeaders":       str.NotificationCombinedHeaders,
+				"NotificationMovementHeaders":       str.NotificationMovementHeaders,
+				"NotificationDistanceGlanceHeaders": str.NotificationDistanceGlanceHeaders,
+				"NotificationOnDuty":                {str.NotificationOnDuty},
+				"AppName":                           {str.AppName},
 			}
 			for name, set := range titleSets {
 				if len(set) == 0 {
@@ -54,8 +54,8 @@ func TestNotificationsFitWin32BalloonLimits(t *testing.T) {
 			}
 
 			// Worst case: both schedules in one Buffer window, longest quip each.
-			standUp, _ := longest(S.NotificationMovementQuips)
-			eye, _ := longest(S.NotificationDistanceGlanceQuips)
+			standUp, _ := longest(str.NotificationMovementQuips)
+			eye, _ := longest(str.NotificationDistanceGlanceQuips)
 			if standUp == "" || eye == "" {
 				t.Fatal("quip sets must not be empty")
 			}
@@ -74,7 +74,7 @@ func TestNotificationsFitWin32BalloonLimits(t *testing.T) {
 			}
 
 			for name, s := range map[string]string{
-				"NotificationMinimizedToTray": S.NotificationMinimizedToTray,
+				"NotificationMinimizedToTray": str.NotificationMinimizedToTray,
 			} {
 				if n := utf16Len(s); n > MaxBalloonBodyUTF16 {
 					t.Errorf("%s is %d UTF-16 units, limit %d", name, n, MaxBalloonBodyUTF16)

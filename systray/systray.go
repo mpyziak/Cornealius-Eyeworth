@@ -44,24 +44,24 @@ func (m *Manager) doSetup() {
 	}
 
 	cfg := m.setupCfg
-	S := i18n.Active
+	str := i18n.Active
 
 	m.nextTriggerMenu = fyne.NewMenuItem(
-		fmt.Sprintf(S.NextTrigger, scheduling.NextTrigger(cfg.CronExpression).Format("15:04")),
+		fmt.Sprintf(str.NextTrigger, scheduling.NextTrigger(cfg.CronExpression).Format("15:04")),
 		nil,
 	)
 	m.nextTriggerMenu.Disabled = true
 
-	showHideItem := fyne.NewMenuItem(S.TrayTooltipShowHide, func() {
+	showHideItem := fyne.NewMenuItem(str.TrayTooltipShowHide, func() {
 		m.toggleWindowVisibility()
 	})
 
-	quitItem := fyne.NewMenuItem(S.MenuQuit, func() {
+	quitItem := fyne.NewMenuItem(str.MenuQuit, func() {
 		m.app.Quit()
 	})
 	quitItem.IsQuit = true // prevents Fyne from injecting a second Quit entry
 
-	menu := fyne.NewMenu(S.AppName,
+	menu := fyne.NewMenu(str.AppName,
 		showHideItem,
 		fyne.NewMenuItemSeparator(),
 		m.nextTriggerMenu,
@@ -79,9 +79,9 @@ func (m *Manager) doSetup() {
 // be called on the main goroutine: fyne.MenuItem.Label is a plain struct
 // field with no synchronisation.
 func (m *Manager) UpdateLabels(cfg *config.Config) {
-	S := i18n.Active
+	str := i18n.Active
 	if m.nextTriggerMenu != nil {
-		m.nextTriggerMenu.Label = fmt.Sprintf(S.NextTrigger, scheduling.NextTrigger(cfg.CronExpression).Format("15:04"))
+		m.nextTriggerMenu.Label = fmt.Sprintf(str.NextTrigger, scheduling.NextTrigger(cfg.CronExpression).Format("15:04"))
 	}
 	// Fyne's MenuItem automatically reflects changes to its Label if the menu is active.
 }

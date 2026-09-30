@@ -11,25 +11,25 @@ import (
 
 // ShowAboutDialog opens the About window, or focuses it if already open.
 func ShowAboutDialog(app fyne.App) {
-	S := i18n.Active
+	str := i18n.Active
 
 	if focusExisting(dialogAbout) {
 		return
 	}
 
-	win := app.NewWindow(S.AboutDialogTitle)
+	win := app.NewWindow(str.AboutDialogTitle)
 	win.SetFixedSize(true)
 	win.Resize(fyne.NewSize(450, 225))
 	win.CenterOnScreen()
 
-	titleLabel := widget.NewLabelWithStyle(S.AppTitle, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	titleLabel := widget.NewLabelWithStyle(str.AppTitle, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
-	descLabel := widget.NewLabel(S.AboutDescription)
+	descLabel := widget.NewLabel(str.AboutDescription)
 	descLabel.Wrapping = fyne.TextWrapWord
 
-	versionLabel := widget.NewLabelWithStyle(S.AboutVersion, fyne.TextAlignCenter, fyne.TextStyle{Italic: true})
+	versionLabel := widget.NewLabelWithStyle(str.AboutVersion, fyne.TextAlignCenter, fyne.TextStyle{Italic: true})
 
-	closeBtn := widget.NewButton(S.ButtonClose, func() { win.Close() })
+	closeBtn := widget.NewButton(str.ButtonClose, func() { win.Close() })
 	btnRow := container.NewHBox(layout.NewSpacer(), closeBtn)
 
 	win.SetContent(container.NewPadded(container.New(layout.NewVBoxLayout(),

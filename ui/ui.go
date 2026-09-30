@@ -44,11 +44,11 @@ type statusState struct {
 }
 
 func (s *statusState) update(c *config.Config) {
-	S := i18n.Active
+	str := i18n.Active
 	schedule := scheduling.Describe(c.CronExpression)
-	nextTrigger := fmt.Sprintf(S.NextTrigger, scheduling.NextTrigger(c.CronExpression).Format("15:04"))
+	nextTrigger := fmt.Sprintf(str.NextTrigger, scheduling.NextTrigger(c.CronExpression).Format("15:04"))
 	standUp := scheduling.Describe(c.StandUpCronExpression)
-	standUpNextTrigger := fmt.Sprintf(S.NextTriggerStandUp, scheduling.NextTrigger(c.StandUpCronExpression).Format("15:04"))
+	standUpNextTrigger := fmt.Sprintf(str.NextTriggerStandUp, scheduling.NextTrigger(c.StandUpCronExpression).Format("15:04"))
 
 	s.mu.Lock()
 	s.schedule = schedule
@@ -221,29 +221,29 @@ func buildMenu(
 	updateStatus func(*config.Config),
 	onFire func(scheduling.Category),
 ) *fyne.MainMenu {
-	S := i18n.Active
+	str := i18n.Active
 
-	quitItem := fyne.NewMenuItem(S.MenuQuit, func() { app.Quit() })
+	quitItem := fyne.NewMenuItem(str.MenuQuit, func() { app.Quit() })
 	quitItem.IsQuit = true
 
 	return fyne.NewMainMenu(
-		fyne.NewMenu(S.MenuOptions,
-			fyne.NewMenuItem(S.MenuTriggerTimes, func() {
+		fyne.NewMenu(str.MenuOptions,
+			fyne.NewMenuItem(str.MenuTriggerTimes, func() {
 				ShowScheduleDialog(app, repo, eyeSched, standUpSched, updateStatus, onFire)
 			}),
-			fyne.NewMenuItem(S.MenuLanguage, func() {
+			fyne.NewMenuItem(str.MenuLanguage, func() {
 				ShowLanguageDialog(app, repo)
 			}),
 			fyne.NewMenuItemSeparator(),
 			quitItem,
 		),
-		fyne.NewMenu(S.MenuHelp,
-			fyne.NewMenuItem(S.MenuHowToUse, func() { ShowHelpDialog(app) }),
-			fyne.NewMenuItem(S.MenuAbout, func() { ShowAboutDialog(app) }),
+		fyne.NewMenu(str.MenuHelp,
+			fyne.NewMenuItem(str.MenuHowToUse, func() { ShowHelpDialog(app) }),
+			fyne.NewMenuItem(str.MenuAbout, func() { ShowAboutDialog(app) }),
 			fyne.NewMenuItemSeparator(),
-			fyne.NewMenuItem(S.MenuGitHub, func() {
+			fyne.NewMenuItem(str.MenuGitHub, func() {
 				// GitHubURL is a constant well-formed URL; url.Parse cannot fail on it.
-				u, _ := url.Parse(S.GitHubURL)
+				u, _ := url.Parse(str.GitHubURL)
 				_ = app.OpenURL(u) // best-effort; no channel to report a failed browser launch to
 			}),
 		),
@@ -251,9 +251,9 @@ func buildMenu(
 }
 
 func buildMainWindow(app fyne.App, schedule, nextTrigger, standUp, standUpNextTrigger string) (fyne.Window, *widget.Label, *widget.Label, *widget.Label, *widget.Label) {
-	S := i18n.Active
+	str := i18n.Active
 
-	win := app.NewWindow(S.AppName)
+	win := app.NewWindow(str.AppName)
 	win.Resize(fyne.NewSize(mainWinW, mainWinH))
 
 	logo := canvas.NewImageFromResource(assets.Logo)
@@ -261,8 +261,8 @@ func buildMainWindow(app fyne.App, schedule, nextTrigger, standUp, standUpNextTr
 	logo.FillMode = canvas.ImageFillContain
 	logo.ScaleMode = canvas.ImageScaleSmooth
 
-	titleLabel := widget.NewLabelWithStyle(S.AppTitle, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
-	statusLabel := widget.NewLabel(S.StatusServing)
+	titleLabel := widget.NewLabelWithStyle(str.AppTitle, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	statusLabel := widget.NewLabel(str.StatusServing)
 
 	scheduleLabel := widget.NewLabel(schedule)
 	scheduleLabel.Wrapping = fyne.TextWrapWord
