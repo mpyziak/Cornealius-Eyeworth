@@ -362,6 +362,19 @@ The Simple mode lets you enter just the minute values (e.g. `20, 40, 55`).
 Set `Enabled: false` to keep a finished table out of the app (not offered, not
 resolved; those users get English) without deleting it.
 
+Adding a locale, or changing the text of any existing `Strings` field, also
+fails `TestWriteCSV_Golden` in `tools/i18n-export`: it compares the tool's CSV
+output byte-for-byte against the committed
+`tools/i18n-export/testdata/export.golden`. Regenerate it as part of the same
+change:
+
+```bash
+go test ./tools/i18n-export/... -run TestWriteCSV_Golden -update
+```
+
+Review the diff before committing - it should only reflect the strings you
+meant to change.
+
 ### Exporting for review
 
 ```bash

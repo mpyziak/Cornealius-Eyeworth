@@ -22,12 +22,14 @@ var english = Strings{
 
 	TrayTooltipShowHide: "Call/Dismiss Cornealius",
 
-	ScheduleDialogTitle:       "Schedule - Cornealius Eyeworth",
-	OptionsInstruction:        "Minutes of each hour at which Cornealious shall remind you to rest your eyes (e.g. 20, 40, 55):",
-	OptionsStandUpInstruction: "Minutes of each hour at which Cornealius shall remind you to stand and stretch (e.g. 0, 15, 30, 45). Leave empty to disable:",
-	ScheduleCronInstruction:   `CRON (e.g. "0 20,40,55 * * * ?"):`,
-	ScheduleStandardToggle:    "Standard",
-	ScheduleAdvancedToggle:    "Advanced",
+	ScheduleDialogTitle:            "Schedule - Cornealius Eyeworth",
+	OptionsInstruction:             "At these minutes of each hour, Cornealius shall summon you to rest your eyes (e.g. 20, 40, 55):",
+	OptionsStandUpInstruction:      "At these minutes of each hour, Cornealius shall insist you rise and stretch (e.g. 0, 15, 30, 45). Leave blank, and Cornealius shall mind your eyes alone:",
+	ScheduleCronInstructionEye:     "For the discerning: the CRON expression governing your eye-rest summons:",
+	ScheduleCronInstructionStandUp: "And likewise, for your stand-and-stretch summons. Leave it blank, and Cornealius shall mind your eyes alone:",
+	ScheduleCronHelp:               "A brief primer: * stands for any value, the first field (seconds) should remain 0, a list reads 20,40,55, and a range reads 0-1,7-23.",
+	ScheduleStandardToggle:         "Standard",
+	ScheduleAdvancedToggle:         "Advanced",
 
 	ButtonSave:   "Save",
 	ButtonCancel: "Cancel",

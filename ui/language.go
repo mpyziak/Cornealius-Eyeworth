@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"slices"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
@@ -11,6 +13,17 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/diagnostics"
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 )
+
+// languageIndexForLabel finds the index of label in labels, the same order
+// ShowLanguageDialog builds the radio group's options in. -1 (label not
+// found, e.g. nothing selected yet) falls back to 0, the system default.
+func languageIndexForLabel(labels []string, label string) int {
+	idx := slices.Index(labels, label)
+	if idx == -1 {
+		return 0
+	}
+	return idx
+}
 
 func languageChanged(existingLang, newLang *string) bool {
 	return (newLang == nil) != (existingLang == nil) ||
@@ -51,12 +64,12 @@ func ShowLanguageDialog(app fyne.App, repo *config.Repository) {
 
 	win := app.NewWindow(str.LanguageDialogTitle)
 	win.SetFixedSize(true)
-	win.Resize(fyne.NewSize(450, 175))
-	win.CenterOnScreen()
 
 	currentCfg, err := repo.Load()
 	if err != nil {
 		diagnostics.Err("open language dialog: cannot load config.json (%v)", err)
+		win.Resize(fyne.NewSize(450, 175))
+		win.CenterOnScreen()
 		win.Show()
 		dialog.ShowError(err, win)
 		return
@@ -76,11 +89,22 @@ func ShowLanguageDialog(app fyne.App, repo *config.Repository) {
 
 	instrLabel := widget.NewLabel(str.OptionsLanguageLabel)
 
-	selector := widget.NewSelect(labels, nil)
-	selector.SetSelectedIndex(currentIdx)
+	radio := widget.NewRadioGroup(labels, nil)
+	radio.Required = true
+	radio.SetSelected(labels[currentIdx])
+
+	// Cap the visible list at ~8 rows; beyond that it scrolls instead of
+	// growing the window past the screen.
+	radioHeight := radio.MinSize().Height
+	rowHeight := radioHeight / float32(len(labels))
+	if maxHeight := rowHeight * 8; radioHeight > maxHeight {
+		radioHeight = maxHeight
+	}
+	radioScroll := container.NewVScroll(radio)
+	radioScroll.SetMinSize(fyne.NewSize(400, radioHeight))
 
 	saveBtn := widget.NewButton(str.ButtonSave, func() {
-		idx := max(selector.SelectedIndex(), 0)
+		idx := languageIndexForLabel(labels, radio.Selected)
 		selected := options[idx]
 
 		existing, loadErr := repo.Load()
@@ -116,12 +140,15 @@ func ShowLanguageDialog(app fyne.App, repo *config.Repository) {
 	cancelBtn := widget.NewButton(str.ButtonCancel, func() { win.Close() })
 
 	btnRow := container.NewHBox(layout.NewSpacer(), saveBtn, cancelBtn)
-	win.SetContent(container.NewPadded(container.New(layout.NewVBoxLayout(),
+	content := container.NewPadded(container.New(layout.NewVBoxLayout(),
 		instrLabel,
-		selector,
+		radioScroll,
 		layout.NewSpacer(),
 		btnRow,
-	)))
+	))
+	win.SetContent(content)
+	win.Resize(fyne.NewSize(450, content.MinSize().Height))
+	win.CenterOnScreen()
 	registerDialog(dialogLanguage, win)
 	win.Show()
 }

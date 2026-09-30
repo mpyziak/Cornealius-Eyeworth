@@ -102,6 +102,30 @@ func TestSelectedLanguageIndex_RealLanguageList(t *testing.T) {
 	}
 }
 
+func TestLanguageIndexForLabel(t *testing.T) {
+	t.Parallel()
+	labels := []string{"System default", "English", "Deutsch", "Polski"}
+
+	tests := []struct {
+		name  string
+		label string
+		want  int
+	}{
+		{name: "known label", label: "Deutsch", want: 2},
+		{name: "system default label", label: "System default", want: 0},
+		{name: "unknown label falls back to default", label: "Klingon", want: 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := languageIndexForLabel(labels, tt.label); got != tt.want {
+				t.Fatalf("languageIndexForLabel(%v, %q) = %d, want %d", labels, tt.label, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestLanguageChanged(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

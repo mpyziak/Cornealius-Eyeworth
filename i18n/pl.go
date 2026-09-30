@@ -22,12 +22,14 @@ var polish = Strings{
 
 	TrayTooltipShowHide: "Zawołaj/Odeślij Cornealiusa",
 
-	ScheduleDialogTitle:       "Harmonogram - Cornealius Eyeworth",
-	OptionsInstruction:        "Minuty każdej godziny, w których Cornealius przypomni Ci o odpoczynku dla oczu (np. 20, 40, 55):",
-	OptionsStandUpInstruction: "Minuty każdej godziny, w których Cornealius ma Cię przypomnieć o wstaniu i rozciągnięciu (np. 0, 15, 30, 45). Pozostaw puste, aby wyłączyć:",
-	ScheduleCronInstruction:   `Wyrażenie CRON (np. "0 20,40,55 * * * ?"):`,
-	ScheduleStandardToggle:    "Standardowe",
-	ScheduleAdvancedToggle:    "Zaawansowane",
+	ScheduleDialogTitle:            "Harmonogram - Cornealius Eyeworth",
+	OptionsInstruction:             "O tych minutach każdej godziny Cornealius wezwie Cię do odpoczynku dla oczu (np. 20, 40, 55):",
+	OptionsStandUpInstruction:      "O tych minutach każdej godziny Cornealius będzie nalegał, byś wstał i się rozciągnął (np. 0, 15, 30, 45). Pozostaw puste, a Cornealius dbać będzie tylko o wzrok:",
+	ScheduleCronInstructionEye:     "Dla wymagających: wyrażenie CRON rządzące wezwaniem do odpoczynku dla oczu:",
+	ScheduleCronInstructionStandUp: "I podobnie, dla wezwania do wstania i rozciągnięcia. Pozostaw puste, a Cornealius dbać będzie tylko o wzrok:",
+	ScheduleCronHelp:               "Krótkie wprowadzenie: * oznacza dowolną wartość, pierwsze pole (sekundy) powinno pozostać 0, lista wygląda jak 20,40,55, a zakres jak 0-1,7-23.",
+	ScheduleStandardToggle:         "Standardowe",
+	ScheduleAdvancedToggle:         "Zaawansowane",
 
 	ButtonSave:   "Zapisz",
 	ButtonCancel: "Anuluj",

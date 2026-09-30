@@ -22,12 +22,14 @@ var german = Strings{
 
 	TrayTooltipShowHide: "Cornealius rufen/entlassen",
 
-	ScheduleDialogTitle:       "Zeitplan - Cornealius Eyeworth",
-	OptionsInstruction:        "Minuten jeder Stunde, in denen Cornealius Sie an die Augenpause erinnern soll (z.B. 20, 40, 55):",
-	OptionsStandUpInstruction: "Minuten jeder Stunde, zu denen Cornealius dich daran erinnern soll, aufzustehen und zu dehnen (z. B. 0, 15, 30, 45). Leer lassen zum Deaktivieren:",
-	ScheduleCronInstruction:   `CRON-Ausdruck (z. B. "0 20,40,55 * * * ?"):`,
-	ScheduleStandardToggle:    "Standard",
-	ScheduleAdvancedToggle:    "Erweitert",
+	ScheduleDialogTitle:            "Zeitplan - Cornealius Eyeworth",
+	OptionsInstruction:             "Zu diesen Minuten jeder Stunde wird Cornealius Sie zur Augenpause rufen (z. B. 20, 40, 55):",
+	OptionsStandUpInstruction:      "Zu diesen Minuten jeder Stunde wird Cornealius auf Aufstehen und Dehnen bestehen (z. B. 0, 15, 30, 45). Leer lassen, und Cornealius kümmert sich nur noch um Ihre Augen:",
+	ScheduleCronInstructionEye:     "Für Kenner: der CRON-Ausdruck für Ihren Ruf zur Augenpause:",
+	ScheduleCronInstructionStandUp: "Und ebenso für Ihren Ruf zum Aufstehen und Dehnen. Leer lassen, und Cornealius kümmert sich nur noch um Ihre Augen:",
+	ScheduleCronHelp:               "Eine kurze Einführung: * steht für einen beliebigen Wert, das erste Feld (Sekunden) sollte 0 bleiben, eine Liste sieht aus wie 20,40,55, ein Bereich wie 0-1,7-23.",
+	ScheduleStandardToggle:         "Standard",
+	ScheduleAdvancedToggle:         "Erweitert",
 
 	ButtonSave:   "Speichern",
 	ButtonCancel: "Abbrechen",
