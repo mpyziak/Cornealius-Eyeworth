@@ -8,9 +8,7 @@ description: >
 
 inputs:
   fyne-tag:
-    description: >
-      Upstream Fyne tag to rebuild the patched fork from. Must match the
-      fyne.io/fyne/v2 version in go.mod and the Makefile's FYNE_TAG.
+    description: Upstream Fyne tag to rebuild the patched fork from.
     required: true
 
 runs:

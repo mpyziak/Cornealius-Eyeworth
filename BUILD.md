@@ -290,42 +290,20 @@ Log files are written next to the executable, named by UTC timestamp (e.g. `corn
 
 ```
 ./
-├── main.go                 Entry point - loads config, sets locale and icon, starts UI
-├── assets/
-│   ├── assets.go           Embeds the logo, the 64x64 icon and the .ico
-│   ├── gen/main.go         go:generate - rescales Logo.png to Logo64.png
-│   └── Logo.png            Source logo, 800x800
-├── config/                 Config struct, defaults, JSON persistence
-├── i18n/
-│   ├── strings.go          Strings struct, locales registry (Enabled flag), Locales() copy, SetLanguage
-│   └── en.go de.go pl.go fr.go el.go   One table per language
-├── diagnostics/            Always-present logging interface; no-ops in release builds
-├── dev-diagnostics/        The real logger + memory sampler, behind build tags
-├── notifications/
-│   ├── notifier.go         !windows - sends via fyne.App
-│   ├── notifier_windows.go windows - Shell_NotifyIcon balloons via syscall
-│   ├── flusher.go          Connects scheduling.Buffer to the senders above
-│   ├── formatting.go       Batch → one title and one bulleted body
-│   └── limits.go           Win32 balloon buffer sizes, asserted by tests
-├── parsing/parser.go       CRON and minutes parsing
-├── scheduling/
-│   ├── scheduler.go        Hot-restartable CRON scheduler + ApplySchedule
-│   ├── buffer.go           Coalesces firings inside a 2s window
-│   ├── describer.go        Converts CRON to human-readable text
-│   └── nexttrigger.go      Computes next trigger time
-├── systray/
-│   ├── systray.go          Tray icon, menu, on-demand status window
-│   └── systraypatch_win.go HWND_MESSAGE reparent - see LEAKS.md
-├── ui/
-│   ├── ui.go               Run() - wires everything; anchor + window factory
-│   ├── schedule.go         Schedule dialog
-│   ├── language.go         Language selector
-│   ├── dialogs.go          Single-instance registry for the dialogs above
-│   ├── about.go            About dialog
-│   └── help.go             Help dialog
-├── _external-patches/      The one patched Fyne file, copied into the fork
-├── tools/i18n-export/      All locales → CSV for Google Sheets (make i18n-export)
-└── winres/                 Windows resource metadata for icon embedding
+├── main.go             Entry point - loads config, sets locale and icon, starts UI
+├── assets/             Embedded logo, 64x64 icon and .ico; gen/ rescales them
+├── config/             Config struct, defaults, JSON persistence
+├── i18n/               Strings struct and locales registry, one table per language
+├── diagnostics/        Always-present logging interface; no-ops in release builds
+├── dev-diagnostics/    The real logger and memory sampler, behind build tags
+├── notifications/      Batching and delivery; _windows.go sends Shell_NotifyIcon balloons
+├── scheduling/         CRON parsing, hot-restartable scheduler, 2s coalescing buffer
+├── systray/            Tray icon, menu, status window; _win.go reparents - see LEAKS.md
+├── ui/                 Run() wires everything; one file per dialog
+├── tools/i18n-export/  All locales → CSV for Google Sheets (make i18n-export)
+├── _external-patches/  The one patched Fyne file, copied into the fork
+├── winres/             Windows resource metadata for icon embedding
+└── .github/            Release pipeline - see RELEASES.md
 ```
 
 ---

@@ -1,23 +1,7 @@
 name: Release
 
-# Job graph:
-#
-#   plan ─┬─ test-windows ── build-windows ────────┐
-#         │                                        │
-#         ├─ test-unix ───── build-unix (matrix) ──┼─ vulncheck ── release
-#         │                  linux-* and macos-*   │               (tags only)
-#         │                  run in parallel       │
-#         └─ checks (vet, lint) ───────────────────┘
-#
-# Tests gate builds rather than sharing a job with them, split by build
-# constraint family: notifier_windows.go and systraypatch_win.go compile only on
-# Windows, their counterparts only off it. One run per family covers both paths.
-#
-# Builds upload artifacts on every push, so rc branches produce downloadable
-# archives. Only the release job is tag-gated.
-#
-# Every build target is individually switchable - see BUILD TOGGLES in the plan
-# job, which is the only place any of this is configured.
+# Targets are switched on and off in BUILD TOGGLES in the plan job below, which
+# is the only place this pipeline is configured.
 
 on:
   push:
@@ -84,7 +68,6 @@ jobs:
           VULNCHECK_BLOCKING=true
           # ════════════════════════════════════════════════════════════════
 
-          # Windows is its own job: different test gate, different packaging.
           echo "windows=$BUILD_WINDOWS_AMD64" >> "$GITHUB_OUTPUT"
           echo "vulncheck_blocking=$VULNCHECK_BLOCKING" >> "$GITHUB_OUTPUT"
 
@@ -129,11 +112,11 @@ jobs:
 
           echo "windows=$BUILD_WINDOWS_AMD64  unix=[$entries]  vulncheck_blocking=$VULNCHECK_BLOCKING"
 
-  # ── Tests: one run per build-constraint family ─────────────────────────────
+  # ── Tests ──────────────────────────────────────────────────────────────────
 
   test-windows:
     name: Test windows
-    needs: plan
+    needs: checks
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
@@ -147,19 +130,14 @@ jobs:
           # to 0 whenever gcc is not found on PATH.
           CGO_ENABLED: '1'
         run: |
-          # -shuffle=on catches order dependencies, which this suite is exposed
-          # to because the i18n tests share package-level state (Locales,
-          # Active). -count=1 because setup-go restores the build cache between
-          # runs, and a cached PASS would otherwise hide a regression.
-          #
-          # _external-patches/ is skipped by "./..." on every platform thanks to
-          # the leading underscore, so this is safe on the Windows runner where
-          # that file would otherwise compile and fail on an internal import.
+          # -shuffle=on: i18n tests share package state. -count=1: a cached PASS
+          # would hide a regression. _external-patches/ is underscored so ./...
+          # skips it - on Windows it would fail on an internal import.
           go test -race -shuffle=on -count=1 ./...
 
   test-unix:
     name: Test non-windows
-    needs: plan
+    needs: checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -201,7 +179,7 @@ jobs:
           GOOS=windows golangci-lint run --build-tags "diagnostics,sysmon" \
             ./notifications/... ./systray/... ./dev-diagnostics/...
 
-  # ── Builds: gated on the tests for their constraint family ─────────────────
+  # ── Builds ─────────────────────────────────────────────────────────────────
 
   build-windows:
     name: Build windows-amd64
@@ -220,9 +198,7 @@ jobs:
         env:
           CGO_ENABLED: '1'
         run: |
-          # go build, not fyne package: rsrc_windows_amd64.syso already has the
-          # icon and manifest, and fyne would add a second manifest that
-          # lld-link rejects. See RELEASES.md.
+          # go build: fyne package would add a second manifest. RELEASES.md
           mkdir -p dist staging
           go build -ldflags "-s -w -H windowsgui" -o "staging/$APP_FILE.exe" .
           # Compress-Archive rather than zip, which the Windows runner lacks.
@@ -272,14 +248,9 @@ jobs:
               mv "$APP_NAME.tar.xz" "dist/$ASSET.tar.xz"
               ;;
             darwin)
-              # Ad-hoc signature (-s -, no certificate). Apple Silicon refuses
-              # to execute an arm64 binary without a valid signature, and
-              # stripping after link invalidates the one Go applies. This does
-              # not satisfy Gatekeeper - users still see the unverified-developer
-              # dialog the README covers - it only makes the binary runnable.
+              # Ad-hoc sign: arm64 will not execute unsigned. Not a Gatekeeper fix.
               codesign --force -s - "$APP_NAME.app"
-              # Fail here rather than on a Mac: verification time is scarcer
-              # than runner minutes.
+              # Fail here, not on a Mac
               codesign -v --verbose=2 "$APP_NAME.app"
               ditto -c -k --keepParent "$APP_NAME.app" "dist/$ASSET.zip"
               ;;
@@ -296,9 +267,9 @@ jobs:
 
   vulncheck:
     name: Vulnerability check
-    needs: [plan, build-windows, build-unix, checks]
-    # Any build job is skippable via its toggle, and a skipped dependency would
-    # normally skip this job too. Run unless something actually failed.
+    needs: [plan, checks, build-windows, build-unix]
+    # Toggled-off builds skip, so run unless something actually failed.
+    # checks stays listed: without it a lint failure would not block the release.
     if: ${{ !cancelled() && !contains(needs.*.result, 'failure') }}
     runs-on: ubuntu-latest
     steps:
@@ -308,9 +279,7 @@ jobs:
           fyne-tag: ${{ env.FYNE_TAG }}
 
       - name: govulncheck
-        # Advisory mode when the toggle is off: the finding is still printed and
-        # the step is marked failed in the UI, but the job succeeds so the
-        # release is not blocked.
+        # Advisory-only when the toggle is off
         continue-on-error: ${{ needs.plan.outputs.vulncheck_blocking != 'true' }}
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest
@@ -319,8 +288,7 @@ jobs:
 
   release:
     name: Release package
-    # No permissive guard here on purpose: default job semantics require every
-    # dependency to have succeeded, so a skipped vulncheck skips this too.
+    # No permissive guard: a skipped vulncheck must skip this too.
     needs: [plan, vulncheck]
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest

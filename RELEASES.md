@@ -1,8 +1,8 @@
 # Releasing
 
-Releases are built by GitHub Actions (`.github/workflows/release.yml`). Every target
-builds natively on its own runner - nothing cross-compiles, because Fyne needs CGO
-and a matching C toolchain. For local builds, see `BUILD.md`.
+Built by GitHub Actions (`.github/workflows/release.yml`). Every target builds
+natively on its own runner - nothing cross-compiles, because Fyne needs CGO and a
+matching C toolchain. For local builds see `BUILD.md`.
 
 ## Cutting a release
 
@@ -11,8 +11,8 @@ git tag -a v1.2.3 -m "Release v1.2.3"
 git push origin v1.2.3
 ```
 
-The tag triggers a build of every platform, then publishes a GitHub Release
-with the artifacts attached and auto-generated notes. Archives are named
+The tag builds every enabled target, then publishes a GitHub Release with the
+artifacts attached and auto-generated notes. Archives are named
 `Cornealius-Eyeworth-<tag>-<os>-<arch>`:
 
 | Platform | Runner | Archive | Contains | Built with |
@@ -21,54 +21,95 @@ with the artifacts attached and auto-generated notes. Archives are named
 | `linux-arm64` | `ubuntu-24.04-arm` | `.tar.xz` | binary + `.desktop` entry | `fyne package` |
 | `windows-amd64` | `windows-latest` | `.zip` | `Cornealius-Eyeworth.exe` | `go build` (see below) |
 | `macos-arm64` | `macos-latest` | `.zip` | `Cornealius Eyeworth.app` | `fyne package` |
+| `macos-amd64` | `macos-15-intel` | `.zip` | `Cornealius Eyeworth.app` | `fyne package` |
 
-Both
-Linux entries share one apt step and one packaging branch. 
+## How the pipeline is wired
+
+```
+plan ── checks ─┬─ test-windows ── build-windows ──┐
+                │                                  ├─ vulncheck ── release
+                └─ test-unix ───── build-unix ─────┘               (tags only)
+                                   linux-* and macos-*
+                                   run in parallel
+```
+
+Lint first: it takes seconds, so nothing else spends a runner on a tree that does
+not gofmt. govulncheck last, gating publishing without delaying the builds.
+
+Tests gate builds, split by build constraint family - `notifier_windows.go` and
+`systraypatch_win.go` compile only on Windows, their counterparts only off it. One
+run per family covers both paths.
+
+Artifacts upload on every push, so `rc` branches produce downloadable archives.
+Only the release job is tag-gated.
+
+Every Go job first rebuilds the patched Fyne fork through the `go-setup` composite
+action; the `replace` in `go.mod` makes even `go vet` fail without it.
+
+`vulncheck` lists `checks` in its needs although `checks` is already upstream: the
+guard reads direct needs only, and a build skipped by a lint failure looks
+identical to one skipped by a toggle. Drop that edge and lint stops blocking
+releases.
+
+## Build toggles
+
+Targets, and whether a vulnerability finding blocks publishing, are switched in one
+block in the `plan` job:
+
+| Toggle | Default |
+|--------|---------|
+| `BUILD_WINDOWS_AMD64` | on |
+| `BUILD_LINUX_AMD64` | on |
+| `BUILD_LINUX_ARM64` | on |
+| `BUILD_MACOS_ARM64` | off |
+| `BUILD_MACOS_AMD64` | off |
+| `VULNCHECK_BLOCKING` | on |
+
+Turning a build off skips its job, not its tests - those are the only coverage of
+the windows / non-windows split. With every non-Windows target off, `build-unix` is
+skipped rather than handed an empty matrix, which Actions rejects.
 
 ## Testing the pipeline
 
-The workflow also runs on pushes to any `rc*` branch, and from the "Run workflow"
-button, so it can be iterated on without cutting throwaway tags. Publishing is
-gated on the ref being a tag, so a branch run produces artifacts only (retained
-7 days), labelled with the commit SHA rather than a version, and covering Linux and
-Windows only. Narrow or remove the `on.push.branches` list once releases are cut
-from tags alone.
+Pushes to any `rc*` branch run the pipeline, as does the "Run workflow" button.
+Publishing is tag-gated, so a branch run produces artifacts only - 7-day retention,
+labelled with the commit SHA. It builds exactly what a tag will, so a dry run
+rehearses the release rather than a subset. Narrow or remove `on.push.branches`
+once releases are cut from tags alone.
 
-Since macOS is skipped on branches, a tag build exercises a path no dry run has -
-worth remembering the first time you tag.
+## macOS
 
-## macOS: arm64, and tags only
+`macos-latest` is Apple Silicon, so that build will not launch on an Intel Mac.
+Intel users build from source (`BUILD.md`), or enable `BUILD_MACOS_AMD64` -
+`macos-15-intel` is the last x86_64 image Actions offers, retiring August 2027.
 
-`macos-latest` is an Apple Silicon runner, so build will not launch on an Intel
-Mac. Intel users need to build from source (`BUILD.md`).
+Both macOS toggles default off: 10x the Linux billing rate on a private repo, and
+no Intel Mac here to verify that half on.
 
-**macOS builds on tags only.** It bills at 10x the Linux rate on a private repo.
+The `.app` is ad-hoc signed (`codesign -s -`) after packaging, because Apple
+Silicon will not execute an unsigned arm64 binary. Not a Gatekeeper fix - users
+still meet the unverified-developer dialog the README covers.
 
 ## Why Windows uses `go build` instead of `fyne package`
 
-`rsrc_windows_amd64.syso` (generated by `make winres`) already embeds an icon and an
-application manifest. `fyne package` embeds a manifest of its own, and the linker
-rejects the duplicate `MANIFEST` resource. Building with `go build -H windowsgui`
-keeps the existing winres metadata and matches what `make package-win` produces
-locally.
+`rsrc_windows_amd64.syso` (`make winres`) already carries the icon and manifest;
+`fyne package` adds a second one and the linker rejects the duplicate.
 
-Winres is kept as the source deliberately.
-`winres/winres.json` declares per-monitor-v2 DPI awareness, common-controls v6 and a Win10 minimum;
-fyne's template has none of them.
-
-That file also rules out `windows-arm64` for now.
+Winres stays the source deliberately: `winres/winres.json` declares per-monitor-v2
+DPI awareness, common-controls v6 and a Win10 minimum, none of which fyne's
+template has. Its filename is itself a build constraint, so a `windows-arm64`
+target would ship with no icon and no manifest at all.
 
 ## The Fyne patch in CI
 
-`go.mod` replaces `fyne.io/fyne/v2` with `../fyne-v2-watchtheme-patch`, which does
-not exist on a fresh clone. Every build rebuilds it: fetch upstream at `FYNE_TAG`,
-copy `_external-patches/fyne-theme_windows.go` over `internal/app/theme_windows.go`.
-The build fails unless the fork differs from upstream in exactly that one file.
-
-`FYNE_TAG` must match `go.mod` and the `Makefile`'s copy. Nothing enforces it.
+`go.mod` points Fyne at `../fyne-v2-watchtheme-patch`, absent from a fresh clone,
+so every build rebuilds it: fetch upstream at `FYNE_TAG`, copy
+`_external-patches/fyne-theme_windows.go` into place. The build fails unless the
+fork differs from upstream in exactly that one file. `FYNE_TAG` is one of the four
+places the version is written - `BUILD.md` lists them.
 
 **The fork is not checksummed.** The local `replace` means Go never downloads Fyne,
-so `go mod tidy` drops it from `go.sum` - this dependency is outside supply-chain
+so `go mod tidy` drops it from `go.sum`: this dependency sits outside supply-chain
 verification, and a tag can be moved. The one-file assertion proves the tree is
-unmodified, not which tree it is. A SHA in `FYNE_TAG` would close that; the workflow
-already uses `git init` + `fetch` rather than `clone` so it can take one.
+unmodified, not which tree it is. A SHA in `FYNE_TAG` would close that - the
+workflow already uses `git init` + `fetch` rather than `clone` so it can take one.
