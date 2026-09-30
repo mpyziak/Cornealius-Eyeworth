@@ -1,0 +1,134 @@
+key,en,de,pl,fr,el
+AppName,Cornealius Eyeworth,Cornealius Eyeworth,Cornealius Eyeworth,Cornealius Eyeworth,Cornealius Eyeworth
+AppTitle,Cornealius Eyeworth,Cornealius Eyeworth,Cornealius Eyeworth,Cornealius Eyeworth,Cornealius Eyeworth
+GitHubURL,https://github.com/mpyziak/Cornealius-Eyeworth,https://github.com/mpyziak/Cornealius-Eyeworth,https://github.com/mpyziak/Cornealius-Eyeworth,https://github.com/mpyziak/Cornealius-Eyeworth,https://github.com/mpyziak/Cornealius-Eyeworth
+StatusServing,● Serving,● Im Dienst,● Na służbie,● En service,● Σε υπηρεσία
+NextTrigger,Next eye care: %s,Nächste Augenpflege: %s,Najbliższa chwila dla oczu: %s,Prochain soin des yeux : %s,Επόμενη φροντίδα ματιών: %s
+NextTriggerStandUp,Next back care: %s,Nächste Rückenpflege: %s,Najbliższa chwila dla pleców: %s,Prochain soin du dos : %s,Επόμενη φροντίδα πλάτης: %s
+MenuOptions,Options ⚙️,Optionen ⚙️,Opcje ⚙️,Options ⚙️,Επιλογές ⚙️
+MenuLanguage,Language... 🌐,Sprache... 🌐,Język... 🌐,Langue... 🌐,Γλώσσα... 🌐
+MenuTriggerTimes,Schedule... ⏰,Zeitplan... ⏰,Harmonogram... ⏰,Horaires... ⏰,Πρόγραμμα... ⏰
+MenuHelp,Help 📖,Hilfe 📖,Pomoc 📖,Aide 📖,Βοήθεια 📖
+MenuAbout,About... ℹ️,Über... ℹ️,O programie... ℹ️,À propos... ℹ️,Σχετικά... ℹ️
+MenuHowToUse,How to use... ❓,Verwendung... ❓,Jak używać... ❓,Mode d’emploi... ❓,Οδηγίες χρήσης... ❓
+MenuGitHub,GitHub... 📄,GitHub... 📄,GitHub... 📄,GitHub... 📄,GitHub... 📄
+MenuQuit,Quit,Beenden,Zamknij,Quitter,Έξοδος
+TrayTooltipShowHide,Call/Dismiss Cornealius,Cornealius rufen/entlassen,Zawołaj/Odeślij Cornealiusa,Appeler/Congédier Cornealius,Κλήση/Αποπομπή του Cornealius
+ScheduleDialogTitle,Schedule - Cornealius Eyeworth,Zeitplan - Cornealius Eyeworth,Harmonogram - Cornealius Eyeworth,Horaires - Cornealius Eyeworth,Πρόγραμμα - Cornealius Eyeworth
+OptionsInstruction,"Minutes of each hour at which Cornealious shall remind you to rest your eyes (e.g. 20, 40, 55):","Minuten jeder Stunde, in denen Cornealius Sie an die Augenpause erinnern soll (z.B. 20, 40, 55):","Minuty każdej godziny, w których Cornealius przypomni Ci o odpoczynku dla oczu (np. 20, 40, 55):","Minutes de chaque heure auxquelles Cornealius vous rappellera de reposer vos yeux (p. ex. 20, 40, 55) :","Λεπτά κάθε ώρας κατά τα οποία ο Cornealius θα σας υπενθυμίζει να ξεκουράσετε τα μάτια σας (π.χ. 20, 40, 55):"
+OptionsStandUpInstruction,"Minutes of each hour at which Cornealius shall remind you to stand and stretch (e.g. 0, 15, 30, 45). Leave empty to disable:","Minuten jeder Stunde, zu denen Cornealius dich daran erinnern soll, aufzustehen und zu dehnen (z. B. 0, 15, 30, 45). Leer lassen zum Deaktivieren:","Minuty każdej godziny, w których Cornealius ma Cię przypomnieć o wstaniu i rozciągnięciu (np. 0, 15, 30, 45). Pozostaw puste, aby wyłączyć:","Minutes de chaque heure auxquelles Cornealius vous rappellera de vous lever et de vous étirer (p. ex. 0, 15, 30, 45). Laisser vide pour désactiver :","Λεπτά κάθε ώρας κατά τα οποία ο Cornealius θα σας υπενθυμίζει να σηκωθείτε και να τεντωθείτε (π.χ. 0, 15, 30, 45). Αφήστε το κενό για απενεργοποίηση:"
+ScheduleCronInstruction,"CRON (e.g. ""0 20,40,55 * * * ?""):","CRON-Ausdruck (z. B. ""0 20,40,55 * * * ?""):","Wyrażenie CRON (np. ""0 20,40,55 * * * ?""):","Expression CRON (p. ex. « 0 20,40,55 * * * ? ») :","Έκφραση CRON (π.χ. «0 20,40,55 * * * ?»):"
+ScheduleStandardToggle,Standard,Standard,Standardowe,Standard,Βασικό
+ScheduleAdvancedToggle,Advanced,Erweitert,Zaawansowane,Avancé,Προηγμένο
+ButtonSave,Save,Speichern,Zapisz,Enregistrer,Αποθήκευση
+ButtonCancel,Cancel,Abbrechen,Anuluj,Annuler,Ακύρωση
+ButtonClose,Close,Schließen,Zamknij,Fermer,Κλείσιμο
+AboutDialogTitle,About - Cornealius Eyeworth,Über - Cornealius Eyeworth,O programie - Cornealius Eyeworth,À propos - Cornealius Eyeworth,Σχετικά - Cornealius Eyeworth
+AboutDescription,"A distinguished ocular butler who reminds you to rest your eyes at regular intervals.  Following the 20-20-20 Rule, with decorum.","Ein distinguierter Augenbutler, der Sie in regelmäßigen Abständen an die Augenpause erinnert.  Der 20-20-20-Regel folgend, mit Stil.","Wybitny kamerdyner, który przypomina o regularnym odpoczynku dla oczu.  Zgodnie z zasadą 20-20-20, z klasą.","Un majordome oculaire distingué qui vous rappelle de reposer vos yeux à intervalles réguliers.  Selon la règle des 20-20-20, avec décorum.","Ένας διακεκριμένος οφθαλμικός μπάτλερ που σας υπενθυμίζει να ξεκουράζετε τα μάτια σας σε τακτά διαστήματα.  Σύμφωνα με τον κανόνα 20-20-20, με ευπρέπεια."
+AboutVersion,Version 1.0  -  © 2026 mpyziak,Version 1.0  -  © 2026 mpyziak,Wersja 1.0  -  © 2026 mpyziak,Version 1.0  -  © 2026 mpyziak,Έκδοση 1.0  -  © 2026 mpyziak
+HelpDialogTitle,How to use - Cornealius Eyeworth,Verwendung - Cornealius Eyeworth,Jak używać - Cornealius Eyeworth,Mode d’emploi - Cornealius Eyeworth,Οδηγίες χρήσης - Cornealius Eyeworth
+HelpBody,"Cornealius Eyeworth is your personal ocular butler. Once running, he discreetly watches the clock and delivers short, unintrusive notifications reminding you to practise basic eye hygiene - look away from your screen, blink, and let your eyes rest.
+
+You are in full control:
+
+• Schedule  (Options › Schedule)
+  Choose the minutes of each hour at which Cornealius shall ring his bell. For example, entering 20, 40 will remind you at XX:20 and XX:40 every hour.  Advanced users may enter a CRON expression directly.
+
+• Language  (Options › Language)
+  Switch the interface language. A restart is required for the change to take effect.
+
+Cornealius runs quietly in the background. Simply leave the window open (minimising is fine) and he will do the rest - with considerable decorum.","Cornealius Eyeworth ist Ihr persönlicher Augenbutler. Einmal gestartet, beobachtet er diskret die Uhr und liefert kurze, unaufdringliche Benachrichtigungen, die Sie an grundlegende Augenhygiene erinnern - schauen Sie vom Bildschirm weg, blinzeln Sie und lassen Sie Ihre Augen ausruhen.
+
+Sie haben die volle Kontrolle:
+
+• Zeitplan  (Optionen › Zeitplan)
+  Wählen Sie die Minuten jeder Stunde, zu denen Cornealius seine Glocke läutet. Zum Beispiel erinnert Sie die Eingabe von 20, 40 jede Stunde um XX:20 und XX:40.  Fortgeschrittene Benutzer können direkt einen CRON-Ausdruck eingeben.
+
+• Sprache  (Optionen › Sprache)
+  Wechseln Sie die Oberflächensprache. Ein Neustart ist erforderlich, damit die Änderung wirksam wird.
+
+Cornealius läuft still im Hintergrund. Lassen Sie das Fenster einfach offen (Minimieren ist in Ordnung) und er erledigt den Rest - mit beachtlichem Stil.","Cornealius Eyeworth to Twój osobisty kamerdyner oka. Po uruchomieniu dyskretnie śledzi zegar i wyświetla krótkie, nieuciążliwe powiadomienia przypominające o podstawowej higienie wzroku - oderwij wzrok od ekranu, mrugnij i daj oczom odpocząć.
+
+Masz pełną kontrolę:
+
+• Harmonogram  (Opcje › Harmonogram)
+  Wybierz minuty każdej godziny, w których Cornealius zadzwoni swoim dzwonkiem. Na przykład wpisanie 20, 40 przypomni Ci o XX:20 i XX:40 każdej godziny.  Zaawansowani użytkownicy mogą wpisać wyrażenie CRON bezpośrednio.
+
+• Język  (Opcje › Język)
+  Zmień język interfejsu. Wymagane jest ponowne uruchomienie, aby zmiana weszła w życie.
+
+Cornealius działa cicho w tle. Wystarczy pozostawić okno otwarte (minimalizacja jest w porządku), a on zrobi resztę - z dużą klasą.","Cornealius Eyeworth est votre majordome oculaire personnel. Une fois lancé, il surveille discrètement l’horloge et vous adresse de courtes notifications, jamais importunes, qui vous rappellent les règles élémentaires d’hygiène visuelle - détournez le regard de l’écran, clignez des yeux et laissez-les se reposer.
+
+Vous gardez le contrôle total :
+
+• Horaires  (Options › Horaires)
+  Choisissez les minutes de chaque heure auxquelles Cornealius fera tinter sa clochette. Par exemple, saisir 20, 40 vous rappellera à XX:20 et XX:40 chaque heure.  Les utilisateurs avancés peuvent saisir directement une expression CRON.
+
+• Langue  (Options › Langue)
+  Changez la langue de l’interface. Un redémarrage est nécessaire pour que la modification prenne effet.
+
+Cornealius travaille discrètement en arrière-plan. Laissez simplement la fenêtre ouverte (la réduire ne pose aucun problème) et il s’occupera du reste - avec un décorum considérable.","Ο Cornealius Eyeworth είναι ο προσωπικός σας οφθαλμικός μπάτλερ. Μόλις ξεκινήσει, παρακολουθεί διακριτικά το ρολόι και σας στέλνει σύντομες, μη ενοχλητικές ειδοποιήσεις που σας υπενθυμίζουν τη βασική υγιεινή των ματιών - στρέψτε το βλέμμα μακριά από την οθόνη, ανοιγοκλείστε τα μάτια και αφήστε τα να ξεκουραστούν.
+
+Έχετε τον πλήρη έλεγχο:
+
+• Πρόγραμμα  (Επιλογές › Πρόγραμμα)
+  Επιλέξτε τα λεπτά κάθε ώρας κατά τα οποία ο Cornealius θα χτυπά το καμπανάκι του. Για παράδειγμα, αν εισαγάγετε 20, 40, θα σας υπενθυμίζει στις XX:20 και στις XX:40 κάθε ώρα.  Οι προχωρημένοι χρήστες μπορούν να εισαγάγουν απευθείας μια έκφραση CRON.
+
+• Γλώσσα  (Επιλογές › Γλώσσα)
+  Αλλάξτε τη γλώσσα της διεπαφής. Απαιτείται επανεκκίνηση για να εφαρμοστεί η αλλαγή.
+
+Ο Cornealius λειτουργεί αθόρυβα στο παρασκήνιο. Απλώς αφήστε το παράθυρο ανοιχτό (η ελαχιστοποίηση επιτρέπεται) και θα φροντίσει για τα υπόλοιπα - με αξιοσημείωτη ευπρέπεια."
+NotificationOnDuty,Cornealius is on duty.,Cornealius ist im Dienst.,Cornealius jest na służbie.,Cornealius est en service.,Ο Cornealius είναι σε υπηρεσία.
+NotificationMinimizedToTray,Cornealius is still on duty - find him in the system tray.,Cornealius ist weiterhin im Dienst - Sie finden ihn in der Taskleiste.,Cornealius nadal jest na służbie - znajdziesz go w zasobniku systemowym.,Cornealius est toujours en service - retrouvez-le dans la zone de notification.,Ο Cornealius παραμένει σε υπηρεσία - θα τον βρείτε στην περιοχή ειδοποιήσεων.
+NotificationDistanceGlanceHeaders[0],Your eyes deserve an intermission.,Ihre Augen verdienen eine Pause.,Twoje oczy zasługują na przerwę.,Vos yeux méritent un entracte.,Τα μάτια σας αξίζουν ένα διάλειμμα.
+NotificationDistanceGlanceHeaders[1],A moment of respite for your weary eyes.,Ein Moment der Erholung für Ihre müden Augen.,Chwila wytchnienia dla Twoich zmęczonych oczu.,Un moment de répit pour vos yeux fatigués.,Μια στιγμή ανάπαυλας για τα κουρασμένα μάτια σας.
+NotificationDistanceGlanceHeaders[2],The 20-20-20 rule awaits.,Die 20-20-20-Regel erwartet Sie.,Oderwij wzrok od ekranu. Twój wzrok nalega.,La règle des 20-20-20 vous attend.,Ο κανόνας 20-20-20 σας περιμένει.
+NotificationDistanceGlanceHeaders[3],,,Zasada 20-20-20 czeka na Ciebie.,,
+NotificationMovementHeaders[0],A little motion would make your day.,Ein wenig Bewegung würde Ihrem Tag guttun.,Trochę ruchu poprawi Ci dzień.,Un peu de mouvement égaierait votre journée.,Λίγη κίνηση θα σας έφτιαχνε τη μέρα.
+NotificationMovementHeaders[1],Your legs are petitioning for a pause.,Deine Beine bitten um eine Pause.,Twoje nogi proszą o chwilę przerwy.,Vos jambes sollicitent une pause.,Τα πόδια σας υποβάλλουν αίτημα για διάλειμμα.
+NotificationMovementHeaders[2],A short stretch will improve everything.,Ein kurzes Dehnen verbessert alles.,Krótki rozciąg poprawi samopoczucie.,Un court étirement arrangera bien des choses.,Ένα σύντομο τέντωμα θα βελτιώσει τα πάντα.
+NotificationMovementQuips[0],Time to stand and stretch.,Zeit aufzustehen und zu dehnen.,Czas wstać i się rozciągnąć.,Il est temps de vous lever et de vous étirer.,Ώρα να σηκωθείτε και να τεντωθείτε.
+NotificationMovementQuips[1],Movement awaits your limbs.,Deine Gliedmaßen brauchen Bewegung.,Twoje kończyny potrzebują ruchu.,Le mouvement attend vos membres.,Η κίνηση περιμένει τα άκρα σας.
+NotificationMovementQuips[2],Your posture requires attention.,Deine Körperhaltung verdient Aufmerksamkeit.,Twoja postawa zasługuje na uwagę.,Votre posture requiert votre attention.,Η στάση του σώματός σας χρήζει προσοχής.
+NotificationMovementQuips[3],The sedentary life calls for a recess.,Das sitzende Leben ruft nach einer Pause.,Siedząca praca wymaga przerwy.,La vie sédentaire réclame une suspension de séance.,Η καθιστική ζωή απαιτεί διακοπή των εργασιών.
+NotificationMovementQuips[4],A stroll about the office is recommended.,Ein Spaziergang durch das Büro wird empfohlen.,Spacer po biurze jest zalecany.,Un petit tour du bureau est recommandé.,Συνιστάται μια βόλτα στο γραφείο.
+NotificationMovementQuips[5],Cornealius suggests a brief constitutional.,Cornealius empfiehlt einen kurzen Spaziergang.,Cornealius sugeruje krótki spacer.,Cornealius suggère une brève promenade de santé.,Ο Cornealius προτείνει έναν σύντομο περίπατο υγείας.
+NotificationMovementQuips[6],Your circulation could use the assistance.,Dein Kreislauf könnte Hilfe gebrauchen.,Twój układ krążenia potrzebuje pomocy.,Votre circulation sanguine apprécierait un coup de main.,Η κυκλοφορία του αίματός σας θα εκτιμούσε λίγη βοήθεια.
+NotificationMovementQuips[7],Prolonged sitting is inadvisable. Rise and move.,Langes Sitzen ist nicht ratsam. Stehe auf und bewege dich.,Długie siedzenie jest niewskazane. Wstań i się poruszaj.,Rester longtemps assis est déconseillé. Levez-vous et bougez.,Η παρατεταμένη καθιστική θέση δεν συνιστάται. Σηκωθείτε και κινηθείτε.
+NotificationMovementQuips[8],Your back appreciates vertical orientation.,Dein Rücken schätzt die aufrechte Körperhaltung.,Twoje plecy doceniają pozycję pionową.,Votre dos apprécie la position verticale.,Η πλάτη σας εκτιμά την όρθια στάση.
+NotificationMovementQuips[9],A moment's ambulation does wonders for the soul.,Ein Moment Bewegung wirkt Wunder für die Seele.,Moment ruchu robi cuda dla duszy.,Quelques pas font des merveilles pour l’âme.,Λίγο περπάτημα κάνει θαύματα για την ψυχή.
+NotificationMovementQuips[10],Movement: nature's most underrated medicine.,Bewegung: Natur's unterschätztes Heilmittel.,Ruch: niedoceniany lek natury.,Le mouvement : le remède le plus sous-estimé de la nature.,Η κίνηση: το πιο υποτιμημένο φάρμακο της φύσης.
+NotificationMovementQuips[11],The chair is not a throne. Vacate it periodically.,Der Stuhl ist kein Thron. Verlasse ihn regelmäßig.,Krzesło to nie tron. Opuszczaj je okresowo.,La chaise n’est pas un trône. Quittez-la de temps à autre.,Η καρέκλα δεν είναι θρόνος. Εγκαταλείπετέ την κατά διαστήματα.
+NotificationMovementQuips[12],The human spine was not engineered for the seated position.,Die menschliche Wirbelsäule wurde nicht für die Sitzposition geschaffen. Erinnern Sie sie an Alternativen.,Ludzki kręgosłup nie został zaprojektowany do pozycji siedzącej. Przypomnij mu o alternatywach.,La colonne vertébrale humaine n’a pas été conçue pour la position assise.,Η ανθρώπινη σπονδυλική στήλη δεν σχεδιάστηκε για την καθιστή θέση.
+NotificationMovementQuips[13],A brief perambulation costs nothing yet buys considerable vitality.,Ein kurzer Spaziergang kostet nichts doch schenkt Vitalität.,"Krótki spacer nic nie kosztuje, a dodaje witalności.",Une brève déambulation ne coûte rien et procure une vitalité considérable.,"Ένας σύντομος περίπατος δεν κοστίζει τίποτα, αλλά χαρίζει μεγάλη ζωντάνια."
+NotificationCombinedHeaders[0],"Some pieces of advice, if I may:","Ein paar Hinweise, wenn ich bitten darf:","Kilka uwag, jeśli mogę:","Quelques conseils, si vous me permettez :","Μερικές συμβουλές, αν μου επιτρέπετε:"
+NotificationCombinedHeaders[1],Would you lay your eyes on these:,Würden Sie einen Blick darauf werfen:,Czy zechciałbyś zerknąć na to:,Daignez poser les yeux sur ceci :,Ευαρεστηθείτε να ρίξετε μια ματιά:
+NotificationCombinedHeaders[2],A packet for your attention:,Ein Paket zu Ihrer Aufmerksamkeit:,Przesyłki do Twojej uwagi:,Un pli à votre attention :,Ένας φάκελος υπόψη σας:
+NotificationDistanceGlanceQuips[0],The human eye was not designed for eternal screen-gazing.,Das menschliche Auge wurde nicht für ewiges Bildschirmstarren geschaffen.,Ludzkie oko nie zostało stworzone do wiecznego wpatrywania się w ekran.,L’œil humain n’a pas été conçu pour fixer un écran éternellement.,Το ανθρώπινο μάτι δεν σχεδιάστηκε για να κοιτάζει αιωνίως οθόνες.
+NotificationDistanceGlanceQuips[1],Blinking is free. Use it liberally.,Blinzeln ist kostenlos. Nutzen Sie es reichlich.,Mruganie jest bezpłatne. Używaj go obficie.,Cligner des yeux est gratuit. Faites-en un usage généreux.,Το βλεφάρισμα είναι δωρεάν. Χρησιμοποιήστε το απλόχερα.
+NotificationDistanceGlanceQuips[2],Even the finest monocle requires occasional polishing.,Selbst das feinste Monokel bedarf gelegentlicher Pflege.,Nawet najlepszy monokl wymaga okazjonalnej opieki.,Même le plus beau des monocles doit être poli de temps à autre.,Ακόμη και το καλύτερο μονόκλ χρειάζεται πού και πού γυάλισμα.
+NotificationDistanceGlanceQuips[3],Distance vision: a luxury your eyes richly deserve.,"Fernsicht: ein Luxus, den Ihre Augen wirklich verdienen.","Widzenie w dal - luksus, na który Twoje oczy w pełni zasługują.",La vision de loin : un luxe que vos yeux méritent amplement.,Η μακρινή όραση: μια πολυτέλεια που τα μάτια σας δικαίως αξίζουν.
+NotificationDistanceGlanceQuips[4],Your focus muscles need stretching too.,Auch Ihre Fokusmuskulatur braucht Dehnung.,Mięśnie akomodacji też potrzebują rozciągnięcia.,Vos muscles de mise au point ont eux aussi besoin de s’étirer.,Και οι μύες της εστίασης χρειάζονται τέντωμα.
+NotificationDistanceGlanceQuips[5],"Cornealius reminds you: screens are temporary, eyesight should not.",20 Meter ins Nichts - ein Tonikum für die überarbeitete Netzhaut.,20 metrów przestrzeni - balsam dla przepracowanego oka.,"Cornealius vous le rappelle : les écrans passent, la vue devrait rester.","Ο Cornealius σας υπενθυμίζει: οι οθόνες είναι προσωρινές, η όραση δεν πρέπει να είναι."
+NotificationDistanceGlanceQuips[6],A brief gaze into the distance costs nothing but a moment.,"Cornealius erinnert Sie: Bildschirme sind vergänglich, die Sehkraft soll nicht.","Cornealius przypomina: ekrany przemijają, wzrok nie powinien.",Un bref regard au loin ne coûte qu’un instant.,Ένα σύντομο βλέμμα στο βάθος δεν κοστίζει παρά μια στιγμή.
+NotificationDistanceGlanceQuips[7],Your eyes have served you well. Return the favour.,Ein Blick in die Ferne kostet nur einen Moment.,Krótkie spojrzenie w dal kosztuje jedynie chwilę.,Vos yeux vous ont bien servi. Rendez-leur la pareille.,Τα μάτια σας σας υπηρέτησαν καλά. Ανταποδώστε τη χάρη.
+NotificationDistanceGlanceQuips[8],Staring contests with your monitor are inadvisable. You will lose.,Ihre Augen haben Ihnen gut gedient. Erwidern Sie die Gunst.,Wpatrywanie się w monitor to zawód z góry przesądzony. Przegrasz.,Les duels de regards avec votre écran sont déconseillés. Vous perdrez.,Οι μονομαχίες βλεμμάτων με την οθόνη σας δεν συνιστώνται. Θα χάσετε.
+NotificationDistanceGlanceQuips[9],Your retinas are not subscription-based. Treat them accordingly.,Starre-Wettbewerbe mit dem Monitor sind nicht ratsam. Sie werden verlieren.,Twoja siatkówka nie jest usługą abonamentową. Traktuj ją odpowiednio.,Vos rétines ne s’achètent pas sur abonnement. Traitez-les en conséquence.,Οι αμφιβληστροειδείς σας δεν λειτουργούν με συνδρομή. Φερθείτε τους αναλόγως.
+NotificationDistanceGlanceQuips[10],The horizon exists for a reason. Consult it occasionally.,Ihre Netzhaut ist kein Abonnementdienst. Behandeln Sie sie entsprechend.,Horyzont istnieje z powodu. Zaglądaj do niego od czasu do czasu.,L’horizon existe pour une raison. Consultez-le de temps à autre.,Ο ορίζοντας υπάρχει για κάποιο λόγο. Συμβουλευτείτε τον πού και πού.
+NotificationDistanceGlanceQuips[11],Pixels are plentiful. Good eyesight is finite.,Der Horizont existiert aus gutem Grund. Konsultieren Sie ihn gelegentlich.,Piksele są w nadmiarze. Dobry wzrok jest ograniczony.,Les pixels sont innombrables. Une bonne vue ne l’est pas.,Τα pixel είναι άφθονα. Η καλή όραση είναι πεπερασμένη.
+NotificationDistanceGlanceQuips[12],Cornealius notes: blue light is not a substitute for sunlight.,Pixel sind reichlich. Gute Sehkraft ist endlich.,Cornealius zauważa: niebieskie światło nie zastąpi słonecznego.,Cornealius le note : la lumière bleue ne remplace pas celle du soleil.,Ο Cornealius σημειώνει: το μπλε φως δεν υποκαθιστά το φως του ήλιου.
+NotificationDistanceGlanceQuips[13],A window is not merely decorative. Gaze through it.,Cornealius merkt an: Blaulicht ist kein Ersatz für Sonnenlicht.,"Okno to nie tylko dekoracja. Sprawdź, co za nim.",Une fenêtre n’est pas qu’un élément décoratif. Regardez à travers.,Ένα παράθυρο δεν είναι απλώς διακοσμητικό. Κοιτάξτε μέσα από αυτό.
+NotificationDistanceGlanceQuips[14],Your ciliary muscles would like a word. Step away from the screen.,Ein Fenster ist nicht nur dekorativ. Schauen Sie hindurch.,Twoje mięśnie rzęskowe mają coś do powiedzenia. Odejdź od ekranu.,Vos muscles ciliaires aimeraient vous toucher un mot. Éloignez-vous de l’écran.,Οι ακτινωτοί μύες σας θα ήθελαν να σας πουν δυο λόγια. Απομακρυνθείτε από την οθόνη.
+NotificationDistanceGlanceQuips[15],Rest now. The scroll bar will still be there when you return.,Ihre Ziliarmuskel hätten gerne ein Wort. Treten Sie vom Bildschirm zurück.,Odpocznij teraz. Pasek przewijania będzie czekał na Twój powrót.,Reposez-vous. La barre de défilement vous attendra à votre retour.,Ξεκουραστείτε τώρα. Η γραμμή κύλισης θα είναι εκεί όταν επιστρέψετε.
+NotificationDistanceGlanceQuips[16],Focus fatigue is real. The view from your window is also real.,Augenermüdung ist real. Die Aussicht aus Ihrem Fenster ebenfalls.,Zmęczenie wzroku jest realne. Widok z okna również.,La fatigue visuelle est bien réelle. La vue depuis votre fenêtre aussi.,Η οπτική κόπωση είναι υπαρκτή. Το ίδιο και η θέα από το παράθυρό σας.
+NotificationDistanceGlanceQuips[17],Even the most dedicated clerk must occasionally look up from the ledger.,Selbst der gewissenhafteste Schreiber muss gelegentlich vom Hauptbuch aufsehen.,Nawet najbardziej sumienny urzędnik musi od czasu do czasu oderwać wzrok od księgi.,Même le commis le plus dévoué doit parfois lever les yeux de son grand livre.,Ακόμη και ο πιο αφοσιωμένος γραφιάς πρέπει πού και πού να σηκώνει το βλέμμα από το κατάστιχο.
+ParseErrorNoMinutes,Cornealius insists on at least one minute. He has standards.,Cornealius besteht auf mindestens einer Minute. Er hat Ansprüche.,Cornealius nalega na co najmniej jedną minutę. Ma swoje standardy.,Cornealius insiste pour avoir au moins une minute. Il a des principes.,Ο Cornealius επιμένει σε τουλάχιστον ένα λεπτό. Έχει τις αρχές του.
+ParseErrorInvalidMinute,'%s' is not a valid minute. Cornealius expects whole numbers between 0 and 59.,"„%s"" ist keine gültige Minute. Cornealius erwartet ganze Zahlen zwischen 0 und 59.","„%s"" to nieprawidłowa minuta. Cornealius oczekuje liczb całkowitych od 0 do 59.",« %s » n’est pas une minute valide. Cornealius attend des nombres entiers entre 0 et 59.,Το «%s» δεν είναι έγκυρο λεπτό. Ο Cornealius αναμένει ακέραιους αριθμούς από 0 έως 59.
+ParseErrorCronEmpty,Cornealious requires a CRON expression. Silence is not a schedule.,Cornealius erwartet einen Ausdruck. Stille ist kein Zeitplan.,Cornealius wymaga wyrażenia CRON. Cisza to nie harmonogram.,Cornealius requiert une expression CRON. Le silence n’est pas un emploi du temps.,Ο Cornealius απαιτεί μια έκφραση CRON. Η σιωπή δεν είναι πρόγραμμα.
+ParseErrorCronInvalid,“%s” is not a valid Quartz CRON expression.,"„%s"" ist kein gültiger CRON-Ausdruck im Quartz-Format.","""%s"" nie jest prawidłowym wyrażeniem CRON w formacie Quartz.",« %s » n’est pas une expression CRON Quartz valide.,Το «%s» δεν είναι έγκυρη έκφραση CRON μορφής Quartz.
+LanguageDialogTitle,Language — Cornealius Eyeworth,Sprache - Cornealius Eyeworth,Język - Cornealius Eyeworth,Langue - Cornealius Eyeworth,Γλώσσα - Cornealius Eyeworth
+OptionsLanguageLabel,Language (requires restart):,Sprache (erfordert Neustart):,Język (wymaga ponownego uruchomienia):,Langue (redémarrage requis) :,Γλώσσα (απαιτείται επανεκκίνηση):
+OptionsLanguageDefault,System default,Systemstandard,Domyślny systemowy,Langue du système,Προεπιλογή συστήματος
+OptionsLanguageRestartNotice,The language change will take effect the next time Cornealius starts.,Die Sprachänderung wird beim nächsten Start wirksam.,Zmiana języka zostanie zastosowana przy następnym uruchomieniu.,Le changement de langue prendra effet au prochain démarrage de Cornealius.,Η αλλαγή γλώσσας θα εφαρμοστεί την επόμενη φορά που θα ξεκινήσει ο Cornealius.
+ScheduleDescriptionCron,CRON: %s,CRON: %s,CRON: %s,CRON : %s,CRON: %s
+ScheduleDescriptionSimple,Calls at minutes %s of every hour,Ruft an den Minuten: %s jeder Stunde,Przypomina w minutach: %s każdej godziny,Se présente aux minutes %s de chaque heure,Εμφανίζεται στα λεπτά %s κάθε ώρας
