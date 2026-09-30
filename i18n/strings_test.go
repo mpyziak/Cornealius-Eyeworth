@@ -92,14 +92,27 @@ func TestLocaleFor(t *testing.T) {
 	}
 }
 
+// The three "pl" spellings alone can't tell a real lookup from a lookup
+// hardcoded to always return Polish; de-DE and fr force SetLanguage to
+// actually branch on its input.
 func TestSetLanguageExplicit(t *testing.T) {
 	t.Cleanup(func() { Active = &english })
 
-	for _, code := range []string{"pl-PL", "PL", "pl_PL"} {
+	tests := []struct {
+		code string
+		want *Strings
+	}{
+		{"pl-PL", &polish},
+		{"PL", &polish},
+		{"pl_PL", &polish},
+		{"de-DE", &german},
+		{"fr", &french},
+	}
+	for _, tt := range tests {
 		Active = &english
-		SetLanguage(&code)
-		if Active != &polish {
-			t.Errorf("SetLanguage(%q) = %s, want polish", code, localeName(Active))
+		SetLanguage(&tt.code)
+		if Active != tt.want {
+			t.Errorf("SetLanguage(%q) = %s, want %s", tt.code, localeName(Active), localeName(tt.want))
 		}
 	}
 }
