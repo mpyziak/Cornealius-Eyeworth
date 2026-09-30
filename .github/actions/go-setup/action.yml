@@ -1,0 +1,63 @@
+name: Go setup
+description: >
+  Go toolchain, Linux GUI build dependencies, and the patched Fyne fork that
+  go.mod's replace directive points at. Every job that runs any Go command needs
+  this, because the replace makes even "go vet" fail without the fork present.
+  The caller must check out the repository first: a local action cannot run
+  before its own files exist on disk.
+
+inputs:
+  fyne-tag:
+    description: >
+      Upstream Fyne tag to rebuild the patched fork from. Must match the
+      fyne.io/fyne/v2 version in go.mod and the Makefile's FYNE_TAG.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-go@v7
+      with:
+        go-version: stable
+
+    - name: Install Linux build dependencies
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc libgl1-mesa-dev xorg-dev
+
+    - name: Rebuild the patched Fyne fork
+      shell: bash
+      env:
+        FYNE_TAG: ${{ inputs.fyne-tag }}
+      run: |
+        fork=../fyne-v2-watchtheme-patch
+
+        # go.mod points at a sibling checkout no fresh clone has, so rebuild it
+        # from pinned upstream plus our one patched file (LEAKS.md §1).
+        #
+        # init+fetch rather than clone: a clone cannot take a bare SHA, and
+        # FYNE_TAG is meant to become one. autocrlf off so the check below is
+        # not confused by line endings on the Windows runner.
+        git init -q "$fork"
+        git -C "$fork" config core.autocrlf false
+        git -C "$fork" remote add origin https://github.com/fyne-io/fyne.git
+        git -C "$fork" fetch -q --depth 1 origin "$FYNE_TAG"
+        git -C "$fork" checkout -q --detach FETCH_HEAD
+
+        cp _external-patches/fyne-theme_windows.go \
+          "$fork/internal/app/theme_windows.go"
+
+        # Anything other than exactly that file means the patch missed, or
+        # upstream is not the tree we expect. Either way, do not ship it.
+        changed=$(git -C "$fork" status --porcelain)
+        paths=$(printf '%s\n' "$changed" | awk 'NF {print $NF}')
+        if [ "$paths" != "internal/app/theme_windows.go" ]; then
+          echo "::error::Patched Fyne fork does not match expectations."
+          echo "expected exactly: internal/app/theme_windows.go"
+          echo "actual:"
+          printf '%s\n' "$changed"
+          exit 1
+        fi
+        echo "Fyne fork verified: patch applied, no other drift."
