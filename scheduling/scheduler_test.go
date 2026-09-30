@@ -27,6 +27,7 @@ func (f *fakeRunner) Start(cronExpr string, onFire func()) error {
 func (f *fakeRunner) Stop() { f.stopped++ }
 
 func TestApplyScheduleStartsBoth(t *testing.T) {
+	t.Parallel()
 	eye, standup := &fakeRunner{}, &fakeRunner{}
 
 	err := ApplySchedule(eye, standup,
@@ -45,6 +46,7 @@ func TestApplyScheduleStartsBoth(t *testing.T) {
 }
 
 func TestApplyScheduleStopsOnEmptyExpression(t *testing.T) {
+	t.Parallel()
 	eye, standup := &fakeRunner{}, &fakeRunner{}
 
 	if err := ApplySchedule(eye, standup,
@@ -62,6 +64,7 @@ func TestApplyScheduleStopsOnEmptyExpression(t *testing.T) {
 }
 
 func TestApplyScheduleStopsOnEmptyEyeExpression(t *testing.T) {
+	t.Parallel()
 	eye, standup := &fakeRunner{}, &fakeRunner{}
 
 	if err := ApplySchedule(eye, standup,
@@ -79,6 +82,7 @@ func TestApplyScheduleStopsOnEmptyEyeExpression(t *testing.T) {
 }
 
 func TestApplyScheduleReportsFirstErrorWhenBothFail(t *testing.T) {
+	t.Parallel()
 	eyeErr := errors.New("bad eye expression")
 	standupErr := errors.New("bad standup expression")
 	eye := &fakeRunner{startErr: eyeErr}
@@ -107,6 +111,7 @@ func TestApplyScheduleReportsFirstErrorWhenBothFail(t *testing.T) {
 
 // Stopped, not running with no entries - that looks like a working app.
 func TestApplyScheduleReportsAndStopsOnStartError(t *testing.T) {
+	t.Parallel()
 	boom := errors.New("bad expression")
 	eye := &fakeRunner{startErr: boom}
 	standup := &fakeRunner{}
@@ -130,6 +135,7 @@ func TestApplyScheduleReportsAndStopsOnStartError(t *testing.T) {
 }
 
 func TestApplyScheduleFiresCorrectCategory(t *testing.T) {
+	t.Parallel()
 	eye, standup := &fakeRunner{}, &fakeRunner{}
 
 	var got []Category
@@ -148,6 +154,7 @@ func TestApplyScheduleFiresCorrectCategory(t *testing.T) {
 }
 
 func TestSchedulerStartRejectsInvalidExpression(t *testing.T) {
+	t.Parallel()
 	var s Scheduler
 	t.Cleanup(s.Stop)
 
@@ -160,6 +167,7 @@ func TestSchedulerStartRejectsInvalidExpression(t *testing.T) {
 }
 
 func TestSchedulerStartAcceptsQuartzWildcard(t *testing.T) {
+	t.Parallel()
 	var s Scheduler
 	t.Cleanup(s.Stop)
 
@@ -174,6 +182,7 @@ func TestSchedulerStartAcceptsQuartzWildcard(t *testing.T) {
 
 // A second Start replaces the first rather than stacking another cron.
 func TestSchedulerStartReplacesPreviousSchedule(t *testing.T) {
+	t.Parallel()
 	var s Scheduler
 	t.Cleanup(s.Stop)
 
@@ -194,6 +203,7 @@ func TestSchedulerStartReplacesPreviousSchedule(t *testing.T) {
 }
 
 func TestSchedulerStopIsIdempotent(t *testing.T) {
+	t.Parallel()
 	var s Scheduler
 
 	if err := s.Start("0 20 * * * ?", func() {}); err != nil {

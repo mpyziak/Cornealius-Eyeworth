@@ -19,6 +19,7 @@ func langStr(s *string) string {
 }
 
 func TestUpdatedConfigForLanguage(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name         string
 		existingLang *string
@@ -30,6 +31,7 @@ func TestUpdatedConfigForLanguage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			existing := &config.Config{
 				CronExpression:        "0 20,40,55 * * * ?",
 				StandUpCronExpression: "0 55 * * * ?",
@@ -53,6 +55,7 @@ func TestUpdatedConfigForLanguage(t *testing.T) {
 }
 
 func TestSelectedLanguageIndex(t *testing.T) {
+	t.Parallel()
 	options := []i18n.LanguageOption{
 		{DisplayName: "", Code: ""}, // system default
 		{DisplayName: "English", Code: "en"},
@@ -76,6 +79,7 @@ func TestSelectedLanguageIndex(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := selectedLanguageIndex(options, tt.lang); got != tt.want {
 				t.Fatalf("selectedLanguageIndex(%s) = %d, want %d", langStr(tt.lang), got, tt.want)
 			}
@@ -87,6 +91,7 @@ func TestSelectedLanguageIndex(t *testing.T) {
 // options table above, so a locale reorder or addition can't silently drift
 // from what ShowLanguageDialog actually hands selectedLanguageIndex.
 func TestSelectedLanguageIndex_RealLanguageList(t *testing.T) {
+	t.Parallel()
 	options := i18n.AvailableLanguages()
 
 	if got := selectedLanguageIndex(options, strPtr("de")); options[got].Code != "de" {
@@ -98,6 +103,7 @@ func TestSelectedLanguageIndex_RealLanguageList(t *testing.T) {
 }
 
 func TestLanguageChanged(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		existing    *string
@@ -113,6 +119,7 @@ func TestLanguageChanged(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := languageChanged(tt.existing, tt.newLang)
 			if got != tt.wantChanged {
 				t.Fatalf("languageChanged(%s, %s) = %v, want %v", langStr(tt.existing), langStr(tt.newLang), got, tt.wantChanged)

@@ -26,10 +26,12 @@ func longest(items []string) (text string, n int) {
 // why nothing truncates at runtime. Failures print the headroom.
 // Disabled locales included: switching one on must not ship an overlong quip.
 func TestNotificationsFitWin32BalloonLimits(t *testing.T) {
+	t.Parallel()
 	for _, l := range i18n.Locales() {
 		str := l.Strings
 
 		t.Run(l.Codes[0], func(t *testing.T) {
+			t.Parallel()
 			// Every set a title can come from.
 			titleSets := map[string][]string{
 				"NotificationCombinedHeaders":       str.NotificationCombinedHeaders,
@@ -57,7 +59,7 @@ func TestNotificationsFitWin32BalloonLimits(t *testing.T) {
 			standUp, _ := longest(str.NotificationMovementQuips)
 			eye, _ := longest(str.NotificationDistanceGlanceQuips)
 			if standUp == "" || eye == "" {
-				t.Fatal("quip sets must not be empty")
+				t.Fatalf("%s: quip sets must not be empty", l.Codes[0])
 			}
 
 			worst := aggregatedContent([]scheduling.Reminder{
@@ -73,12 +75,8 @@ func TestNotificationsFitWin32BalloonLimits(t *testing.T) {
 					"aggregated body (standup+eye)", n, MaxBalloonBodyUTF16, MaxBalloonBodyUTF16-n)
 			}
 
-			for name, s := range map[string]string{
-				"NotificationMinimizedToTray": str.NotificationMinimizedToTray,
-			} {
-				if n := utf16Len(s); n > MaxBalloonBodyUTF16 {
-					t.Errorf("%s is %d UTF-16 units, limit %d", name, n, MaxBalloonBodyUTF16)
-				}
+			if n := utf16Len(str.NotificationMinimizedToTray); n > MaxBalloonBodyUTF16 {
+				t.Errorf("NotificationMinimizedToTray is %d UTF-16 units, limit %d", n, MaxBalloonBodyUTF16)
 			}
 		})
 	}

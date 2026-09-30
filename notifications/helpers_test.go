@@ -8,6 +8,7 @@ import (
 )
 
 func TestPickRandom(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		items []string
@@ -19,6 +20,7 @@ func TestPickRandom(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			for range 100 {
 				got := pickRandom(tt.items)
 				if len(tt.items) == 0 {
@@ -36,6 +38,7 @@ func TestPickRandom(t *testing.T) {
 }
 
 func TestHasReminderType(t *testing.T) {
+	t.Parallel()
 	reminders := []scheduling.Reminder{
 		{Category: scheduling.CategoryEye, Message: "test"},
 	}
@@ -53,6 +56,7 @@ func TestHasReminderType(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := hasReminderType(tt.reminders, tt.category); got != tt.want {
 				t.Errorf("hasReminderType(%v, %s) = %v, want %v", tt.reminders, tt.category, got, tt.want)
 			}

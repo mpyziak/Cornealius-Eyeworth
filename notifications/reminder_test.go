@@ -9,6 +9,7 @@ import (
 )
 
 func TestNewReminder(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		category scheduling.Category
@@ -20,6 +21,7 @@ func TestNewReminder(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			reminder := NewReminder(tt.category)
 
 			if reminder.Category != tt.category {
@@ -33,6 +35,7 @@ func TestNewReminder(t *testing.T) {
 }
 
 func TestNewReminderUnknown(t *testing.T) {
+	t.Parallel()
 	reminder := NewReminder("unknown")
 
 	if reminder.Category != "unknown" {
