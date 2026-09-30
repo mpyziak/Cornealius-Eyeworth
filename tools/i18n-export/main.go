@@ -96,7 +96,7 @@ func writeCSV(w io.Writer, locales []i18n.Locale) error {
 		return err
 	}
 
-	typ := reflect.TypeOf(i18n.Strings{})
+	typ := reflect.TypeFor[i18n.Strings]()
 	for f := range typ.NumField() {
 		field := typ.Field(f)
 		switch field.Type.Kind() {

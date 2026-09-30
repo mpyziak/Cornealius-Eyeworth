@@ -42,7 +42,11 @@ func main() {
 		log.Printf("warning: cannot load config.json (%v); starting with defaults", err)
 		cfg = config.DefaultConfig()
 	}
-	diagnostics.Info("config loaded - eye=%s standUp=%s lang=%s", cfg.CronExpression, cfg.StandUpCronExpression, cfg.Language)
+	lang := "system default"
+	if cfg.Language != nil {
+		lang = *cfg.Language
+	}
+	diagnostics.Info("config loaded - eye=%s standUp=%s lang=%s", cfg.CronExpression, cfg.StandUpCronExpression, lang)
 
 	i18n.SetLanguage(cfg.Language)
 

@@ -113,7 +113,7 @@ type devBroadcastHdr struct {
 
 type devBroadcastDeviceIface struct {
 	Size, DeviceType, Reserved uint32
-	ClassGuid                  [16]byte
+	ClassGUID                  [16]byte
 	Name                       [2]uint16
 }
 
@@ -382,8 +382,8 @@ var hidWndProc = syscall.NewCallback(func(hwnd, msg, wp, lp uintptr) uintptr {
 			switch hdr.DeviceType {
 			case dbtDevtypDeviceIface:
 				dbi := (*devBroadcastDeviceIface)(unsafe.Pointer(lp))
-				isHID := dbi.ClassGuid == guidDevIfaceHID
-				isNet := dbi.ClassGuid == guidDevIfaceNet
+				isHID := dbi.ClassGUID == guidDevIfaceHID
+				isNet := dbi.ClassGUID == guidDevIfaceNet
 				switch wp {
 				case dbtDeviceArrival:
 					if isHID {
@@ -521,7 +521,7 @@ func monitorHIDDevices() {
 
 	dbi := devBroadcastDeviceIface{
 		DeviceType: dbtDevtypDeviceIface,
-		ClassGuid:  guidDevIfaceHID,
+		ClassGUID:  guidDevIfaceHID,
 	}
 	dbi.Size = uint32(unsafe.Sizeof(dbi))
 
@@ -535,7 +535,7 @@ func monitorHIDDevices() {
 	// Also register for network adapter events (VPN connect/disconnect, ethernet).
 	dbiNet := devBroadcastDeviceIface{
 		DeviceType: dbtDevtypDeviceIface,
-		ClassGuid:  guidDevIfaceNet,
+		ClassGUID:  guidDevIfaceNet,
 	}
 	dbiNet.Size = uint32(unsafe.Sizeof(dbiNet))
 	if hNotifNet, _, _ := procRegDevNotif.Call(hwnd, uintptr(unsafe.Pointer(&dbiNet)), deviceNotifyWindowHandle); hNotifNet == 0 {

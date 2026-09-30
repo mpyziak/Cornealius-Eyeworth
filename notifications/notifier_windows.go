@@ -33,7 +33,7 @@ type notifyIconData struct {
 	Version         uint32
 	InfoTitle       [64]uint16
 	InfoFlags       uint32
-	GuidItem        [16]byte
+	GUIDItem        [16]byte
 	BalloonIcon     uintptr
 }
 
