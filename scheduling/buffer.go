@@ -50,30 +50,37 @@ func (b *Buffer) Add(reminder Reminder) {
 // Close cancels the flush timer and flushes whatever is pending.
 func (b *Buffer) Close() {
 	b.mu.Lock()
-	defer b.mu.Unlock()
-
 	if b.timer != nil {
 		b.timer.Stop()
 		b.timer = nil
 	}
-	b.flushLocked()
+	pending := b.flushLocked()
+	b.mu.Unlock()
+
+	if pending != nil {
+		b.flusher.Flush(pending)
+	}
 }
 
 func (b *Buffer) flush() {
 	b.mu.Lock()
-	defer b.mu.Unlock()
-	b.flushLocked()
+	pending := b.flushLocked()
+	b.mu.Unlock()
+
+	if pending != nil {
+		b.flusher.Flush(pending)
+	}
 }
 
-func (b *Buffer) flushLocked() {
+// flushLocked clears and returns the pending batch. The caller must hold mu
+// and is responsible for calling Flush after releasing it, so a panicking
+// Flusher can't leave mu locked by one goroutine and unlocked by another.
+func (b *Buffer) flushLocked() []Reminder {
 	if len(b.pending) == 0 {
-		return
+		return nil
 	}
 	pending := b.pending
 	b.pending = nil
 	b.timer = nil
-
-	b.mu.Unlock()
-	b.flusher.Flush(pending)
-	b.mu.Lock()
+	return pending
 }
