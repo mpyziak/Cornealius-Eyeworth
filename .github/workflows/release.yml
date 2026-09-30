@@ -42,8 +42,10 @@ jobs:
       version: ${{ steps.cfg.outputs.version }}
       label: ${{ steps.cfg.outputs.label }}
       windows: ${{ steps.cfg.outputs.windows }}
-      unix_matrix: ${{ steps.cfg.outputs.unix_matrix }}
-      unix_any: ${{ steps.cfg.outputs.unix_any }}
+      linux_matrix: ${{ steps.cfg.outputs.linux_matrix }}
+      linux_any: ${{ steps.cfg.outputs.linux_any }}
+      macos_matrix: ${{ steps.cfg.outputs.macos_matrix }}
+      macos_any: ${{ steps.cfg.outputs.macos_any }}
       vulncheck_blocking: ${{ steps.cfg.outputs.vulncheck_blocking }}
     steps:
       - name: Configure
@@ -58,10 +60,10 @@ jobs:
           BUILD_LINUX_AMD64=true
           BUILD_LINUX_ARM64=true
           # Apple Silicon. Bills at 10x the Linux rate on a private repo.
-          BUILD_MACOS_ARM64=false
+          BUILD_MACOS_ARM64=true
           # Intel. macos-15-intel is the last x86_64 image Actions offers and
           # retires in August 2027. Nobody here has an Intel Mac to verify on.
-          BUILD_MACOS_AMD64=false
+          BUILD_MACOS_AMD64=true
 
           # true  - a govulncheck finding fails the job and blocks the release
           # false - it is reported in the log and the release proceeds
@@ -71,32 +73,34 @@ jobs:
           echo "windows=$BUILD_WINDOWS_AMD64" >> "$GITHUB_OUTPUT"
           echo "vulncheck_blocking=$VULNCHECK_BLOCKING" >> "$GITHUB_OUTPUT"
 
-          # Everything non-Windows shares one matrix. "platform" picks the
-          # packaging branch, "suffix" names the archive and must stay unique -
-          # upload-artifact rejects duplicate artifact names.
-          entries=""
-          add() { entries="${entries:+$entries,}$1"; }
-
+          # One matrix per build job. "suffix" names the archive and must stay
+          # unique across all of them - upload-artifact rejects duplicate names.
+          linux=""
           if [ "$BUILD_LINUX_AMD64" = true ]; then
-            add '{"os":"ubuntu-latest","platform":"linux","suffix":"linux-amd64"}'
+            linux='{"os":"ubuntu-latest","suffix":"linux-amd64"}'
           fi
           if [ "$BUILD_LINUX_ARM64" = true ]; then
             # No "-arm" alias for ubuntu-latest exists, so this pins a version
             # and has to be bumped by hand.
-            add '{"os":"ubuntu-24.04-arm","platform":"linux","suffix":"linux-arm64"}'
-          fi
-          if [ "$BUILD_MACOS_ARM64" = true ]; then
-            add '{"os":"macos-latest","platform":"darwin","suffix":"macos-arm64"}'
-          fi
-          if [ "$BUILD_MACOS_AMD64" = true ]; then
-            add '{"os":"macos-15-intel","platform":"darwin","suffix":"macos-amd64"}'
+            linux="${linux:+$linux,}"'{"os":"ubuntu-24.04-arm","suffix":"linux-arm64"}'
           fi
 
-          # An empty include list is a hard error in Actions, so the build-unix
-          # job is skipped entirely rather than handed one.
-          if [ -n "$entries" ]; then unix_any=true; else unix_any=false; fi
-          echo "unix_any=$unix_any" >> "$GITHUB_OUTPUT"
-          echo "unix_matrix={\"include\":[$entries]}" >> "$GITHUB_OUTPUT"
+          macos=""
+          if [ "$BUILD_MACOS_ARM64" = true ]; then
+            macos='{"os":"macos-latest","suffix":"macos-arm64"}'
+          fi
+          if [ "$BUILD_MACOS_AMD64" = true ]; then
+            macos="${macos:+$macos,}"'{"os":"macos-15-intel","suffix":"macos-amd64"}'
+          fi
+
+          # An empty include list is a hard error in Actions, so a job with
+          # nothing enabled is skipped entirely rather than handed one.
+          if [ -n "$linux" ]; then linux_any=true; else linux_any=false; fi
+          if [ -n "$macos" ]; then macos_any=true; else macos_any=false; fi
+          echo "linux_any=$linux_any" >> "$GITHUB_OUTPUT"
+          echo "macos_any=$macos_any" >> "$GITHUB_OUTPUT"
+          echo "linux_matrix={\"include\":[$linux]}" >> "$GITHUB_OUTPUT"
+          echo "macos_matrix={\"include\":[$macos]}" >> "$GITHUB_OUTPUT"
 
           # Tag builds are versioned from the tag; branch builds get a short SHA
           # label and a placeholder version, since fyne requires x[.y[.z]].
@@ -110,7 +114,7 @@ jobs:
           echo "label=$label" >> "$GITHUB_OUTPUT"
           echo "version=${version:-0.0.0}" >> "$GITHUB_OUTPUT"
 
-          echo "windows=$BUILD_WINDOWS_AMD64  unix=[$entries]  vulncheck_blocking=$VULNCHECK_BLOCKING"
+          echo "windows=$BUILD_WINDOWS_AMD64  linux=[$linux]  macos=[$macos]  vulncheck_blocking=$VULNCHECK_BLOCKING"
 
   # ── Tests ──────────────────────────────────────────────────────────────────
 
@@ -213,13 +217,13 @@ jobs:
           # Short retention keeps private-repo runs clear of the 500 MB cap.
           retention-days: 7
 
-  build-unix:
+  build-linux:
     name: Build ${{ matrix.suffix }}
     needs: [plan, test-unix]
-    if: needs.plan.outputs.unix_any == 'true'
+    if: needs.plan.outputs.linux_any == 'true'
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.plan.outputs.unix_matrix) }}
+      matrix: ${{ fromJSON(needs.plan.outputs.linux_matrix) }}
     runs-on: ${{ matrix.os }}
     env:
       VERSION: ${{ needs.plan.outputs.version }}
@@ -240,21 +244,52 @@ jobs:
           CGO_ENABLED: '1'
         run: |
           mkdir -p dist
-          fyne package --os "${{ matrix.platform }}" --app-id "$APP_ID" \
+          fyne package --os linux --app-id "$APP_ID" \
+            --app-version "$VERSION" --icon "$ICON" --name "$APP_NAME"
+          mv "$APP_NAME.tar.xz" "dist/$ASSET.tar.xz"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.suffix }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+  build-macos:
+    name: Build ${{ matrix.suffix }}
+    needs: [plan, test-unix]
+    if: needs.plan.outputs.macos_any == 'true'
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.macos_matrix) }}
+    runs-on: ${{ matrix.os }}
+    env:
+      VERSION: ${{ needs.plan.outputs.version }}
+      ASSET: Cornealius-Eyeworth-${{ needs.plan.outputs.label }}-${{ matrix.suffix }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/go-setup
+        with:
+          fyne-tag: ${{ env.FYNE_TAG }}
+
+      - name: Install fyne CLI
+        run: |
+          go install fyne.io/tools/cmd/fyne@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Package
+        env:
+          CGO_ENABLED: '1'
+        run: |
+          mkdir -p dist
+          fyne package --os darwin --app-id "$APP_ID" \
             --app-version "$VERSION" --icon "$ICON" --name "$APP_NAME"
 
-          case "${{ matrix.platform }}" in
-            linux)
-              mv "$APP_NAME.tar.xz" "dist/$ASSET.tar.xz"
-              ;;
-            darwin)
-              # Ad-hoc sign: arm64 will not execute unsigned. Not a Gatekeeper fix.
-              codesign --force -s - "$APP_NAME.app"
-              # Fail here, not on a Mac
-              codesign -v --verbose=2 "$APP_NAME.app"
-              ditto -c -k --keepParent "$APP_NAME.app" "dist/$ASSET.zip"
-              ;;
-          esac
+          # Ad-hoc sign: arm64 will not execute unsigned. Not a Gatekeeper fix.
+          codesign --force -s - "$APP_NAME.app"
+          # Fail here, not on a Mac
+          codesign -v --verbose=2 "$APP_NAME.app"
+          ditto -c -k --keepParent "$APP_NAME.app" "dist/$ASSET.zip"
 
       - uses: actions/upload-artifact@v7
         with:
@@ -267,7 +302,7 @@ jobs:
 
   vulncheck:
     name: Vulnerability check
-    needs: [plan, checks, build-windows, build-unix]
+    needs: [plan, checks, build-windows, build-linux, build-macos]
     # Toggled-off builds skip, so run unless something actually failed.
     # checks stays listed: without it a lint failure would not block the release.
     if: ${{ !cancelled() && !contains(needs.*.result, 'failure') }}
