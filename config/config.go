@@ -12,13 +12,7 @@ type Config struct {
 	Language              *string `json:"Language"`
 }
 
-// Store loads and saves a Config. Repository is its only implementation.
-type Store interface {
-	Load() (*Config, error)
-	Save(*Config) error
-}
-
-// Repository is a Store backed by a JSON file on disk.
+// Repository loads and saves a Config, backed by a JSON file on disk.
 type Repository struct {
 	path string
 }

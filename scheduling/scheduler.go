@@ -7,8 +7,8 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-// Runner starts and stops a single cron schedule. Scheduler is its only
-// implementation.
+// Runner starts and stops a single cron schedule. Scheduler is the
+// production implementation; tests use a fake.
 type Runner interface {
 	Start(cronExpr string, onFire func()) error
 	Stop()
@@ -62,6 +62,8 @@ type Scheduler struct {
 	mu      sync.Mutex
 	crontab *cron.Cron
 }
+
+var _ Runner = (*Scheduler)(nil)
 
 // Start replaces any running schedule with cronExpr, calling onFire each
 // time it triggers. Validates here rather than trusting the parsing
