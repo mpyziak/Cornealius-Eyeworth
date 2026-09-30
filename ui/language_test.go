@@ -70,7 +70,7 @@ func TestSelectedLanguageIndex(t *testing.T) {
 		{name: "upper case", lang: strPtr("PL"), want: 3},
 		{name: "mixed case", lang: strPtr("De"), want: 2},
 		{name: "surrounding space", lang: strPtr("  en  "), want: 1},
-		{name: "unknown code falls back to default", lang: strPtr("fr"), want: 0},
+		{name: "unknown code falls back to default", lang: strPtr("zz"), want: 0},
 		{name: "empty string does not match the default entry", lang: strPtr(""), want: 0},
 	}
 
@@ -80,6 +80,20 @@ func TestSelectedLanguageIndex(t *testing.T) {
 				t.Fatalf("selectedLanguageIndex(%s) = %d, want %d", langStr(tt.lang), got, tt.want)
 			}
 		})
+	}
+}
+
+// Uses the real i18n.AvailableLanguages() list, rather than the hand-written
+// options table above, so a locale reorder or addition can't silently drift
+// from what ShowLanguageDialog actually hands selectedLanguageIndex.
+func TestSelectedLanguageIndex_RealLanguageList(t *testing.T) {
+	options := i18n.AvailableLanguages()
+
+	if got := selectedLanguageIndex(options, strPtr("de")); options[got].Code != "de" {
+		t.Fatalf("selectedLanguageIndex(%v, \"de\") = %d (%+v), want the \"de\" entry", options, got, options[got])
+	}
+	if got := selectedLanguageIndex(options, strPtr("zz")); got != 0 {
+		t.Fatalf("selectedLanguageIndex(%v, \"zz\") = %d, want 0 (system default)", options, got)
 	}
 }
 
