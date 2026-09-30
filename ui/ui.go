@@ -26,6 +26,22 @@ const (
 	mainWinH float32 = 180
 )
 
+// scheduleDeps bundles the values every level of the status-window and
+// schedule-dialog wiring needs, so they travel as one parameter instead of
+// four repeated positional ones.
+type scheduleDeps struct {
+	repo         *config.Repository
+	eyeSched     scheduling.Runner
+	standUpSched scheduling.Runner
+	onFire       func(scheduling.Category)
+}
+
+// statusLabels are the status window's live label widgets, bundled so they
+// travel and get nilled out together rather than as four positional params.
+type statusLabels struct {
+	schedule, nextTrigger, standUp, standUpNextTrigger *widget.Label
+}
+
 // Direct label pointers, not data bindings: Fyne never releases
 // binding listeners on window close, so each open/close cycle leaks one.
 type statusState struct {
@@ -36,11 +52,7 @@ type statusState struct {
 	standUp            string
 	standUpNextTrigger string
 
-	// non-nil while the status window is open
-	scheduleLabel           *widget.Label
-	nextTriggerLabel        *widget.Label
-	standUpLabel            *widget.Label
-	standUpNextTriggerLabel *widget.Label
+	labels *statusLabels // non-nil while the status window is open
 }
 
 func (s *statusState) update(c *config.Config) {
@@ -55,37 +67,28 @@ func (s *statusState) update(c *config.Config) {
 	s.nextTrigger = nextTrigger
 	s.standUp = standUp
 	s.standUpNextTrigger = standUpNextTrigger
-	sl := s.scheduleLabel
-	ntl := s.nextTriggerLabel
-	sul := s.standUpLabel
-	suntl := s.standUpNextTriggerLabel
+	labels := s.labels
 	s.mu.Unlock()
 
 	// Update live labels if window is currently open.
-	if sl != nil {
-		sl.SetText(schedule)
-		ntl.SetText(nextTrigger)
-		sul.SetText(standUp)
-		suntl.SetText(standUpNextTrigger)
+	if labels != nil {
+		labels.schedule.SetText(schedule)
+		labels.nextTrigger.SetText(nextTrigger)
+		labels.standUp.SetText(standUp)
+		labels.standUpNextTrigger.SetText(standUpNextTrigger)
 	}
 }
 
-func (s *statusState) attach(sl, ntl, sul, suntl *widget.Label) {
+func (s *statusState) attach(labels *statusLabels) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.scheduleLabel = sl
-	s.nextTriggerLabel = ntl
-	s.standUpLabel = sul
-	s.standUpNextTriggerLabel = suntl
+	s.labels = labels
 }
 
 func (s *statusState) detach() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.scheduleLabel = nil
-	s.nextTriggerLabel = nil
-	s.standUpLabel = nil
-	s.standUpNextTriggerLabel = nil
+	s.labels = nil
 }
 
 func (s *statusState) snapshot() (schedule, nextTrigger, standUp, standUpNextTrigger string) {
@@ -112,20 +115,25 @@ func Run(app fyne.App, cfg *config.Config, repo *config.Repository) {
 	trayMgr := systray.NewManager(app)
 	trayMgr.Setup(cfg)
 
-	// Every ApplySchedule caller must re-arm with this one. A local replacement
-	// drops the status and tray refresh.
-	onFire := cronCallback(repo, status, trayMgr, reminderBuffer)
+	deps := scheduleDeps{
+		repo:         repo,
+		eyeSched:     eyeScheduler,
+		standUpSched: standUpScheduler,
+		// Every ApplySchedule caller must re-arm with this one. A local
+		// replacement drops the status and tray refresh.
+		onFire: cronCallback(repo, status, trayMgr, reminderBuffer),
+	}
 
-	trayMgr.SetWindowFactory(windowFactory(app, repo, status, eyeScheduler, standUpScheduler, trayMgr, onFire))
+	trayMgr.SetWindowFactory(windowFactory(app, status, trayMgr, deps))
 
 	if err := scheduling.ApplySchedule(
-		eyeScheduler,
-		standUpScheduler,
+		deps.eyeSched,
+		deps.standUpSched,
 		scheduling.Spec{
 			EyeCron:     cfg.CronExpression,
 			StandUpCron: cfg.StandUpCronExpression,
 		},
-		onFire,
+		deps.onFire,
 	); err != nil {
 		// A cron with no entries looks exactly like a working app that never
 		// fires, so fall back rather than run with empty.
@@ -136,13 +144,13 @@ func Run(app fyne.App, cfg *config.Config, repo *config.Repository) {
 		status.update(cfg)
 		trayMgr.UpdateLabels(cfg)
 		if fallbackErr := scheduling.ApplySchedule(
-			eyeScheduler,
-			standUpScheduler,
+			deps.eyeSched,
+			deps.standUpSched,
 			scheduling.Spec{
 				EyeCron:     cfg.CronExpression,
 				StandUpCron: cfg.StandUpCronExpression,
 			},
-			onFire,
+			deps.onFire,
 		); fallbackErr != nil {
 			diagnostics.Err("default schedule rejected too: %v", fallbackErr)
 		}
@@ -165,19 +173,16 @@ func Run(app fyne.App, cfg *config.Config, repo *config.Repository) {
 // answers by reallocating GL buffers.
 func windowFactory(
 	app fyne.App,
-	repo *config.Repository,
 	status *statusState,
-	eyeSched scheduling.Runner,
-	standUpSched scheduling.Runner,
 	trayMgr *systray.Manager,
-	onFire func(scheduling.Category),
+	deps scheduleDeps,
 ) func() fyne.Window {
 	return func() fyne.Window {
 		diagnostics.Event("status window opened")
 		schedule, nextTrigger, standUp, standUpNextTrigger := status.snapshot()
-		win, sl, ntl, sul, suntl := buildMainWindow(app, schedule, nextTrigger, standUp, standUpNextTrigger)
-		status.attach(sl, ntl, sul, suntl)
-		win.SetMainMenu(buildMenu(app, repo, eyeSched, standUpSched, status.update, onFire))
+		win, labels := buildMainWindow(app, schedule, nextTrigger, standUp, standUpNextTrigger)
+		status.attach(labels)
+		win.SetMainMenu(buildMenu(app, status.update, deps))
 		win.SetOnClosed(func() {
 			diagnostics.Event("status window closed")
 			status.detach()
@@ -215,11 +220,8 @@ func cronCallback(
 
 func buildMenu(
 	app fyne.App,
-	repo *config.Repository,
-	eyeSched scheduling.Runner,
-	standUpSched scheduling.Runner,
 	updateStatus func(*config.Config),
-	onFire func(scheduling.Category),
+	deps scheduleDeps,
 ) *fyne.MainMenu {
 	str := i18n.Active
 
@@ -229,10 +231,10 @@ func buildMenu(
 	return fyne.NewMainMenu(
 		fyne.NewMenu(str.MenuOptions,
 			fyne.NewMenuItem(str.MenuTriggerTimes, func() {
-				ShowScheduleDialog(app, repo, eyeSched, standUpSched, updateStatus, onFire)
+				ShowScheduleDialog(app, deps, updateStatus)
 			}),
 			fyne.NewMenuItem(str.MenuLanguage, func() {
-				ShowLanguageDialog(app, repo)
+				ShowLanguageDialog(app, deps.repo)
 			}),
 			fyne.NewMenuItemSeparator(),
 			quitItem,
@@ -250,7 +252,7 @@ func buildMenu(
 	)
 }
 
-func buildMainWindow(app fyne.App, schedule, nextTrigger, standUp, standUpNextTrigger string) (fyne.Window, *widget.Label, *widget.Label, *widget.Label, *widget.Label) {
+func buildMainWindow(app fyne.App, schedule, nextTrigger, standUp, standUpNextTrigger string) (fyne.Window, *statusLabels) {
 	str := i18n.Active
 
 	win := app.NewWindow(str.AppName)
@@ -286,5 +288,10 @@ func buildMainWindow(app fyne.App, schedule, nextTrigger, standUp, standUpNextTr
 	)
 
 	win.SetContent(container.NewPadded(body))
-	return win, scheduleLabel, nextTriggerLabel, standUpLabel, standUpNextTriggerLabel
+	return win, &statusLabels{
+		schedule:           scheduleLabel,
+		nextTrigger:        nextTriggerLabel,
+		standUp:            standUpLabel,
+		standUpNextTrigger: standUpNextTriggerLabel,
+	}
 }

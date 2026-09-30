@@ -16,9 +16,9 @@ import (
 )
 
 // ShowScheduleDialog opens the schedule-editing window, or focuses it if
-// already open. onFire must be the same callback ui.Run passed, not a
+// already open. deps.onFire must be the same callback ui.Run passed, not a
 // local one.
-func ShowScheduleDialog(app fyne.App, repo *config.Repository, eyeSched, standUpSched scheduling.Runner, onSaved func(*config.Config), onFire func(scheduling.Category)) {
+func ShowScheduleDialog(app fyne.App, deps scheduleDeps, onSaved func(*config.Config)) {
 	str := i18n.Active
 
 	if focusExisting(dialogSchedule) {
@@ -30,7 +30,7 @@ func ShowScheduleDialog(app fyne.App, repo *config.Repository, eyeSched, standUp
 	win.Resize(fyne.NewSize(500, 350))
 	win.CenterOnScreen()
 
-	currentCfg, err := repo.Load()
+	currentCfg, err := deps.repo.Load()
 	if err != nil {
 		diagnostics.Err("open schedule dialog: cannot load config.json (%v)", err)
 		win.Show()
@@ -119,20 +119,20 @@ func ShowScheduleDialog(app fyne.App, repo *config.Repository, eyeSched, standUp
 			StandUpCronExpression: standUpExpr,
 			Language:              currentCfg.Language,
 		}
-		if saveErr := repo.Save(updated); saveErr != nil {
+		if saveErr := deps.repo.Save(updated); saveErr != nil {
 			dialog.ShowError(saveErr, win)
 			return
 		}
 		diagnostics.Event("schedule saved - eye=%s standUp=%s", updated.CronExpression, updated.StandUpCronExpression)
 
 		if applyErr := scheduling.ApplySchedule(
-			eyeSched,
-			standUpSched,
+			deps.eyeSched,
+			deps.standUpSched,
 			scheduling.Spec{
 				EyeCron:     updated.CronExpression,
 				StandUpCron: updated.StandUpCronExpression,
 			},
-			onFire,
+			deps.onFire,
 		); applyErr != nil {
 			// Should be unreachable - both were validated above.
 			diagnostics.Err("saved schedule rejected by scheduler: %v", applyErr)
