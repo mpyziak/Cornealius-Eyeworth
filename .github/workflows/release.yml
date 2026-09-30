@@ -198,6 +198,9 @@ jobs:
         with:
           fyne-tag: ${{ env.FYNE_TAG }}
 
+      - name: Generate release docs
+        run: bash scripts/gen-release-docs.sh release-docs
+
       - name: Package
         env:
           CGO_ENABLED: '1'
@@ -205,9 +208,10 @@ jobs:
           # go build: fyne package would add a second manifest. RELEASES.md
           mkdir -p dist staging
           go build -ldflags "-s -w -H windowsgui" -o "staging/$APP_FILE.exe" .
+          cp release-docs/* staging/
           # Compress-Archive rather than zip, which the Windows runner lacks.
           powershell -NoProfile -Command \
-            "Compress-Archive -Path 'staging/$APP_FILE.exe' -DestinationPath 'dist/$ASSET.zip' -Force"
+            "Compress-Archive -Path 'staging/*' -DestinationPath 'dist/$ASSET.zip' -Force"
 
       - uses: actions/upload-artifact@v7
         with:
@@ -239,6 +243,9 @@ jobs:
           go install fyne.io/tools/cmd/fyne@latest
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
+      - name: Generate release docs
+        run: bash scripts/gen-release-docs.sh release-docs
+
       - name: Package
         env:
           CGO_ENABLED: '1'
@@ -246,6 +253,11 @@ jobs:
           mkdir -p dist
           fyne package --os linux --app-id "$APP_ID" \
             --app-version "$VERSION" --icon "$ICON" --name "$APP_NAME"
+          # A .tar.xz cannot be appended to in place.
+          xz -d "$APP_NAME.tar.xz"
+          tar --append -f "$APP_NAME.tar" -C release-docs \
+            README.md LICENSE.txt THIRD-PARTY-NOTICES.txt
+          xz "$APP_NAME.tar"
           mv "$APP_NAME.tar.xz" "dist/$ASSET.tar.xz"
 
       - uses: actions/upload-artifact@v7
@@ -277,11 +289,14 @@ jobs:
           go install fyne.io/tools/cmd/fyne@latest
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
+      - name: Generate release docs
+        run: bash scripts/gen-release-docs.sh release-docs
+
       - name: Package
         env:
           CGO_ENABLED: '1'
         run: |
-          mkdir -p dist
+          mkdir -p dist stage
           fyne package --os darwin --app-id "$APP_ID" \
             --app-version "$VERSION" --icon "$ICON" --name "$APP_NAME"
 
@@ -289,7 +304,12 @@ jobs:
           codesign --force -s - "$APP_NAME.app"
           # Fail here, not on a Mac
           codesign -v --verbose=2 "$APP_NAME.app"
-          ditto -c -k --keepParent "$APP_NAME.app" "dist/$ASSET.zip"
+
+          # mv: copying a bundle could drop the signature's metadata.
+          mv "$APP_NAME.app" stage/
+          cp release-docs/* stage/
+          # No --keepParent, or the zip gains a wrapper folder.
+          ditto -c -k stage "dist/$ASSET.zip"
 
       - uses: actions/upload-artifact@v7
         with:

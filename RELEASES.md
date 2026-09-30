@@ -23,6 +23,9 @@ artifacts attached and auto-generated notes. Archives are named
 | `macos-arm64` | `macos-latest` | `.zip` | `Cornealius Eyeworth.app` | `fyne package` |
 | `macos-amd64` | `macos-15-intel` | `.zip` | `Cornealius Eyeworth.app` | `fyne package` |
 
+Every archive also carries `README.md`, `LICENSE.txt` and
+`THIRD-PARTY-NOTICES.txt`, built per job by `scripts/gen-release-docs.sh`
+
 ## How the pipeline is wired
 
 ```

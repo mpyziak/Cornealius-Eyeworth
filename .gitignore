@@ -16,3 +16,6 @@ logs/
 # Go build output
 *ornealius*yewort*
 config.json
+
+# Generated per release by scripts/gen-release-docs.sh
+release-docs/
