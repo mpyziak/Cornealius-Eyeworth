@@ -12,7 +12,6 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/config"
 	"github.com/mpyziak/cornealius-eyeworth/diagnostics"
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
-	"github.com/mpyziak/cornealius-eyeworth/parsing"
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
 
@@ -39,16 +38,16 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 		return
 	}
 
-	simpleEyeMinutes := parsing.TryExtractSimpleMinutes(currentCfg.CronExpression)
-	simpleStandUpMinutes := parsing.TryExtractSimpleMinutes(currentCfg.StandUpCronExpression)
-	startAdvanced := simpleEyeMinutes == "" || (currentCfg.StandUpCronExpression != "" && simpleStandUpMinutes == "")
+	simpleEyeMinutes, simpleEyeOk := scheduling.SimpleMinutes(currentCfg.CronExpression)
+	simpleStandUpMinutes, simpleStandUpOk := scheduling.SimpleMinutes(currentCfg.StandUpCronExpression)
+	startAdvanced := !simpleEyeOk || (currentCfg.StandUpCronExpression != "" && !simpleStandUpOk)
 
 	eyeInstrLabel := widget.NewLabel(str.OptionsInstruction)
 	eyeInstrLabel.Wrapping = fyne.TextWrapWord
 
 	minutesEntry := widget.NewEntry()
 	minutesEntry.SetPlaceHolder("20, 40, 55")
-	if simpleEyeMinutes != "" {
+	if simpleEyeOk {
 		minutesEntry.SetText(simpleEyeMinutes)
 	}
 
@@ -57,7 +56,7 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 
 	standUpMinutesEntry := widget.NewEntry()
 	standUpMinutesEntry.SetPlaceHolder("0, 15, 30, 45")
-	if simpleStandUpMinutes != "" {
+	if simpleStandUpOk {
 		standUpMinutesEntry.SetText(simpleStandUpMinutes)
 	}
 
@@ -97,40 +96,27 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 	errorLabel.Importance = widget.DangerImportance
 
 	saveBtn := widget.NewButton(str.ButtonSave, func() {
-		var eyeResult parsing.ParseResult
-		var standUpResult parsing.ParseResult
+		var eyeExpr, standUpExpr string
+		var err error
 
 		if tabs.SelectedIndex() == 0 {
-			eyeResult = parsing.ParseMinutes(minutesEntry.Text)
-			if parsed := parsing.ParseMinutes(standUpMinutesEntry.Text); parsed.Valid {
-				standUpResult = parsed
-			} else if standUpMinutesEntry.Text == "" {
-				standUpResult = parsing.ParseResult{Valid: true, Expression: ""}
-			} else {
-				standUpResult = parsed
+			if eyeExpr, err = scheduling.ParseMinutes(minutesEntry.Text); err == nil && standUpMinutesEntry.Text != "" {
+				standUpExpr, err = scheduling.ParseMinutes(standUpMinutesEntry.Text)
 			}
 		} else {
-			eyeResult = parsing.ParseCron(eyeCronEntry.Text)
-			if strings.TrimSpace(standUpCronEntry.Text) == "" {
-				standUpResult = parsing.ParseResult{Valid: true, Expression: ""}
-			} else {
-				standUpResult = parsing.ParseCron(standUpCronEntry.Text)
+			if eyeExpr, err = scheduling.ParseCron(eyeCronEntry.Text); err == nil && strings.TrimSpace(standUpCronEntry.Text) != "" {
+				standUpExpr, err = scheduling.ParseCron(standUpCronEntry.Text)
 			}
 		}
 
-		if !eyeResult.Valid {
-			errorLabel.SetText(eyeResult.Err)
-			return
-		}
-
-		if !standUpResult.Valid {
-			errorLabel.SetText(standUpResult.Err)
+		if err != nil {
+			errorLabel.SetText(err.Error())
 			return
 		}
 
 		updated := &config.Config{
-			CronExpression:        eyeResult.Expression,
-			StandUpCronExpression: standUpResult.Expression,
+			CronExpression:        eyeExpr,
+			StandUpCronExpression: standUpExpr,
 			Language:              currentCfg.Language,
 		}
 		if saveErr := repo.Save(updated); saveErr != nil {

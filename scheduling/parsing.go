@@ -1,8 +1,9 @@
-package parsing
+package scheduling
 
 import (
+	"errors"
 	"fmt"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -11,48 +12,37 @@ import (
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 )
 
-// ParseResult is the outcome of parsing user input into a Quartz CRON
-// expression.
-type ParseResult struct {
-	Valid      bool
-	Expression string // set when Valid == true; canonical Quartz CRON expression
-	Err        string // set when Valid == false
-}
-
-func ok(expr string) ParseResult  { return ParseResult{Valid: true, Expression: expr} }
-func fail(msg string) ParseResult { return ParseResult{Valid: false, Err: msg} }
-
 // robfig/cron has no '?'.
 func quartzToRobfig(expr string) string {
 	return strings.ReplaceAll(expr, "?", "*")
 }
 
-// Seconds-first, 6 fields.
+// cronParser is seconds-first, 6 fields.
 var cronParser = cron.NewParser(
 	cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow,
 )
 
 // ParseCron validates input as a Quartz CRON expression.
-func ParseCron(input string) ParseResult {
+func ParseCron(input string) (string, error) {
 	trimmed := strings.TrimSpace(input)
 	if trimmed == "" {
-		return fail(i18n.Active.ParseErrorCronEmpty)
+		return "", errors.New(i18n.Active.ParseErrorCronEmpty)
 	}
 	if _, err := cronParser.Parse(quartzToRobfig(trimmed)); err != nil {
-		return fail(fmt.Sprintf(i18n.Active.ParseErrorCronInvalid, trimmed))
+		return "", fmt.Errorf(i18n.Active.ParseErrorCronInvalid, trimmed)
 	}
-	return ok(trimmed)
+	return trimmed, nil
 }
 
 // ParseMinutes turns a comma/space-separated minute list, e.g. "20,40,55",
 // into the equivalent Quartz CRON expression "0 20,40,55 * * * ?".
-func ParseMinutes(input string) ParseResult {
+func ParseMinutes(input string) (string, error) {
 	parts := strings.FieldsFunc(strings.TrimSpace(input), func(r rune) bool {
 		return r == ',' || r == ' '
 	})
 
 	if len(parts) == 0 {
-		return fail(i18n.Active.ParseErrorNoMinutes)
+		return "", errors.New(i18n.Active.ParseErrorNoMinutes)
 	}
 
 	seen := map[int]bool{}
@@ -64,7 +54,7 @@ func ParseMinutes(input string) ParseResult {
 		}
 		m, err := strconv.Atoi(p)
 		if err != nil || m < 0 || m > 59 {
-			return fail(fmt.Sprintf(i18n.Active.ParseErrorInvalidMinute, p))
+			return "", fmt.Errorf(i18n.Active.ParseErrorInvalidMinute, p)
 		}
 		if !seen[m] {
 			seen[m] = true
@@ -73,33 +63,33 @@ func ParseMinutes(input string) ParseResult {
 	}
 
 	if len(minutes) == 0 {
-		return fail(i18n.Active.ParseErrorNoMinutes)
+		return "", errors.New(i18n.Active.ParseErrorNoMinutes)
 	}
 
-	sort.Ints(minutes)
+	slices.Sort(minutes)
 
 	strs := make([]string, len(minutes))
 	for i, m := range minutes {
 		strs[i] = strconv.Itoa(m)
 	}
-	return ok("0 " + strings.Join(strs, ",") + " * * * ?")
+	return "0 " + strings.Join(strs, ",") + " * * * ?", nil
 }
 
-// TryExtractSimpleMinutes is the inverse of ParseMinutes: it returns the
-// minute list an expression of the shape "0 m1,m2 * * * ?" was built from,
-// or "" if cronExpr is not that shape.
-func TryExtractSimpleMinutes(cronExpr string) string {
+// SimpleMinutes is the inverse of ParseMinutes: it returns the minute list
+// an expression of the shape "0 m1,m2 * * * ?" was built from, and whether
+// cronExpr was that shape at all.
+func SimpleMinutes(cronExpr string) (minutes string, ok bool) {
 	parts := strings.Fields(cronExpr)
 	if len(parts) != 6 {
-		return ""
+		return "", false
 	}
 	if parts[0] != "0" || parts[2] != "*" || parts[3] != "*" || parts[4] != "*" || parts[5] != "?" {
-		return ""
+		return "", false
 	}
 	for _, t := range strings.Split(parts[1], ",") {
 		if m, err := strconv.Atoi(t); err != nil || m < 0 || m > 59 {
-			return ""
+			return "", false
 		}
 	}
-	return strings.ReplaceAll(parts[1], ",", ", ")
+	return strings.ReplaceAll(parts[1], ",", ", "), true
 }

@@ -2,7 +2,6 @@ package scheduling
 
 import (
 	"fmt"
-	"strings"
 	"sync"
 
 	"github.com/robfig/cron/v3"
@@ -76,7 +75,7 @@ func (s *Scheduler) Start(cronExpr string, onFire func()) error {
 		s.crontab = nil
 	}
 
-	normalized := strings.ReplaceAll(cronExpr, "?", "*")
+	normalized := quartzToRobfig(cronExpr)
 	c := cron.New(cron.WithSeconds())
 	if _, err := c.AddFunc(normalized, onFire); err != nil {
 		return err
