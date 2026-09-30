@@ -2,6 +2,9 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"io/fs"
 	"os"
 )
 
@@ -27,18 +30,18 @@ func NewRepository(path string) *Repository {
 func (r *Repository) Load() (*Config, error) {
 	data, err := os.ReadFile(r.path)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, fs.ErrNotExist) {
 			cfg := DefaultConfig()
 			if saveErr := r.Save(cfg); saveErr != nil {
 				return nil, saveErr
 			}
 			return cfg, nil
 		}
-		return nil, err
+		return nil, fmt.Errorf("read %s: %w", r.path, err)
 	}
 	var cfg Config
 	if err := json.Unmarshal(data, &cfg); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parse %s: %w", r.path, err)
 	}
 	return &cfg, nil
 }

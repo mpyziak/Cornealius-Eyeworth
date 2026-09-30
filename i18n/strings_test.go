@@ -214,6 +214,8 @@ func TestLocalesAreComplete(t *testing.T) {
 							t.Errorf("%s[%d] is empty", name, j)
 						}
 					}
+				default:
+					t.Errorf("%s: %s fields are not checked by this test", name, f.Kind())
 				}
 			}
 		})
