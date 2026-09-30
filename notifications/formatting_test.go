@@ -1,6 +1,7 @@
 package notifications
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
@@ -51,57 +52,38 @@ func TestAggregatedContentMultiple(t *testing.T) {
 	}
 }
 
-func TestAggregatedTitleEyeOnly(t *testing.T) {
-	reminders := []scheduling.Reminder{
-		{Category: scheduling.CategoryEye, Message: "test"},
+func TestAggregatedTitle(t *testing.T) {
+	tests := []struct {
+		name      string
+		reminders []scheduling.Reminder
+		headers   []string
+	}{
+		{
+			name:      "eye only",
+			reminders: []scheduling.Reminder{{Category: scheduling.CategoryEye, Message: "test"}},
+			headers:   i18n.Active.NotificationDistanceGlanceHeaders,
+		},
+		{
+			name:      "standup only",
+			reminders: []scheduling.Reminder{{Category: scheduling.CategoryStandUp, Message: "test"}},
+			headers:   i18n.Active.NotificationMovementHeaders,
+		},
+		{
+			name: "both",
+			reminders: []scheduling.Reminder{
+				{Category: scheduling.CategoryEye, Message: "test"},
+				{Category: scheduling.CategoryStandUp, Message: "test"},
+			},
+			headers: i18n.Active.NotificationCombinedHeaders,
+		},
 	}
-	result := aggregatedTitle(reminders)
 
-	found := false
-	for _, header := range i18n.Active.NotificationDistanceGlanceHeaders {
-		if result == header {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Errorf("aggregatedTitle returned %q, which is not in NotificationDistanceGlanceHeaders", result)
-	}
-}
-
-func TestAggregatedTitleStandupOnly(t *testing.T) {
-	reminders := []scheduling.Reminder{
-		{Category: scheduling.CategoryStandUp, Message: "test"},
-	}
-	result := aggregatedTitle(reminders)
-
-	found := false
-	for _, header := range i18n.Active.NotificationMovementHeaders {
-		if result == header {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Errorf("aggregatedTitle returned %q, which is not in NotificationMovementHeaders", result)
-	}
-}
-
-func TestAggregatedTitleBoth(t *testing.T) {
-	reminders := []scheduling.Reminder{
-		{Category: scheduling.CategoryEye, Message: "test"},
-		{Category: scheduling.CategoryStandUp, Message: "test"},
-	}
-	result := aggregatedTitle(reminders)
-
-	found := false
-	for _, header := range i18n.Active.NotificationCombinedHeaders {
-		if result == header {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Errorf("aggregatedTitle returned %q, which is not in NotificationCombinedHeaders", result)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := aggregatedTitle(tt.reminders)
+			if !slices.Contains(tt.headers, got) {
+				t.Errorf("aggregatedTitle(%v) = %q, want one of %v", tt.reminders, got, tt.headers)
+			}
+		})
 	}
 }

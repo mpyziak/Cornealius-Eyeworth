@@ -1,66 +1,61 @@
 package notifications
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
 
-func TestPickRandomEmpty(t *testing.T) {
-	result := pickRandom([]string{})
-	if result != "" {
-		t.Errorf("pickRandom([]) = %q, want empty string", result)
+func TestPickRandom(t *testing.T) {
+	tests := []struct {
+		name  string
+		items []string
+	}{
+		{"empty", []string{}},
+		{"single", []string{"only"}},
+		{"multiple", []string{"a", "b", "c"}},
 	}
-}
 
-func TestPickRandomSingle(t *testing.T) {
-	items := []string{"only"}
-	result := pickRandom(items)
-	if result != "only" {
-		t.Errorf("pickRandom([\"only\"]) = %q, want \"only\"", result)
-	}
-}
-
-func TestPickRandomValid(t *testing.T) {
-	items := []string{"a", "b", "c"}
-	for range 100 {
-		result := pickRandom(items)
-		found := false
-		for _, item := range items {
-			if result == item {
-				found = true
-				break
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			for range 100 {
+				got := pickRandom(tt.items)
+				if len(tt.items) == 0 {
+					if got != "" {
+						t.Fatalf("pickRandom(%v) = %q, want empty string", tt.items, got)
+					}
+					continue
+				}
+				if !slices.Contains(tt.items, got) {
+					t.Fatalf("pickRandom(%v) = %q, want one of %v", tt.items, got, tt.items)
+				}
 			}
-		}
-		if !found {
-			t.Errorf("pickRandom returned %q, which is not in the input list", result)
-		}
+		})
 	}
 }
 
-func TestHasReminderTypeEmpty(t *testing.T) {
-	result := hasReminderType([]scheduling.Reminder{}, scheduling.CategoryEye)
-	if result {
-		t.Errorf("hasReminderType([], CategoryEye) = true, want false")
-	}
-}
-
-func TestHasReminderTypePresent(t *testing.T) {
+func TestHasReminderType(t *testing.T) {
 	reminders := []scheduling.Reminder{
 		{Category: scheduling.CategoryEye, Message: "test"},
 	}
-	result := hasReminderType(reminders, scheduling.CategoryEye)
-	if !result {
-		t.Errorf("hasReminderType with CategoryEye present = false, want true")
-	}
-}
 
-func TestHasReminderTypeAbsent(t *testing.T) {
-	reminders := []scheduling.Reminder{
-		{Category: scheduling.CategoryEye, Message: "test"},
+	tests := []struct {
+		name      string
+		reminders []scheduling.Reminder
+		category  scheduling.Category
+		want      bool
+	}{
+		{"empty", nil, scheduling.CategoryEye, false},
+		{"present", reminders, scheduling.CategoryEye, true},
+		{"absent", reminders, scheduling.CategoryStandUp, false},
 	}
-	result := hasReminderType(reminders, scheduling.CategoryStandUp)
-	if result {
-		t.Errorf("hasReminderType without CategoryStandUp = true, want false")
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := hasReminderType(tt.reminders, tt.category); got != tt.want {
+				t.Errorf("hasReminderType(%v, %s) = %v, want %v", tt.reminders, tt.category, got, tt.want)
+			}
+		})
 	}
 }

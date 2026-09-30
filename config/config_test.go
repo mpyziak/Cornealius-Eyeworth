@@ -11,19 +11,20 @@ func TestLoadCreatesDefaultConfigWhenMissing(t *testing.T) {
 	path := filepath.Join(dir, "config.json")
 
 	repo := NewRepository(path)
-	cfg, err := repo.Load()
+	got, err := repo.Load()
 	if err != nil {
 		t.Fatalf("Load() returned unexpected error: %v", err)
 	}
 
-	if cfg.CronExpression != "0 20,40,55 * * * ?" {
-		t.Fatalf("expected default CronExpression, got %q", cfg.CronExpression)
+	want := DefaultConfig()
+	if got.CronExpression != want.CronExpression {
+		t.Errorf("Load().CronExpression = %q, want %q", got.CronExpression, want.CronExpression)
 	}
-	if cfg.StandUpCronExpression != "0 55 * * * ?" {
-		t.Fatalf("expected default StandUpCronExpression, got %q", cfg.StandUpCronExpression)
+	if got.StandUpCronExpression != want.StandUpCronExpression {
+		t.Errorf("Load().StandUpCronExpression = %q, want %q", got.StandUpCronExpression, want.StandUpCronExpression)
 	}
-	if cfg.Language != nil {
-		t.Fatalf("expected default Language nil, got %v", cfg.Language)
+	if got.Language != want.Language {
+		t.Errorf("Load().Language = %v, want %v", got.Language, want.Language)
 	}
 
 	if _, err := os.Stat(path); err != nil {
