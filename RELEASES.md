@@ -26,12 +26,14 @@ artifacts attached and auto-generated notes. Archives are named
 ## How the pipeline is wired
 
 ```
-plan ── checks ─┬─ test-windows ── build-windows ──┐
-                │                                  ├─ vulncheck ── release
-                └─ test-unix ───── build-unix ─────┘               (tags only)
-                                   linux-* and macos-*
-                                   run in parallel
+plan ── checks ─┬─ test-windows ─── build-windows ──┐
+                │                                   │
+                └─ test-unix ─┬──── build-linux ────┼─ vulncheck ── release
+                              └──── build-macos ────┘               (tags only)
 ```
+
+Each build job is a matrix over its architectures, so one job per OS but a
+separate runner per target, all in parallel.
 
 Lint first: it takes seconds, so nothing else spends a runner on a tree that does
 not gofmt. govulncheck last, gating publishing without delaying the builds.
@@ -61,13 +63,13 @@ block in the `plan` job:
 | `BUILD_WINDOWS_AMD64` | on |
 | `BUILD_LINUX_AMD64` | on |
 | `BUILD_LINUX_ARM64` | on |
-| `BUILD_MACOS_ARM64` | off |
-| `BUILD_MACOS_AMD64` | off |
+| `BUILD_MACOS_ARM64` | on |
+| `BUILD_MACOS_AMD64` | on |
 | `VULNCHECK_BLOCKING` | on |
 
 Turning a build off skips its job, not its tests - those are the only coverage of
-the windows / non-windows split. With every non-Windows target off, `build-unix` is
-skipped rather than handed an empty matrix, which Actions rejects.
+the windows / non-windows split. With every architecture in one OS off, that build
+job is skipped rather than handed an empty matrix, which Actions rejects.
 
 ## Testing the pipeline
 
@@ -79,12 +81,12 @@ once releases are cut from tags alone.
 
 ## macOS
 
-`macos-latest` is Apple Silicon, so that build will not launch on an Intel Mac.
-Intel users build from source (`BUILD.md`), or enable `BUILD_MACOS_AMD64` -
-`macos-15-intel` is the last x86_64 image Actions offers, retiring August 2027.
+`macos-latest` is Apple Silicon and will not launch on an Intel Mac, so both
+architectures ship separately. `macos-15-intel` is the last x86_64 image Actions
+offers, retiring August 2027; after that Intel users build from source
+(`BUILD.md`). Both bill at 10x the Linux rate on a private repo.
 
-Both macOS toggles default off: 10x the Linux billing rate on a private repo, and
-no Intel Mac here to verify that half on.
+**The Intel archive is unverified** - there is no Intel Mac here to launch it on.
 
 The `.app` is ad-hoc signed (`codesign -s -`) after packaging, because Apple
 Silicon will not execute an unsigned arm64 binary. Not a Gatekeeper fix - users
