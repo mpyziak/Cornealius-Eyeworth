@@ -55,7 +55,7 @@ func run() (err error) {
 // An unknown code is an error so a typo ("gr") cannot silently keep a column.
 func selectLocales(all []i18n.Locale, exclude string) ([]i18n.Locale, error) {
 	skip := map[string]bool{}
-	for _, c := range strings.Split(exclude, ",") {
+	for c := range strings.SplitSeq(exclude, ",") {
 		if c = i18n.NormaliseLocale(c); c != "" {
 			skip[c] = true
 		}
