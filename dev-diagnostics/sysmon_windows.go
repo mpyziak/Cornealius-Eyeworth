@@ -1,6 +1,6 @@
 //go:build diagnostics && windows && sysmon
 
-package diagnostics
+package devdiag
 
 // Watches the two event sources behind the leaks in LEAKS.md
 // * writes to the Themes\Personalize registry key

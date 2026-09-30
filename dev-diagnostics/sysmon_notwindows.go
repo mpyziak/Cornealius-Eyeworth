@@ -1,6 +1,6 @@
 //go:build diagnostics && !windows && sysmon
 
-package diagnostics
+package devdiag
 
 import "fyne.io/fyne/v2"
 
