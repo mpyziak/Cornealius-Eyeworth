@@ -3,6 +3,7 @@ package scheduling
 import (
 	"sync"
 	"testing"
+	"testing/synctest"
 	"time"
 )
 
@@ -32,6 +33,29 @@ func TestBufferAddThenClose(t *testing.T) {
 	if got := f.callCount(); got != 1 {
 		t.Fatalf("Flush called %d times, want 1", got)
 	}
+}
+
+// flush() (the timer-fired path) is 0% covered by the race test below, which
+// only proves Add/Close don't corrupt state under concurrency - it can't
+// reliably prove the timer path itself runs. synctest's fake clock makes
+// that deterministic instead of racing a real 1ms timer.
+func TestBufferFlushesAfterWindowElapses(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		f := &recordingFlusher{}
+		b := NewBuffer(time.Second, f)
+		b.Add(Reminder{Category: CategoryEye, Message: "z"})
+
+		if got := f.callCount(); got != 0 {
+			t.Fatalf("Flush called %d times before the window elapsed, want 0", got)
+		}
+
+		time.Sleep(time.Second)
+		synctest.Wait()
+
+		if got := f.callCount(); got != 1 {
+			t.Fatalf("Flush called %d times after the window elapsed, want 1", got)
+		}
+	})
 }
 
 type panicFlusher struct{}
