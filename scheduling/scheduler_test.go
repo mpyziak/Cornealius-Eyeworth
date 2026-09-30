@@ -37,10 +37,10 @@ func TestApplyScheduleStartsBoth(t *testing.T) {
 	}
 
 	if eye.started != 1 || eye.lastExpr != "0 20 * * * ?" {
-		t.Errorf("eye: started=%d expr=%q", eye.started, eye.lastExpr)
+		t.Errorf("eye: started=%d expr=%q, want started=1 expr=%q", eye.started, eye.lastExpr, "0 20 * * * ?")
 	}
 	if standup.started != 1 || standup.lastExpr != "0 55 * * * ?" {
-		t.Errorf("standup: started=%d expr=%q", standup.started, standup.lastExpr)
+		t.Errorf("standup: started=%d expr=%q, want started=1 expr=%q", standup.started, standup.lastExpr, "0 55 * * * ?")
 	}
 }
 

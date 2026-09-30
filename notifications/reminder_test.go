@@ -1,49 +1,34 @@
 package notifications
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/mpyziak/cornealius-eyeworth/i18n"
 	"github.com/mpyziak/cornealius-eyeworth/scheduling"
 )
 
-func TestNewReminderEye(t *testing.T) {
-	reminder := NewReminder(scheduling.CategoryEye)
-
-	if reminder.Category != scheduling.CategoryEye {
-		t.Errorf("NewReminder(CategoryEye).Category = %q, want %q",
-			reminder.Category, scheduling.CategoryEye)
+func TestNewReminder(t *testing.T) {
+	tests := []struct {
+		name     string
+		category scheduling.Category
+		quips    []string
+	}{
+		{"eye", scheduling.CategoryEye, i18n.Active.NotificationDistanceGlanceQuips},
+		{"standup", scheduling.CategoryStandUp, i18n.Active.NotificationMovementQuips},
 	}
 
-	found := false
-	for _, quip := range i18n.Active.NotificationDistanceGlanceQuips {
-		if reminder.Message == quip {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Errorf("NewReminder(CategoryEye) message %q not in NotificationDistanceGlanceQuips", reminder.Message)
-	}
-}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			reminder := NewReminder(tt.category)
 
-func TestNewReminderStandup(t *testing.T) {
-	reminder := NewReminder(scheduling.CategoryStandUp)
-
-	if reminder.Category != scheduling.CategoryStandUp {
-		t.Errorf("NewReminder(CategoryStandUp).Category = %q, want %q",
-			reminder.Category, scheduling.CategoryStandUp)
-	}
-
-	found := false
-	for _, quip := range i18n.Active.NotificationMovementQuips {
-		if reminder.Message == quip {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Errorf("NewReminder(CategoryStandUp) message %q not in NotificationMovementQuips", reminder.Message)
+			if reminder.Category != tt.category {
+				t.Errorf("NewReminder(%s).Category = %q, want %q", tt.category, reminder.Category, tt.category)
+			}
+			if !slices.Contains(tt.quips, reminder.Message) {
+				t.Errorf("NewReminder(%s) message %q not in %v", tt.category, reminder.Message, tt.quips)
+			}
+		})
 	}
 }
 

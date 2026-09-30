@@ -9,43 +9,46 @@ import (
 
 func strPtr(s string) *string { return &s }
 
-func TestUpdatedConfigForLanguagePreservesCronExpressions(t *testing.T) {
-	existing := &config.Config{
-		CronExpression:        "0 20,40,55 * * * ?",
-		StandUpCronExpression: "0 55 * * * ?",
-		Language:              nil,
+// langStr renders a *string for failure messages without printing its
+// pointer address.
+func langStr(s *string) string {
+	if s == nil {
+		return "nil"
 	}
-
-	updated := updatedConfigForLanguage(existing, strPtr("fr"))
-
-	if updated.CronExpression != existing.CronExpression {
-		t.Fatalf("CronExpression changed: got %q, want %q", updated.CronExpression, existing.CronExpression)
-	}
-	if updated.StandUpCronExpression != existing.StandUpCronExpression {
-		t.Fatalf("StandUpCronExpression changed: got %q, want %q", updated.StandUpCronExpression, existing.StandUpCronExpression)
-	}
-	if updated.Language == nil || *updated.Language != "fr" {
-		t.Fatalf("Language not set correctly: got %v", updated.Language)
-	}
+	return "\"" + *s + "\""
 }
 
-func TestUpdatedConfigForLanguageClearingToDefaultPreservesCronExpressions(t *testing.T) {
-	existing := &config.Config{
-		CronExpression:        "0 20,40,55 * * * ?",
-		StandUpCronExpression: "0 55 * * * ?",
-		Language:              strPtr("es"),
+func TestUpdatedConfigForLanguage(t *testing.T) {
+	tests := []struct {
+		name         string
+		existingLang *string
+		newLang      *string
+	}{
+		{name: "sets a new language", existingLang: nil, newLang: strPtr("fr")},
+		{name: "clears to system default", existingLang: strPtr("es"), newLang: nil},
 	}
 
-	updated := updatedConfigForLanguage(existing, nil)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			existing := &config.Config{
+				CronExpression:        "0 20,40,55 * * * ?",
+				StandUpCronExpression: "0 55 * * * ?",
+				Language:              tt.existingLang,
+			}
 
-	if updated.CronExpression != existing.CronExpression {
-		t.Fatalf("CronExpression changed: got %q, want %q", updated.CronExpression, existing.CronExpression)
-	}
-	if updated.StandUpCronExpression != existing.StandUpCronExpression {
-		t.Fatalf("StandUpCronExpression changed: got %q, want %q", updated.StandUpCronExpression, existing.StandUpCronExpression)
-	}
-	if updated.Language != nil {
-		t.Fatalf("Language should be nil, got %v", updated.Language)
+			updated := updatedConfigForLanguage(existing, tt.newLang)
+
+			if updated.CronExpression != existing.CronExpression {
+				t.Errorf("updatedConfigForLanguage(...).CronExpression = %q, want %q", updated.CronExpression, existing.CronExpression)
+			}
+			if updated.StandUpCronExpression != existing.StandUpCronExpression {
+				t.Errorf("updatedConfigForLanguage(...).StandUpCronExpression = %q, want %q", updated.StandUpCronExpression, existing.StandUpCronExpression)
+			}
+			gotNil, wantNil := updated.Language == nil, tt.newLang == nil
+			if gotNil != wantNil || (!gotNil && *updated.Language != *tt.newLang) {
+				t.Errorf("updatedConfigForLanguage(...).Language = %s, want %s", langStr(updated.Language), langStr(tt.newLang))
+			}
+		})
 	}
 }
 
@@ -74,7 +77,7 @@ func TestSelectedLanguageIndex(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := selectedLanguageIndex(options, tt.lang); got != tt.want {
-				t.Fatalf("selectedLanguageIndex(%v) = %d, want %d", tt.lang, got, tt.want)
+				t.Fatalf("selectedLanguageIndex(%s) = %d, want %d", langStr(tt.lang), got, tt.want)
 			}
 		})
 	}
@@ -98,7 +101,7 @@ func TestLanguageChanged(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := languageChanged(tt.existing, tt.newLang)
 			if got != tt.wantChanged {
-				t.Fatalf("languageChanged() = %v, want %v", got, tt.wantChanged)
+				t.Fatalf("languageChanged(%s, %s) = %v, want %v", langStr(tt.existing), langStr(tt.newLang), got, tt.wantChanged)
 			}
 		})
 	}

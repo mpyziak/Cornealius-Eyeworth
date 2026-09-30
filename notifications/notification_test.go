@@ -1,6 +1,7 @@
 package notifications
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
@@ -38,14 +39,7 @@ func TestAggregatedNotificationMultiple(t *testing.T) {
 	}
 	title, content := aggregatedNotification(reminders)
 
-	found := false
-	for _, header := range i18n.Active.NotificationCombinedHeaders {
-		if title == header {
-			found = true
-			break
-		}
-	}
-	if !found {
+	if !slices.Contains(i18n.Active.NotificationCombinedHeaders, title) {
 		t.Errorf("aggregatedNotification title %q not in NotificationCombinedHeaders", title)
 	}
 

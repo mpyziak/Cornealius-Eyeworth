@@ -31,9 +31,11 @@ func TestNormaliseLocale(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		if got := NormaliseLocale(tt.in); got != tt.want {
-			t.Errorf("NormaliseLocale(%q) = %q, want %q", tt.in, got, tt.want)
-		}
+		t.Run(tt.in, func(t *testing.T) {
+			if got := NormaliseLocale(tt.in); got != tt.want {
+				t.Errorf("NormaliseLocale(%q) = %q, want %q", tt.in, got, tt.want)
+			}
+		})
 	}
 }
 
@@ -77,10 +79,12 @@ func TestLocaleFor(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		if got := localeFor(locales, tt.raw); got != tt.want {
-			t.Errorf("localeFor(%q) = %s, want %s",
-				tt.raw, localeName(got), localeName(tt.want))
-		}
+		t.Run(tt.raw, func(t *testing.T) {
+			if got := localeFor(locales, tt.raw); got != tt.want {
+				t.Errorf("localeFor(%q) = %s, want %s",
+					tt.raw, localeName(got), localeName(tt.want))
+			}
+		})
 	}
 }
 
