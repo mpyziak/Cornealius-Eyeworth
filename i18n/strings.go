@@ -35,12 +35,14 @@ type Strings struct {
 
 	TrayTooltipShowHide string
 
-	ScheduleDialogTitle       string
-	OptionsInstruction        string
-	OptionsStandUpInstruction string
-	ScheduleCronInstruction   string
-	ScheduleStandardToggle    string
-	ScheduleAdvancedToggle    string
+	ScheduleDialogTitle            string
+	OptionsInstruction             string
+	OptionsStandUpInstruction      string
+	ScheduleCronInstructionEye     string
+	ScheduleCronInstructionStandUp string
+	ScheduleCronHelp               string
+	ScheduleStandardToggle         string
+	ScheduleAdvancedToggle         string
 
 	ButtonSave   string
 	ButtonCancel string

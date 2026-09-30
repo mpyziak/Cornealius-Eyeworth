@@ -22,12 +22,14 @@ var greek = Strings{
 
 	TrayTooltipShowHide: "Κλήση/Αποπομπή του Cornealius",
 
-	ScheduleDialogTitle:       "Πρόγραμμα - Cornealius Eyeworth",
-	OptionsInstruction:        "Λεπτά κάθε ώρας κατά τα οποία ο Cornealius θα σας υπενθυμίζει να ξεκουράσετε τα μάτια σας (π.χ. 20, 40, 55):",
-	OptionsStandUpInstruction: "Λεπτά κάθε ώρας κατά τα οποία ο Cornealius θα σας υπενθυμίζει να σηκωθείτε και να τεντωθείτε (π.χ. 0, 15, 30, 45). Αφήστε το κενό για απενεργοποίηση:",
-	ScheduleCronInstruction:   "Έκφραση CRON (π.χ. «0 20,40,55 * * * ?»):",
-	ScheduleStandardToggle:    "Βασικό",
-	ScheduleAdvancedToggle:    "Προηγμένο",
+	ScheduleDialogTitle:            "Πρόγραμμα - Cornealius Eyeworth",
+	OptionsInstruction:             "Σε αυτά τα λεπτά κάθε ώρας, ο Cornealius θα σας καλεί να ξεκουράσετε τα μάτια σας (π.χ. 20, 40, 55):",
+	OptionsStandUpInstruction:      "Σε αυτά τα λεπτά κάθε ώρας, ο Cornealius θα επιμένει να σηκωθείτε και να τεντωθείτε (π.χ. 0, 15, 30, 45). Αφήστε το κενό, και ο Cornealius θα φροντίζει μόνο τα μάτια σας:",
+	ScheduleCronInstructionEye:     "Για τους απαιτητικούς: η έκφραση CRON για την κλήση ξεκούρασης ματιών:",
+	ScheduleCronInstructionStandUp: "Και ομοίως, για την κλήση έγερσης και διατάσεων. Αφήστε το κενό, και ο Cornealius θα φροντίζει μόνο τα μάτια σας:",
+	ScheduleCronHelp:               "Μια σύντομη εισαγωγή: το * σημαίνει οποιαδήποτε τιμή, το πρώτο πεδίο (δευτερόλεπτα) πρέπει να παραμείνει 0, μια λίστα μοιάζει με 20,40,55 και ένα εύρος με 0-1,7-23.",
+	ScheduleStandardToggle:         "Βασικό",
+	ScheduleAdvancedToggle:         "Προηγμένο",
 
 	ButtonSave:   "Αποθήκευση",
 	ButtonCancel: "Ακύρωση",
