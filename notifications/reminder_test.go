@@ -8,11 +8,11 @@ import (
 )
 
 func TestNewReminderEye(t *testing.T) {
-	reminder := NewReminder(scheduling.ReminderTypeEye)
+	reminder := NewReminder(scheduling.CategoryEye)
 
-	if reminder.NotificationCategory != scheduling.ReminderTypeEye {
-		t.Errorf("NewReminder(ReminderTypeEye).NotificationCategory = %q, want %q",
-			reminder.NotificationCategory, scheduling.ReminderTypeEye)
+	if reminder.Category != scheduling.CategoryEye {
+		t.Errorf("NewReminder(CategoryEye).Category = %q, want %q",
+			reminder.Category, scheduling.CategoryEye)
 	}
 
 	found := false
@@ -23,16 +23,16 @@ func TestNewReminderEye(t *testing.T) {
 		}
 	}
 	if !found {
-		t.Errorf("NewReminder(ReminderTypeEye) message %q not in NotificationDistanceGlanceQuips", reminder.Message)
+		t.Errorf("NewReminder(CategoryEye) message %q not in NotificationDistanceGlanceQuips", reminder.Message)
 	}
 }
 
 func TestNewReminderStandup(t *testing.T) {
-	reminder := NewReminder(scheduling.ReminderTypeStandup)
+	reminder := NewReminder(scheduling.CategoryStandUp)
 
-	if reminder.NotificationCategory != scheduling.ReminderTypeStandup {
-		t.Errorf("NewReminder(ReminderTypeStandup).NotificationCategory = %q, want %q",
-			reminder.NotificationCategory, scheduling.ReminderTypeStandup)
+	if reminder.Category != scheduling.CategoryStandUp {
+		t.Errorf("NewReminder(CategoryStandUp).Category = %q, want %q",
+			reminder.Category, scheduling.CategoryStandUp)
 	}
 
 	found := false
@@ -43,15 +43,15 @@ func TestNewReminderStandup(t *testing.T) {
 		}
 	}
 	if !found {
-		t.Errorf("NewReminder(ReminderTypeStandup) message %q not in NotificationMovementQuips", reminder.Message)
+		t.Errorf("NewReminder(CategoryStandUp) message %q not in NotificationMovementQuips", reminder.Message)
 	}
 }
 
 func TestNewReminderUnknown(t *testing.T) {
 	reminder := NewReminder("unknown")
 
-	if reminder.NotificationCategory != "unknown" {
-		t.Errorf("NewReminder(\"unknown\").NotificationCategory = %q, want \"unknown\"", reminder.NotificationCategory)
+	if reminder.Category != "unknown" {
+		t.Errorf("NewReminder(\"unknown\").Category = %q, want \"unknown\"", reminder.Category)
 	}
 
 	if reminder.Message != "" {

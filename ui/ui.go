@@ -121,7 +121,7 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 	if err := scheduling.ApplySchedule(
 		eyeScheduler,
 		standUpScheduler,
-		scheduling.ScheduleSpec{
+		scheduling.Spec{
 			EyeCron:     cfg.CronExpression,
 			StandUpCron: cfg.StandUpCronExpression,
 		},
@@ -138,7 +138,7 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 		if fallbackErr := scheduling.ApplySchedule(
 			eyeScheduler,
 			standUpScheduler,
-			scheduling.ScheduleSpec{
+			scheduling.Spec{
 				EyeCron:     cfg.CronExpression,
 				StandUpCron: cfg.StandUpCronExpression,
 			},
@@ -170,7 +170,7 @@ func windowFactory(
 	eyeSched scheduling.Runner,
 	standUpSched scheduling.Runner,
 	trayMgr *systray.Manager,
-	onFire func(string),
+	onFire func(scheduling.Category),
 ) func() fyne.Window {
 	return func() fyne.Window {
 		diagnostics.Event("status window opened")
@@ -196,10 +196,10 @@ func cronCallback(
 	status *statusState,
 	trayMgr *systray.Manager,
 	buffer scheduling.ReminderAggregator,
-) func(string) {
-	return func(notificationCategory string) {
-		diagnostics.Event("cron fired - category=%s", notificationCategory)
-		buffer.Add(notifications.NewReminder(notificationCategory))
+) func(scheduling.Category) {
+	return func(category scheduling.Category) {
+		diagnostics.Event("cron fired - category=%s", category)
+		buffer.Add(notifications.NewReminder(category))
 		if latest, err := repo.Load(); err != nil {
 			diagnostics.Err("cron fired: cannot load config.json (%v) - labels not refreshed", err)
 		} else {
@@ -219,7 +219,7 @@ func buildMenu(
 	eyeSched scheduling.Runner,
 	standUpSched scheduling.Runner,
 	updateStatus func(*config.Config),
-	onFire func(string),
+	onFire func(scheduling.Category),
 ) *fyne.MainMenu {
 	S := i18n.Active
 

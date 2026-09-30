@@ -39,28 +39,28 @@ func TestPickRandomValid(t *testing.T) {
 }
 
 func TestHasReminderTypeEmpty(t *testing.T) {
-	result := hasReminderType([]scheduling.Reminder{}, scheduling.ReminderTypeEye)
+	result := hasReminderType([]scheduling.Reminder{}, scheduling.CategoryEye)
 	if result {
-		t.Errorf("hasReminderType([], ReminderTypeEye) = true, want false")
+		t.Errorf("hasReminderType([], CategoryEye) = true, want false")
 	}
 }
 
 func TestHasReminderTypePresent(t *testing.T) {
 	reminders := []scheduling.Reminder{
-		{NotificationCategory: scheduling.ReminderTypeEye, Message: "test"},
+		{Category: scheduling.CategoryEye, Message: "test"},
 	}
-	result := hasReminderType(reminders, scheduling.ReminderTypeEye)
+	result := hasReminderType(reminders, scheduling.CategoryEye)
 	if !result {
-		t.Errorf("hasReminderType with ReminderTypeEye present = false, want true")
+		t.Errorf("hasReminderType with CategoryEye present = false, want true")
 	}
 }
 
 func TestHasReminderTypeAbsent(t *testing.T) {
 	reminders := []scheduling.Reminder{
-		{NotificationCategory: scheduling.ReminderTypeEye, Message: "test"},
+		{Category: scheduling.CategoryEye, Message: "test"},
 	}
-	result := hasReminderType(reminders, scheduling.ReminderTypeStandup)
+	result := hasReminderType(reminders, scheduling.CategoryStandUp)
 	if result {
-		t.Errorf("hasReminderType without ReminderTypeStandup = true, want false")
+		t.Errorf("hasReminderType without CategoryStandUp = true, want false")
 	}
 }

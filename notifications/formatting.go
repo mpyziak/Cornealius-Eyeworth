@@ -13,16 +13,16 @@ func aggregatedContent(reminders []scheduling.Reminder) string {
 	}
 
 	var lines []string
-	for _, targetNotificationCategory := range []string{scheduling.ReminderTypeStandup, scheduling.ReminderTypeEye} {
+	for _, category := range []scheduling.Category{scheduling.CategoryStandUp, scheduling.CategoryEye} {
 		for _, r := range reminders {
-			if r.NotificationCategory == targetNotificationCategory {
+			if r.Category == category {
 				lines = append(lines, "• "+r.Message)
 			}
 		}
 	}
 
 	for _, r := range reminders {
-		if r.NotificationCategory != scheduling.ReminderTypeStandup && r.NotificationCategory != scheduling.ReminderTypeEye {
+		if r.Category != scheduling.CategoryStandUp && r.Category != scheduling.CategoryEye {
 			lines = append(lines, "• "+r.Message)
 		}
 	}
@@ -32,8 +32,8 @@ func aggregatedContent(reminders []scheduling.Reminder) string {
 }
 
 func aggregatedTitle(reminders []scheduling.Reminder) string {
-	hasStandUp := hasReminderType(reminders, scheduling.ReminderTypeStandup)
-	hasDistanceGlance := hasReminderType(reminders, scheduling.ReminderTypeEye)
+	hasStandUp := hasReminderType(reminders, scheduling.CategoryStandUp)
+	hasDistanceGlance := hasReminderType(reminders, scheduling.CategoryEye)
 	if hasStandUp && hasDistanceGlance {
 		return pickRandom(i18n.Active.NotificationCombinedHeaders)
 	} else if hasStandUp {
