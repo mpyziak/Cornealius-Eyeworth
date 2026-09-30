@@ -16,6 +16,7 @@ type Manager struct {
 	app             fyne.App
 	windowFactory   func() fyne.Window // builds a fresh window each time it is shown
 	currentWindow   fyne.Window        // non-nil while the status window is visible
+	menu            *fyne.Menu
 	nextTriggerMenu *fyne.MenuItem
 	setupCfg        *config.Config
 }
@@ -61,7 +62,7 @@ func (m *Manager) doSetup() {
 	})
 	quitItem.IsQuit = true // prevents Fyne from injecting a second Quit entry
 
-	menu := fyne.NewMenu(str.AppName,
+	m.menu = fyne.NewMenu(str.AppName,
 		showHideItem,
 		fyne.NewMenuItemSeparator(),
 		m.nextTriggerMenu,
@@ -72,7 +73,7 @@ func (m *Manager) doSetup() {
 	// The app icon must already be set before this call. Fyne's systray onReady
 	// reads fyne.CurrentApp().Icon() to build the tray icon, and it runs on its
 	// own goroutine released from inside SetSystemTrayMenu
-	desk.SetSystemTrayMenu(menu)
+	desk.SetSystemTrayMenu(m.menu)
 }
 
 // UpdateLabels refreshes the tray menu's next-trigger text from cfg. Must
@@ -83,7 +84,11 @@ func (m *Manager) UpdateLabels(cfg *config.Config) {
 	if m.nextTriggerMenu != nil {
 		m.nextTriggerMenu.Label = fmt.Sprintf(str.NextTrigger, scheduling.NextTrigger(cfg.CronExpression).Format("15:04"))
 	}
-	// Fyne's MenuItem automatically reflects changes to its Label if the menu is active.
+	// A field write alone never reaches the native tray menu - Fyne only reads
+	// each item's Label once, when the menu is (re)built. Refresh re-pushes it.
+	if m.menu != nil {
+		m.menu.Refresh()
+	}
 }
 
 // NotifyHidden tells the Manager the status window is no longer visible.

@@ -97,6 +97,16 @@ func (s *statusState) snapshot() (schedule, nextTrigger, standUp, standUpNextTri
 	return s.schedule, s.nextTrigger, s.standUp, s.standUpNextTrigger
 }
 
+// refreshLabels bundles the status window and tray menu refreshes so every
+// caller re-arms both from one place. A caller that only calls status.update
+// leaves the tray showing a stale "Next eye care" time until the next fire.
+func refreshLabels(status *statusState, trayMgr *systray.Manager) func(*config.Config) {
+	return func(cfg *config.Config) {
+		status.update(cfg)
+		trayMgr.UpdateLabels(cfg)
+	}
+}
+
 // Run wires up the schedulers, tray, and status window, and blocks in the
 // Fyne event loop until the app quits.
 func Run(app fyne.App, cfg *config.Config, repo *config.Repository) {
@@ -182,7 +192,7 @@ func windowFactory(
 		schedule, nextTrigger, standUp, standUpNextTrigger := status.snapshot()
 		win, labels := buildMainWindow(app, schedule, nextTrigger, standUp, standUpNextTrigger)
 		status.attach(labels)
-		win.SetMainMenu(buildMenu(app, status.update, deps))
+		win.SetMainMenu(buildMenu(app, refreshLabels(status, trayMgr), deps))
 		win.SetOnClosed(func() {
 			diagnostics.Event("status window closed")
 			status.detach()
@@ -202,6 +212,7 @@ func cronCallback(
 	trayMgr *systray.Manager,
 	buffer *scheduling.Buffer,
 ) func(scheduling.Category) {
+	refresh := refreshLabels(status, trayMgr)
 	return func(category scheduling.Category) {
 		diagnostics.Event("cron fired - category=%s", category)
 		buffer.Add(notifications.NewReminder(category))
@@ -210,10 +221,7 @@ func cronCallback(
 		} else {
 			// Cron's goroutine. Both calls touch Fyne widgets, which are
 			// main thread only.
-			fyne.Do(func() {
-				status.update(latest)
-				trayMgr.UpdateLabels(latest)
-			})
+			fyne.Do(func() { refresh(latest) })
 		}
 	}
 }
