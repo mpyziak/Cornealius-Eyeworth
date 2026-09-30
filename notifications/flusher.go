@@ -12,6 +12,8 @@ type AppFlusher struct {
 	app fyne.App
 }
 
+var _ scheduling.Flusher = (*AppFlusher)(nil)
+
 // NewAppFlusher returns an AppFlusher that sends through app.
 func NewAppFlusher(app fyne.App) *AppFlusher {
 	return &AppFlusher{app: app}

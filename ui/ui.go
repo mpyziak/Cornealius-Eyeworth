@@ -96,7 +96,7 @@ func (s *statusState) snapshot() (schedule, nextTrigger, standUp, standUpNextTri
 
 // Run wires up the schedulers, tray, and status window, and blocks in the
 // Fyne event loop until the app quits.
-func Run(app fyne.App, cfg *config.Config, repo config.Store) {
+func Run(app fyne.App, cfg *config.Config, repo *config.Repository) {
 	status := &statusState{}
 	status.update(cfg)
 
@@ -165,7 +165,7 @@ func Run(app fyne.App, cfg *config.Config, repo config.Store) {
 // answers by reallocating GL buffers.
 func windowFactory(
 	app fyne.App,
-	repo config.Store,
+	repo *config.Repository,
 	status *statusState,
 	eyeSched scheduling.Runner,
 	standUpSched scheduling.Runner,
@@ -192,10 +192,10 @@ func windowFactory(
 }
 
 func cronCallback(
-	repo config.Store,
+	repo *config.Repository,
 	status *statusState,
 	trayMgr *systray.Manager,
-	buffer scheduling.ReminderAggregator,
+	buffer *scheduling.Buffer,
 ) func(scheduling.Category) {
 	return func(category scheduling.Category) {
 		diagnostics.Event("cron fired - category=%s", category)
@@ -215,7 +215,7 @@ func cronCallback(
 
 func buildMenu(
 	app fyne.App,
-	repo config.Store,
+	repo *config.Repository,
 	eyeSched scheduling.Runner,
 	standUpSched scheduling.Runner,
 	updateStatus func(*config.Config),

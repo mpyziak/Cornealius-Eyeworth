@@ -11,13 +11,6 @@ type Reminder struct {
 	Message  string
 }
 
-// ReminderAggregator collects reminders and flushes them as a batch.
-// Buffer is its only implementation.
-type ReminderAggregator interface {
-	Add(reminder Reminder)
-	Close()
-}
-
 // Buffer collects reminders that fire close together and flushes them as
 // one batch after windowLen, instead of one notification per fire.
 type Buffer struct {

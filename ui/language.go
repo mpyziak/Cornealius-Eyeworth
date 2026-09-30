@@ -42,7 +42,7 @@ func selectedLanguageIndex(options []i18n.LanguageOption, lang *string) int {
 
 // ShowLanguageDialog opens the language-selection window, or focuses it if
 // already open.
-func ShowLanguageDialog(app fyne.App, repo config.Store) {
+func ShowLanguageDialog(app fyne.App, repo *config.Repository) {
 	str := i18n.Active
 
 	if focusExisting(dialogLanguage) {
