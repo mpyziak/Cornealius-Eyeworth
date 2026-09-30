@@ -63,18 +63,12 @@ func TestBufferConcurrentAddAndClose(t *testing.T) {
 	b := NewBuffer(time.Millisecond, f)
 
 	var wg sync.WaitGroup
-	for i := 0; i < 50; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range 50 {
+		wg.Go(func() {
 			b.Add(Reminder{Category: CategoryStandUp, Message: "y"})
-		}()
+		})
 	}
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		b.Close()
-	}()
+	wg.Go(b.Close)
 	wg.Wait()
 
 	b.Close() // must not panic or deadlock when called again after the race above

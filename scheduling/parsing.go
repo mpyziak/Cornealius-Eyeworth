@@ -86,7 +86,7 @@ func SimpleMinutes(cronExpr string) (minutes string, ok bool) {
 	if parts[0] != "0" || parts[2] != "*" || parts[3] != "*" || parts[4] != "*" || parts[5] != "?" {
 		return "", false
 	}
-	for _, t := range strings.Split(parts[1], ",") {
+	for t := range strings.SplitSeq(parts[1], ",") {
 		if m, err := strconv.Atoi(t); err != nil || m < 0 || m > 59 {
 			return "", false
 		}
