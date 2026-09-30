@@ -43,13 +43,13 @@ func selectedLanguageIndex(options []i18n.LanguageOption, lang *string) int {
 // ShowLanguageDialog opens the language-selection window, or focuses it if
 // already open.
 func ShowLanguageDialog(app fyne.App, repo config.Store) {
-	S := i18n.Active
+	str := i18n.Active
 
 	if focusExisting(dialogLanguage) {
 		return
 	}
 
-	win := app.NewWindow(S.LanguageDialogTitle)
+	win := app.NewWindow(str.LanguageDialogTitle)
 	win.SetFixedSize(true)
 	win.Resize(fyne.NewSize(450, 175))
 	win.CenterOnScreen()
@@ -66,7 +66,7 @@ func ShowLanguageDialog(app fyne.App, repo config.Store) {
 	labels := make([]string, len(options))
 	for i, opt := range options {
 		if opt.DisplayName == "" {
-			labels[i] = S.OptionsLanguageDefault
+			labels[i] = str.OptionsLanguageDefault
 		} else {
 			labels[i] = opt.DisplayName
 		}
@@ -74,12 +74,12 @@ func ShowLanguageDialog(app fyne.App, repo config.Store) {
 
 	currentIdx := selectedLanguageIndex(options, currentCfg.Language)
 
-	instrLabel := widget.NewLabel(S.OptionsLanguageLabel)
+	instrLabel := widget.NewLabel(str.OptionsLanguageLabel)
 
 	selector := widget.NewSelect(labels, nil)
 	selector.SetSelectedIndex(currentIdx)
 
-	saveBtn := widget.NewButton(S.ButtonSave, func() {
+	saveBtn := widget.NewButton(str.ButtonSave, func() {
 		idx := selector.SelectedIndex()
 		if idx < 0 {
 			idx = 0
@@ -107,7 +107,7 @@ func ShowLanguageDialog(app fyne.App, repo config.Store) {
 		}
 
 		if langChanged {
-			d := dialog.NewInformation(S.AppName, S.OptionsLanguageRestartNotice, win)
+			d := dialog.NewInformation(str.AppName, str.OptionsLanguageRestartNotice, win)
 			d.SetOnClosed(func() { win.Close() })
 			d.Show()
 		} else {
@@ -116,7 +116,7 @@ func ShowLanguageDialog(app fyne.App, repo config.Store) {
 	})
 	saveBtn.Importance = widget.HighImportance
 
-	cancelBtn := widget.NewButton(S.ButtonCancel, func() { win.Close() })
+	cancelBtn := widget.NewButton(str.ButtonCancel, func() { win.Close() })
 
 	btnRow := container.NewHBox(layout.NewSpacer(), saveBtn, cancelBtn)
 	win.SetContent(container.NewPadded(container.New(layout.NewVBoxLayout(),

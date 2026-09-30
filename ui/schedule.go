@@ -20,13 +20,13 @@ import (
 // already open. onFire must be the same callback ui.Run passed, not a
 // local one.
 func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched scheduling.Runner, onSaved func(*config.Config), onFire func(scheduling.Category)) {
-	S := i18n.Active
+	str := i18n.Active
 
 	if focusExisting(dialogSchedule) {
 		return
 	}
 
-	win := app.NewWindow(S.ScheduleDialogTitle)
+	win := app.NewWindow(str.ScheduleDialogTitle)
 	win.SetFixedSize(true)
 	win.Resize(fyne.NewSize(500, 350))
 	win.CenterOnScreen()
@@ -43,7 +43,7 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 	simpleStandUpMinutes := parsing.TryExtractSimpleMinutes(currentCfg.StandUpCronExpression)
 	startAdvanced := simpleEyeMinutes == "" || (currentCfg.StandUpCronExpression != "" && simpleStandUpMinutes == "")
 
-	eyeInstrLabel := widget.NewLabel(S.OptionsInstruction)
+	eyeInstrLabel := widget.NewLabel(str.OptionsInstruction)
 	eyeInstrLabel.Wrapping = fyne.TextWrapWord
 
 	minutesEntry := widget.NewEntry()
@@ -52,7 +52,7 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 		minutesEntry.SetText(simpleEyeMinutes)
 	}
 
-	standUpInstrLabel := widget.NewLabel(S.OptionsStandUpInstruction)
+	standUpInstrLabel := widget.NewLabel(str.OptionsStandUpInstruction)
 	standUpInstrLabel.Wrapping = fyne.TextWrapWord
 
 	standUpMinutesEntry := widget.NewEntry()
@@ -69,11 +69,11 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 		standUpMinutesEntry,
 	))
 
-	eyeCronInstrLabel := widget.NewLabel(S.ScheduleCronInstruction)
+	eyeCronInstrLabel := widget.NewLabel(str.ScheduleCronInstruction)
 	eyeCronEntry := widget.NewEntry()
 	eyeCronEntry.SetText(currentCfg.CronExpression)
 
-	standUpCronInstrLabel := widget.NewLabel(S.ScheduleCronInstruction)
+	standUpCronInstrLabel := widget.NewLabel(str.ScheduleCronInstruction)
 	standUpCronEntry := widget.NewEntry()
 	standUpCronEntry.SetText(currentCfg.StandUpCronExpression)
 
@@ -86,8 +86,8 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 	))
 
 	tabs := container.NewAppTabs(
-		container.NewTabItem(S.ScheduleStandardToggle, standardContent),
-		container.NewTabItem(S.ScheduleAdvancedToggle, advancedContent),
+		container.NewTabItem(str.ScheduleStandardToggle, standardContent),
+		container.NewTabItem(str.ScheduleAdvancedToggle, advancedContent),
 	)
 	if startAdvanced {
 		tabs.SelectIndex(1)
@@ -96,7 +96,7 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 	errorLabel := widget.NewLabel("")
 	errorLabel.Importance = widget.DangerImportance
 
-	saveBtn := widget.NewButton(S.ButtonSave, func() {
+	saveBtn := widget.NewButton(str.ButtonSave, func() {
 		var eyeResult parsing.ParseResult
 		var standUpResult parsing.ParseResult
 
@@ -159,7 +159,7 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 	})
 	saveBtn.Importance = widget.HighImportance
 
-	cancelBtn := widget.NewButton(S.ButtonCancel, func() { win.Close() })
+	cancelBtn := widget.NewButton(str.ButtonCancel, func() { win.Close() })
 
 	btnRow := container.NewHBox(layout.NewSpacer(), saveBtn, cancelBtn)
 	bottom := container.New(layout.NewVBoxLayout(), errorLabel, btnRow)
