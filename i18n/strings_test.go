@@ -17,6 +17,7 @@ func localeName(s *Strings) string {
 }
 
 func TestNormaliseLocale(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		in   string
 		want string
@@ -32,6 +33,7 @@ func TestNormaliseLocale(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
+			t.Parallel()
 			if got := NormaliseLocale(tt.in); got != tt.want {
 				t.Errorf("NormaliseLocale(%q) = %q, want %q", tt.in, got, tt.want)
 			}
@@ -40,6 +42,7 @@ func TestNormaliseLocale(t *testing.T) {
 }
 
 func TestLocaleFor(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		raw  string
 		want *Strings
@@ -80,6 +83,7 @@ func TestLocaleFor(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.raw, func(t *testing.T) {
+			t.Parallel()
 			if got := localeFor(locales, tt.raw); got != tt.want {
 				t.Errorf("localeFor(%q) = %s, want %s",
 					tt.raw, localeName(got), localeName(tt.want))
@@ -114,6 +118,7 @@ func TestSetLanguageSystemDefault(t *testing.T) {
 }
 
 func TestLocaleFor_Disabled(t *testing.T) {
+	t.Parallel()
 	registry := Locales()
 	fr := slices.IndexFunc(registry, func(l Locale) bool { return l.Strings == &french })
 	if fr < 0 {
@@ -134,6 +139,7 @@ func TestLocaleFor_Disabled(t *testing.T) {
 }
 
 func TestAvailableLanguages_ExcludesDisabled(t *testing.T) {
+	t.Parallel()
 	registry := Locales()
 	fr := slices.IndexFunc(registry, func(l Locale) bool { return l.Strings == &french })
 	if fr < 0 {
@@ -151,6 +157,7 @@ func TestAvailableLanguages_ExcludesDisabled(t *testing.T) {
 // Locales hands out a copy, so a caller flipping Enabled cannot reach the
 // registry the app resolves against.
 func TestLocalesReturnsACopy(t *testing.T) {
+	t.Parallel()
 	registry := Locales()
 	for i := range registry {
 		registry[i].Enabled = false
@@ -162,6 +169,7 @@ func TestLocalesReturnsACopy(t *testing.T) {
 }
 
 func TestAvailableLanguages_SystemDefaultFirst(t *testing.T) {
+	t.Parallel()
 	options := AvailableLanguages()
 	if len(options) == 0 {
 		t.Fatal("AvailableLanguages() returned no entries, want the system-default entry first")
@@ -177,6 +185,7 @@ func TestAvailableLanguages_SystemDefaultFirst(t *testing.T) {
 }
 
 func TestLocaleCodesAreNormalisedAndUnique(t *testing.T) {
+	t.Parallel()
 	owner := map[string]string{}
 	for _, l := range locales {
 		if len(l.Codes) == 0 {
@@ -200,12 +209,14 @@ var formatVerb = regexp.MustCompile(`%[-+ #0]*[0-9.]*[a-zA-Z%]`)
 // A struct literal that omits a field compiles fine and shows the user an
 // empty label, so every locale is checked field by field against English.
 func TestLocalesAreComplete(t *testing.T) {
+	t.Parallel()
 	en := reflect.ValueOf(english)
 	typ := en.Type()
 
 	for _, l := range locales {
 		v := reflect.ValueOf(*l.Strings)
 		t.Run(l.Codes[0], func(t *testing.T) {
+			t.Parallel()
 			for i := range typ.NumField() {
 				name := typ.Field(i).Name
 				switch f := v.Field(i); f.Kind() {

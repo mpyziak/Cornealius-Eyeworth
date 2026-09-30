@@ -10,6 +10,7 @@ import (
 )
 
 func TestAggregatedContentEmpty(t *testing.T) {
+	t.Parallel()
 	result := aggregatedContent([]scheduling.Reminder{})
 	if result != "" {
 		t.Errorf("aggregatedContent([]) = %q, want empty string", result)
@@ -17,6 +18,7 @@ func TestAggregatedContentEmpty(t *testing.T) {
 }
 
 func TestAggregatedContentSingle(t *testing.T) {
+	t.Parallel()
 	reminders := []scheduling.Reminder{
 		{Category: scheduling.CategoryEye, Message: "Look away"},
 	}
@@ -28,6 +30,7 @@ func TestAggregatedContentSingle(t *testing.T) {
 }
 
 func TestAggregatedContentMultiple(t *testing.T) {
+	t.Parallel()
 	reminders := []scheduling.Reminder{
 		{Category: scheduling.CategoryEye, Message: "Eye care"},
 		{Category: scheduling.CategoryStandUp, Message: "Stand up"},
@@ -53,6 +56,7 @@ func TestAggregatedContentMultiple(t *testing.T) {
 }
 
 func TestAggregatedTitle(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		reminders []scheduling.Reminder
@@ -80,6 +84,7 @@ func TestAggregatedTitle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := aggregatedTitle(tt.reminders)
 			if !slices.Contains(tt.headers, got) {
 				t.Errorf("aggregatedTitle(%v) = %q, want one of %v", tt.reminders, got, tt.headers)

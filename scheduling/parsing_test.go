@@ -3,6 +3,7 @@ package scheduling
 import "testing"
 
 func TestParseCron(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		input     string
@@ -18,6 +19,7 @@ func TestParseCron(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			expr, err := ParseCron(tt.input)
 			if (err == nil) != tt.wantValid {
 				t.Fatalf("ParseCron(%q) error = %v, wantValid %v", tt.input, err, tt.wantValid)
@@ -30,6 +32,7 @@ func TestParseCron(t *testing.T) {
 }
 
 func TestParseMinutes(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		input     string
@@ -47,6 +50,7 @@ func TestParseMinutes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			expr, err := ParseMinutes(tt.input)
 			if (err == nil) != tt.wantValid {
 				t.Fatalf("ParseMinutes(%q) error = %v, wantValid %v", tt.input, err, tt.wantValid)
@@ -59,6 +63,7 @@ func TestParseMinutes(t *testing.T) {
 }
 
 func TestSimpleMinutes(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		input  string
@@ -76,6 +81,7 @@ func TestSimpleMinutes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, ok := SimpleMinutes(tt.input)
 			if ok != tt.wantOk || got != tt.want {
 				t.Fatalf("SimpleMinutes(%q) = (%q, %v), want (%q, %v)", tt.input, got, ok, tt.want, tt.wantOk)

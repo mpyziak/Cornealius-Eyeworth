@@ -10,6 +10,7 @@ import (
 )
 
 func TestAggregatedNotificationEmpty(t *testing.T) {
+	t.Parallel()
 	title, content := aggregatedNotification([]scheduling.Reminder{})
 
 	if title != "" || content != "" {
@@ -18,6 +19,7 @@ func TestAggregatedNotificationEmpty(t *testing.T) {
 }
 
 func TestAggregatedNotificationSingle(t *testing.T) {
+	t.Parallel()
 	reminders := []scheduling.Reminder{
 		{Category: scheduling.CategoryEye, Message: "Look away"},
 	}
@@ -33,6 +35,7 @@ func TestAggregatedNotificationSingle(t *testing.T) {
 }
 
 func TestAggregatedNotificationMultiple(t *testing.T) {
+	t.Parallel()
 	reminders := []scheduling.Reminder{
 		{Category: scheduling.CategoryEye, Message: "Eye care"},
 		{Category: scheduling.CategoryStandUp, Message: "Stand up"},
