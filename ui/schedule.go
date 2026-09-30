@@ -68,13 +68,20 @@ func ShowScheduleDialog(app fyne.App, deps scheduleDeps, onSaved func(*config.Co
 		standUpMinutesEntry,
 	))
 
-	eyeCronInstrLabel := widget.NewLabel(str.ScheduleCronInstruction)
+	eyeCronInstrLabel := widget.NewLabel(str.ScheduleCronInstructionEye)
+	eyeCronInstrLabel.Wrapping = fyne.TextWrapWord
 	eyeCronEntry := widget.NewEntry()
+	eyeCronEntry.SetPlaceHolder("0 20,40,55 * * * ?")
 	eyeCronEntry.SetText(currentCfg.CronExpression)
 
-	standUpCronInstrLabel := widget.NewLabel(str.ScheduleCronInstruction)
+	standUpCronInstrLabel := widget.NewLabel(str.ScheduleCronInstructionStandUp)
+	standUpCronInstrLabel.Wrapping = fyne.TextWrapWord
 	standUpCronEntry := widget.NewEntry()
+	standUpCronEntry.SetPlaceHolder("0 55 * * * ?")
 	standUpCronEntry.SetText(currentCfg.StandUpCronExpression)
+
+	cronHelpLabel := widget.NewLabel(str.ScheduleCronHelp)
+	cronHelpLabel.Wrapping = fyne.TextWrapWord
 
 	advancedContent := container.NewPadded(container.New(layout.NewVBoxLayout(),
 		eyeCronInstrLabel,
@@ -82,6 +89,7 @@ func ShowScheduleDialog(app fyne.App, deps scheduleDeps, onSaved func(*config.Co
 		widget.NewSeparator(),
 		standUpCronInstrLabel,
 		standUpCronEntry,
+		cronHelpLabel,
 	))
 
 	tabs := container.NewAppTabs(
