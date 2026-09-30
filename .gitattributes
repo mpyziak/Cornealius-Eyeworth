@@ -1,0 +1,5 @@
+# Fixtures under testdata/ are compared byte-for-byte in Go tests (see
+# tools/i18n-export's TestWriteCSV_Golden). Without this, Windows runners'
+# default core.autocrlf=true rewrites \n -> \r\n on checkout, which breaks
+# the comparison against content Go's encoding/csv writer produced with \n.
+**/testdata/** -text

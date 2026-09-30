@@ -1,6 +1,10 @@
 # Publish output
 dist/
 
+# Logs
+logs/
+*.log
+
 # VS Code
 .vscode/*
 !.vscode/settings.json
