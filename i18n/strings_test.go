@@ -113,7 +113,7 @@ func TestSetLanguageSystemDefault(t *testing.T) {
 	t.Logf("system locale resolved to: %s", localeName(Active))
 }
 
-func TestDisabledLocaleIsNeitherResolvedNorOffered(t *testing.T) {
+func TestLocaleFor_Disabled(t *testing.T) {
 	registry := Locales()
 	fr := slices.IndexFunc(registry, func(l Locale) bool { return l.Strings == &french })
 	if fr < 0 {
@@ -126,15 +126,25 @@ func TestDisabledLocaleIsNeitherResolvedNorOffered(t *testing.T) {
 			t.Errorf("localeFor(%q) with french disabled = %s, want en", code, localeName(got))
 		}
 	}
-	for _, opt := range languageOptions(registry) {
-		if opt.Code == "fr" {
-			t.Errorf("languageOptions() offers disabled french: %+v", opt)
-		}
-	}
 
 	registry[fr].Enabled = true
 	if got := localeFor(registry, "fr-FR"); got != &french {
 		t.Errorf("localeFor(\"fr-FR\") with french enabled = %s, want fr", localeName(got))
+	}
+}
+
+func TestAvailableLanguages_ExcludesDisabled(t *testing.T) {
+	registry := Locales()
+	fr := slices.IndexFunc(registry, func(l Locale) bool { return l.Strings == &french })
+	if fr < 0 {
+		t.Fatal("french is not registered in locales")
+	}
+	registry[fr].Enabled = false
+
+	for _, opt := range languageOptions(registry) {
+		if opt.Code == "fr" {
+			t.Errorf("languageOptions() offers disabled french: %+v", opt)
+		}
 	}
 }
 
@@ -151,10 +161,13 @@ func TestLocalesReturnsACopy(t *testing.T) {
 	}
 }
 
-func TestAvailableLanguagesStartsWithSystemDefault(t *testing.T) {
+func TestAvailableLanguages_SystemDefaultFirst(t *testing.T) {
 	options := AvailableLanguages()
-	if len(options) == 0 || options[0] != (LanguageOption{"", ""}) {
-		t.Fatalf("AvailableLanguages()[0] = %+v, want the system-default entry", options)
+	if len(options) == 0 {
+		t.Fatal("AvailableLanguages() returned no entries, want the system-default entry first")
+	}
+	if options[0] != (LanguageOption{"", ""}) {
+		t.Fatalf("AvailableLanguages()[0] = %+v, want the system-default entry", options[0])
 	}
 	for _, opt := range options[1:] {
 		if opt.Code == "" || opt.DisplayName == "" {
@@ -182,7 +195,7 @@ func TestLocaleCodesAreNormalisedAndUnique(t *testing.T) {
 	}
 }
 
-var formatVerb = regexp.MustCompile(`%[a-z]`)
+var formatVerb = regexp.MustCompile(`%[-+ #0]*[0-9.]*[a-zA-Z%]`)
 
 // A struct literal that omits a field compiles fine and shows the user an
 // empty label, so every locale is checked field by field against English.
@@ -201,9 +214,9 @@ func TestLocalesAreComplete(t *testing.T) {
 						t.Errorf("%s is empty", name)
 						continue
 					}
-					want := len(formatVerb.FindAllString(en.Field(i).String(), -1))
-					if got := len(formatVerb.FindAllString(f.String(), -1)); got != want {
-						t.Errorf("%s has %d format verbs, English has %d: %q", name, got, want, f.String())
+					want := formatVerb.FindAllString(en.Field(i).String(), -1)
+					if got := formatVerb.FindAllString(f.String(), -1); !slices.Equal(got, want) {
+						t.Errorf("%s verbs = %v, want %v: %q", name, got, want, f.String())
 					}
 				case reflect.Slice:
 					if f.Len() == 0 {
