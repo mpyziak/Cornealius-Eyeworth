@@ -1,5 +1,24 @@
 name: Release
 
+# Job graph:
+#
+#   plan ─┬─ test-windows ── build-windows ────────┐
+#         │                                        │
+#         ├─ test-unix ───── build-unix (matrix) ──┼─ vulncheck ── release
+#         │                  linux-* and macos-*   │               (tags only)
+#         │                  run in parallel       │
+#         └─ checks (vet, lint) ───────────────────┘
+#
+# Tests gate builds rather than sharing a job with them, split by build
+# constraint family: notifier_windows.go and systraypatch_win.go compile only on
+# Windows, their counterparts only off it. One run per family covers both paths.
+#
+# Builds upload artifacts on every push, so rc branches produce downloadable
+# archives. Only the release job is tag-gated.
+#
+# Every build target is individually switchable - see BUILD TOGGLES in the plan
+# job, which is the only place any of this is configured.
+
 on:
   push:
     # Dry runs without throwaway tags. Drop once the pipeline is proven.
@@ -9,6 +28,13 @@ on:
 
 permissions:
   contents: read
+
+defaults:
+  run:
+    # Windows runners default to pwsh. Every run block here is bash - mkdir -p,
+    # $VAR expansion, backslash continuations - so pin it once for all jobs.
+    # Composite action steps set their own shell.
+    shell: bash
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -21,8 +47,7 @@ env:
   # survive an update. The version goes on the archive.
   APP_FILE: Cornealius-Eyeworth
   ICON: assets/Logo.png
-  # Must match the fyne.io/fyne/v2 version in go.mod - the patched fork is
-  # rebuilt from this tag on every run.
+  # Must match the fyne.io/fyne/v2 version in go.mod and the Makefile.
   FYNE_TAG: v2.7.4
 
 jobs:
@@ -30,47 +55,66 @@ jobs:
     name: Plan build
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.targets.outputs.matrix }}
-      version: ${{ steps.version.outputs.version }}
-      label: ${{ steps.version.outputs.label }}
+      version: ${{ steps.cfg.outputs.version }}
+      label: ${{ steps.cfg.outputs.label }}
+      windows: ${{ steps.cfg.outputs.windows }}
+      unix_matrix: ${{ steps.cfg.outputs.unix_matrix }}
+      unix_any: ${{ steps.cfg.outputs.unix_any }}
+      vulncheck_blocking: ${{ steps.cfg.outputs.vulncheck_blocking }}
     steps:
-      - name: Select target platforms
-        id: targets
+      - name: Configure
+        id: cfg
         run: |
-          # "platform" picks the build branch below, "suffix" names the archive.
-          # Keeping them apart is what lets both Linux entries reuse one apt step
-          # and one packaging branch. Suffixes must stay unique - upload-artifact
-          # rejects duplicate names. No "-arm" alias for ubuntu-latest exists, so
-          # that runner pins a version and has to be bumped by hand.
-          linux_amd64='{"os":"ubuntu-latest","platform":"linux","suffix":"linux-amd64"}'
-          linux_arm64='{"os":"ubuntu-24.04-arm","platform":"linux","suffix":"linux-arm64"}'
-          windows='{"os":"windows-latest","platform":"windows","suffix":"windows-amd64"}'
-          # ── TEMPORARILY DISABLED: macOS ───────────────────────────────────
-          # Restore by uncommenting and putting ,$darwin back in the echo below.
-          # Leaving it commented but referenced would expand to an empty string
-          # and produce a trailing comma, i.e. invalid JSON that fromJSON rejects.
-          #### darwin='{"os":"macos-latest","platform":"darwin","suffix":"macos-arm64"}'
-          # ──────────────────────────────────────────────────────────────────
+          # ══ BUILD TOGGLES ═══════════════════════════════════════════════
+          # Flip any of these to true/false. Tests are deliberately not
+          # switchable: they are cheap, and they are the only coverage of the
+          # windows / non-windows code split.
 
-          # ── ONE-OFF: Intel macOS ──────────────────────────────────────────
-          # Delete this entry and its use below once that release is out.
-          # It shares platform "darwin", so it reuses the existing packaging
-          # branch and just builds natively on an Intel runner.
-          # macos-13 was retired in December 2025; macos-15-intel replaces it and
-          # is the last x86_64 image Actions will offer, available until August
-          # 2027. Doubles the macOS cost of every run - two jobs at 10x.
-          #### darwin_amd64='{"os":"macos-15-intel","platform":"darwin","suffix":"macos-amd64"}'
-          # ──────────────────────────────────────────────────────────────────
+          BUILD_WINDOWS_AMD64=true
+          BUILD_LINUX_AMD64=true
+          BUILD_LINUX_ARM64=true
+          # Apple Silicon. Bills at 10x the Linux rate on a private repo.
+          BUILD_MACOS_ARM64=false
+          # Intel. macos-15-intel is the last x86_64 image Actions offers and
+          # retires in August 2027. Nobody here has an Intel Mac to verify on.
+          BUILD_MACOS_AMD64=false
 
-          # Whatever is enabled builds on every run, branch pushes included, so a
-          # dry run exercises exactly what a tag will. That equivalence is the
-          # point, and it is what the macOS entry above currently breaks: while
-          # it is disabled, neither a branch run nor a tag produces a Mac build.
-          echo "matrix={\"include\":[$linux_amd64,$linux_arm64,$windows]}" >> "$GITHUB_OUTPUT"
+          # true  - a govulncheck finding fails the job and blocks the release
+          # false - it is reported in the log and the release proceeds
+          VULNCHECK_BLOCKING=true
+          # ════════════════════════════════════════════════════════════════
 
-      - name: Derive version
-        id: version
-        run: |
+          # Windows is its own job: different test gate, different packaging.
+          echo "windows=$BUILD_WINDOWS_AMD64" >> "$GITHUB_OUTPUT"
+          echo "vulncheck_blocking=$VULNCHECK_BLOCKING" >> "$GITHUB_OUTPUT"
+
+          # Everything non-Windows shares one matrix. "platform" picks the
+          # packaging branch, "suffix" names the archive and must stay unique -
+          # upload-artifact rejects duplicate artifact names.
+          entries=""
+          add() { entries="${entries:+$entries,}$1"; }
+
+          if [ "$BUILD_LINUX_AMD64" = true ]; then
+            add '{"os":"ubuntu-latest","platform":"linux","suffix":"linux-amd64"}'
+          fi
+          if [ "$BUILD_LINUX_ARM64" = true ]; then
+            # No "-arm" alias for ubuntu-latest exists, so this pins a version
+            # and has to be bumped by hand.
+            add '{"os":"ubuntu-24.04-arm","platform":"linux","suffix":"linux-arm64"}'
+          fi
+          if [ "$BUILD_MACOS_ARM64" = true ]; then
+            add '{"os":"macos-latest","platform":"darwin","suffix":"macos-arm64"}'
+          fi
+          if [ "$BUILD_MACOS_AMD64" = true ]; then
+            add '{"os":"macos-15-intel","platform":"darwin","suffix":"macos-amd64"}'
+          fi
+
+          # An empty include list is a hard error in Actions, so the build-unix
+          # job is skipped entirely rather than handed one.
+          if [ -n "$entries" ]; then unix_any=true; else unix_any=false; fi
+          echo "unix_any=$unix_any" >> "$GITHUB_OUTPUT"
+          echo "unix_matrix={\"include\":[$entries]}" >> "$GITHUB_OUTPUT"
+
           # Tag builds are versioned from the tag; branch builds get a short SHA
           # label and a placeholder version, since fyne requires x[.y[.z]].
           if [ "$GITHUB_REF" != "${GITHUB_REF#refs/tags/}" ]; then
@@ -83,173 +127,60 @@ jobs:
           echo "label=$label" >> "$GITHUB_OUTPUT"
           echo "version=${version:-0.0.0}" >> "$GITHUB_OUTPUT"
 
-  build:
-    name: Build and test ${{ matrix.suffix }}
+          echo "windows=$BUILD_WINDOWS_AMD64  unix=[$entries]  vulncheck_blocking=$VULNCHECK_BLOCKING"
+
+  # ── Tests: one run per build-constraint family ─────────────────────────────
+
+  test-windows:
+    name: Test windows
     needs: plan
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
-    env:
-      VERSION: ${{ needs.plan.outputs.version }}
-      ASSET: Cornealius-Eyeworth-${{ needs.plan.outputs.label }}-${{ matrix.suffix }}
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
-
-      - uses: actions/setup-go@v7
+      - uses: ./.github/actions/go-setup
         with:
-          go-version: stable
+          fyne-tag: ${{ env.FYNE_TAG }}
 
-      - name: Install Linux build dependencies
-        if: matrix.platform == 'linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc libgl1-mesa-dev xorg-dev
-
-      - name: Rebuild the patched Fyne fork
-        run: |
-          fork=../fyne-v2-watchtheme-patch
-
-          # go.mod points at a sibling checkout no fresh clone has, so rebuild it
-          # from pinned upstream plus our one patched file (LEAKS.md §1).
-          #
-          # init+fetch rather than clone: a clone cannot take a bare SHA, and
-          # FYNE_TAG is meant to become one. autocrlf off so the check below is
-          # not confused by line endings on the Windows runner.
-          git init -q "$fork"
-          git -C "$fork" config core.autocrlf false
-          git -C "$fork" remote add origin https://github.com/fyne-io/fyne.git
-          git -C "$fork" fetch -q --depth 1 origin "$FYNE_TAG"
-          git -C "$fork" checkout -q --detach FETCH_HEAD
-
-          cp _external-patches/fyne-theme_windows.go \
-            "$fork/internal/app/theme_windows.go"
-
-          # Anything other than exactly that file means the patch missed, or
-          # upstream is not the tree we expect. Either way, do not ship it.
-          changed=$(git -C "$fork" status --porcelain)
-          paths=$(printf '%s\n' "$changed" | awk 'NF {print $NF}')
-          if [ "$paths" != "internal/app/theme_windows.go" ]; then
-            echo "::error::Patched Fyne fork does not match expectations."
-            echo "expected exactly: internal/app/theme_windows.go"
-            echo "actual:"
-            printf '%s\n' "$changed"
-            exit 1
-          fi
-          echo "Fyne fork verified: patch applied, no other drift."
-
-      - name: Test
-        # Branch runs test once, on linux-amd64. Every test file is currently
-        # platform-neutral - no _windows_test.go, no build constraints, nothing
-        # importing fyne - so four identical runs would prove nothing.
-        #
-        # Tag runs test on every platform, because the production code does split
-        # on windows vs non-windows (notifier_windows.go, systraypatch_win.go)
-        # and a release should be validated against the build constraints that
-        # actually produced it, not a Linux proxy for them. A _windows_test.go
-        # added later is then exercised with no further workflow change.
-        if: startsWith(github.ref, 'refs/tags/') || matrix.suffix == 'linux-amd64'
+      - name: go test
         env:
-          # -race needs cgo. Every platform here already builds Fyne with it,
-          # so the toolchain is present; set it explicitly because the Windows
-          # runner defaults to 0 whenever gcc is not found on PATH.
+          # -race needs cgo. Set explicitly because the Windows runner defaults
+          # to 0 whenever gcc is not found on PATH.
           CGO_ENABLED: '1'
         run: |
-          # _external-patches/ (leading underscore) is patch source for the
-          # fork step above, not module code; the Go tool skips directories
-          # named that way in "./..." on every platform, so plain go test
-          # ./... is safe here even on the Windows runner.
-          #
           # -shuffle=on catches order dependencies, which this suite is exposed
           # to because the i18n tests share package-level state (Locales,
           # Active). -count=1 because setup-go restores the build cache between
           # runs, and a cached PASS would otherwise hide a regression.
+          #
+          # _external-patches/ is skipped by "./..." on every platform thanks to
+          # the leading underscore, so this is safe on the Windows runner where
+          # that file would otherwise compile and fail on an internal import.
           go test -race -shuffle=on -count=1 ./...
 
-      - name: Install fyne CLI
-        if: matrix.platform != 'windows'
-        run: |
-          go install fyne.io/tools/cmd/fyne@latest
-          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
-
-      - name: Package
-        env:
-          CGO_ENABLED: '1'
-        run: |
-          mkdir -p dist
-          case "${{ matrix.platform }}" in
-            windows)
-              # go build, not fyne package: rsrc_windows_amd64.syso already has
-              # the icon and manifest, and fyne would add a second manifest that
-              # lld-link rejects. See RELEASES.md.
-              mkdir -p staging
-              go build -ldflags "-s -w -H windowsgui" -o "staging/$APP_FILE.exe" .
-              # Compress-Archive rather than zip, which the Windows runner lacks.
-              powershell -NoProfile -Command \
-                "Compress-Archive -Path 'staging/$APP_FILE.exe' -DestinationPath 'dist/$ASSET.zip' -Force"
-              ;;
-            linux)
-              fyne package --os linux --app-id "$APP_ID" \
-                --app-version "$VERSION" --icon "$ICON" --name "$APP_NAME"
-              mv "$APP_NAME.tar.xz" "dist/$ASSET.tar.xz"
-              ;;
-            darwin)
-              fyne package --os darwin --app-id "$APP_ID" \
-                --app-version "$VERSION" --icon "$ICON" --name "$APP_NAME"
-              # Ad-hoc signature (-s -, no certificate). Apple Silicon refuses to
-              # execute an arm64 binary without a valid signature, and stripping
-              # after link invalidates the one Go applies at link time. This does
-              # not satisfy Gatekeeper - users still see the unverified-developer
-              # dialog the README covers - it only makes the binary runnable.
-              codesign --force -s - "$APP_NAME.app"
-              # Fail here rather than on a Mac: verification time is scarcer than
-              # runner minutes.
-              codesign -v --verbose=2 "$APP_NAME.app"
-              ditto -c -k --keepParent "$APP_NAME.app" "dist/$ASSET.zip"
-              ;;
-          esac
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: ${{ matrix.suffix }}
-          path: dist/*
-          if-no-files-found: error
-          # Short retention keeps private-repo runs clear of the 500 MB cap.
-          retention-days: 7
-
-  checks:
-    name: Vet, lint, vulnerabilities
+  test-unix:
+    name: Test non-windows
     needs: plan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-
-      - uses: actions/setup-go@v7
+      - uses: ./.github/actions/go-setup
         with:
-          go-version: stable
+          fyne-tag: ${{ env.FYNE_TAG }}
 
-      - name: Install Linux build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc libgl1-mesa-dev xorg-dev
+      - name: go test
+        env:
+          CGO_ENABLED: '1'
+        run: go test -race -shuffle=on -count=1 ./...
 
-      - name: Rebuild the patched Fyne fork
-        run: |
-          fork=../fyne-v2-watchtheme-patch
-
-          # go.mod points at a sibling checkout no fresh clone has, so rebuild it
-          # from pinned upstream plus our one patched file (LEAKS.md §1).
-          git init -q "$fork"
-          git -C "$fork" config core.autocrlf false
-          git -C "$fork" remote add origin https://github.com/fyne-io/fyne.git
-          git -C "$fork" fetch -q --depth 1 origin "$FYNE_TAG"
-          git -C "$fork" checkout -q --detach FETCH_HEAD
-
-          cp _external-patches/fyne-theme_windows.go \
-            "$fork/internal/app/theme_windows.go"
+  checks:
+    name: Vet, lint
+    needs: plan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/go-setup
+        with:
+          fyne-tag: ${{ env.FYNE_TAG }}
 
       - name: go vet
         run: |
@@ -270,16 +201,128 @@ jobs:
           GOOS=windows golangci-lint run --build-tags "diagnostics,sysmon" \
             ./notifications/... ./systray/... ./dev-diagnostics/...
 
+  # ── Builds: gated on the tests for their constraint family ─────────────────
+
+  build-windows:
+    name: Build windows-amd64
+    needs: [plan, test-windows]
+    if: needs.plan.outputs.windows == 'true'
+    runs-on: windows-latest
+    env:
+      ASSET: Cornealius-Eyeworth-${{ needs.plan.outputs.label }}-windows-amd64
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/go-setup
+        with:
+          fyne-tag: ${{ env.FYNE_TAG }}
+
+      - name: Package
+        env:
+          CGO_ENABLED: '1'
+        run: |
+          # go build, not fyne package: rsrc_windows_amd64.syso already has the
+          # icon and manifest, and fyne would add a second manifest that
+          # lld-link rejects. See RELEASES.md.
+          mkdir -p dist staging
+          go build -ldflags "-s -w -H windowsgui" -o "staging/$APP_FILE.exe" .
+          # Compress-Archive rather than zip, which the Windows runner lacks.
+          powershell -NoProfile -Command \
+            "Compress-Archive -Path 'staging/$APP_FILE.exe' -DestinationPath 'dist/$ASSET.zip' -Force"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows-amd64
+          path: dist/*
+          if-no-files-found: error
+          # Short retention keeps private-repo runs clear of the 500 MB cap.
+          retention-days: 7
+
+  build-unix:
+    name: Build ${{ matrix.suffix }}
+    needs: [plan, test-unix]
+    if: needs.plan.outputs.unix_any == 'true'
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.unix_matrix) }}
+    runs-on: ${{ matrix.os }}
+    env:
+      VERSION: ${{ needs.plan.outputs.version }}
+      ASSET: Cornealius-Eyeworth-${{ needs.plan.outputs.label }}-${{ matrix.suffix }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/go-setup
+        with:
+          fyne-tag: ${{ env.FYNE_TAG }}
+
+      - name: Install fyne CLI
+        run: |
+          go install fyne.io/tools/cmd/fyne@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Package
+        env:
+          CGO_ENABLED: '1'
+        run: |
+          mkdir -p dist
+          fyne package --os "${{ matrix.platform }}" --app-id "$APP_ID" \
+            --app-version "$VERSION" --icon "$ICON" --name "$APP_NAME"
+
+          case "${{ matrix.platform }}" in
+            linux)
+              mv "$APP_NAME.tar.xz" "dist/$ASSET.tar.xz"
+              ;;
+            darwin)
+              # Ad-hoc signature (-s -, no certificate). Apple Silicon refuses
+              # to execute an arm64 binary without a valid signature, and
+              # stripping after link invalidates the one Go applies. This does
+              # not satisfy Gatekeeper - users still see the unverified-developer
+              # dialog the README covers - it only makes the binary runnable.
+              codesign --force -s - "$APP_NAME.app"
+              # Fail here rather than on a Mac: verification time is scarcer
+              # than runner minutes.
+              codesign -v --verbose=2 "$APP_NAME.app"
+              ditto -c -k --keepParent "$APP_NAME.app" "dist/$ASSET.zip"
+              ;;
+          esac
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.suffix }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+  # ── Join ───────────────────────────────────────────────────────────────────
+
+  vulncheck:
+    name: Vulnerability check
+    needs: [plan, build-windows, build-unix, checks]
+    # Any build job is skippable via its toggle, and a skipped dependency would
+    # normally skip this job too. Run unless something actually failed.
+    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/go-setup
+        with:
+          fyne-tag: ${{ env.FYNE_TAG }}
+
       - name: govulncheck
+        # Advisory mode when the toggle is off: the finding is still printed and
+        # the step is marked failed in the UI, but the job succeeds so the
+        # release is not blocked.
+        continue-on-error: ${{ needs.plan.outputs.vulncheck_blocking != 'true' }}
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
           govulncheck ./...
 
   release:
-    name: Publish release
+    name: Release package
+    # No permissive guard here on purpose: default job semantics require every
+    # dependency to have succeeded, so a skipped vulncheck skips this too.
+    needs: [plan, vulncheck]
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [plan, build, checks]
     runs-on: ubuntu-latest
     permissions:
       contents: write
