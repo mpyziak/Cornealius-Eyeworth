@@ -17,7 +17,7 @@ func TestAggregatedContentEmpty(t *testing.T) {
 
 func TestAggregatedContentSingle(t *testing.T) {
 	reminders := []scheduling.Reminder{
-		{NotificationCategory: scheduling.ReminderTypeEye, Message: "Look away"},
+		{Category: scheduling.CategoryEye, Message: "Look away"},
 	}
 	result := aggregatedContent(reminders)
 	expected := "• Look away"
@@ -28,9 +28,9 @@ func TestAggregatedContentSingle(t *testing.T) {
 
 func TestAggregatedContentMultiple(t *testing.T) {
 	reminders := []scheduling.Reminder{
-		{NotificationCategory: scheduling.ReminderTypeEye, Message: "Eye care"},
-		{NotificationCategory: scheduling.ReminderTypeStandup, Message: "Stand up"},
-		{NotificationCategory: scheduling.ReminderTypeEye, Message: "Blink"},
+		{Category: scheduling.CategoryEye, Message: "Eye care"},
+		{Category: scheduling.CategoryStandUp, Message: "Stand up"},
+		{Category: scheduling.CategoryEye, Message: "Blink"},
 	}
 	result := aggregatedContent(reminders)
 	lines := strings.Split(result, "\n")
@@ -53,7 +53,7 @@ func TestAggregatedContentMultiple(t *testing.T) {
 
 func TestAggregatedTitleEyeOnly(t *testing.T) {
 	reminders := []scheduling.Reminder{
-		{NotificationCategory: scheduling.ReminderTypeEye, Message: "test"},
+		{Category: scheduling.CategoryEye, Message: "test"},
 	}
 	result := aggregatedTitle(reminders)
 
@@ -71,7 +71,7 @@ func TestAggregatedTitleEyeOnly(t *testing.T) {
 
 func TestAggregatedTitleStandupOnly(t *testing.T) {
 	reminders := []scheduling.Reminder{
-		{NotificationCategory: scheduling.ReminderTypeStandup, Message: "test"},
+		{Category: scheduling.CategoryStandUp, Message: "test"},
 	}
 	result := aggregatedTitle(reminders)
 
@@ -89,8 +89,8 @@ func TestAggregatedTitleStandupOnly(t *testing.T) {
 
 func TestAggregatedTitleBoth(t *testing.T) {
 	reminders := []scheduling.Reminder{
-		{NotificationCategory: scheduling.ReminderTypeEye, Message: "test"},
-		{NotificationCategory: scheduling.ReminderTypeStandup, Message: "test"},
+		{Category: scheduling.CategoryEye, Message: "test"},
+		{Category: scheduling.CategoryStandUp, Message: "test"},
 	}
 	result := aggregatedTitle(reminders)
 

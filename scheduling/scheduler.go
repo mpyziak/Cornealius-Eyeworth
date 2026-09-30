@@ -15,15 +15,16 @@ type Runner interface {
 	Stop()
 }
 
-// ReminderTypeEye and ReminderTypeStandup identify which schedule fired,
-// for onFire callbacks and Reminder.NotificationCategory.
+// Category identifies which schedule fired: CategoryEye or CategoryStandUp.
+type Category string
+
 const (
-	ReminderTypeEye     = "eye"
-	ReminderTypeStandup = "standup"
+	CategoryEye     Category = "eye"
+	CategoryStandUp Category = "standup"
 )
 
-// ScheduleSpec is the pair of cron expressions ApplySchedule installs.
-type ScheduleSpec struct {
+// Spec is the pair of cron expressions ApplySchedule installs.
+type Spec struct {
 	EyeCron     string
 	StandUpCron string // blank turns the stand-up schedule off
 }
@@ -31,11 +32,11 @@ type ScheduleSpec struct {
 // ApplySchedule starts or stops eye and standup according to spec. It
 // returns the first rejected expression and leaves that runner stopped;
 // callers must surface or recover from it.
-func ApplySchedule(eye Runner, standup Runner, spec ScheduleSpec, onFire func(notificationCategory string)) error {
+func ApplySchedule(eye Runner, standup Runner, spec Spec, onFire func(category Category)) error {
 	var firstErr error
 
 	if spec.EyeCron != "" {
-		if err := eye.Start(spec.EyeCron, func() { onFire(ReminderTypeEye) }); err != nil {
+		if err := eye.Start(spec.EyeCron, func() { onFire(CategoryEye) }); err != nil {
 			firstErr = fmt.Errorf("eye schedule %q: %w", spec.EyeCron, err)
 			eye.Stop()
 		}
@@ -44,7 +45,7 @@ func ApplySchedule(eye Runner, standup Runner, spec ScheduleSpec, onFire func(no
 	}
 
 	if spec.StandUpCron != "" {
-		if err := standup.Start(spec.StandUpCron, func() { onFire(ReminderTypeStandup) }); err != nil {
+		if err := standup.Start(spec.StandUpCron, func() { onFire(CategoryStandUp) }); err != nil {
 			if firstErr == nil {
 				firstErr = fmt.Errorf("stand-up schedule %q: %w", spec.StandUpCron, err)
 			}

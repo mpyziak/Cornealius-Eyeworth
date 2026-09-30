@@ -18,7 +18,7 @@ func TestAggregatedNotificationEmpty(t *testing.T) {
 
 func TestAggregatedNotificationSingle(t *testing.T) {
 	reminders := []scheduling.Reminder{
-		{NotificationCategory: scheduling.ReminderTypeEye, Message: "Look away"},
+		{Category: scheduling.CategoryEye, Message: "Look away"},
 	}
 	title, content := aggregatedNotification(reminders)
 
@@ -33,8 +33,8 @@ func TestAggregatedNotificationSingle(t *testing.T) {
 
 func TestAggregatedNotificationMultiple(t *testing.T) {
 	reminders := []scheduling.Reminder{
-		{NotificationCategory: scheduling.ReminderTypeEye, Message: "Eye care"},
-		{NotificationCategory: scheduling.ReminderTypeStandup, Message: "Stand up"},
+		{Category: scheduling.CategoryEye, Message: "Eye care"},
+		{Category: scheduling.CategoryStandUp, Message: "Stand up"},
 	}
 	title, content := aggregatedNotification(reminders)
 

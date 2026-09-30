@@ -19,7 +19,7 @@ import (
 // ShowScheduleDialog opens the schedule-editing window, or focuses it if
 // already open. onFire must be the same callback ui.Run passed, not a
 // local one.
-func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched scheduling.Runner, onSaved func(*config.Config), onFire func(string)) {
+func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched scheduling.Runner, onSaved func(*config.Config), onFire func(scheduling.Category)) {
 	S := i18n.Active
 
 	if focusExisting(dialogSchedule) {
@@ -142,7 +142,7 @@ func ShowScheduleDialog(app fyne.App, repo config.Store, eyeSched, standUpSched 
 		if applyErr := scheduling.ApplySchedule(
 			eyeSched,
 			standUpSched,
-			scheduling.ScheduleSpec{
+			scheduling.Spec{
 				EyeCron:     updated.CronExpression,
 				StandUpCron: updated.StandUpCronExpression,
 			},

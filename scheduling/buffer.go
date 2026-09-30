@@ -7,8 +7,8 @@ import (
 
 // Reminder is one eye-care or stand-up notification waiting to be flushed.
 type Reminder struct {
-	NotificationCategory string // "eye" or "standup"
-	Message              string
+	Category Category
+	Message  string
 }
 
 // ReminderAggregator collects reminders and flushes them as a batch.

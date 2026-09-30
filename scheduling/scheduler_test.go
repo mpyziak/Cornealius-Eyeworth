@@ -30,8 +30,8 @@ func TestApplyScheduleStartsBoth(t *testing.T) {
 	eye, standup := &fakeRunner{}, &fakeRunner{}
 
 	err := ApplySchedule(eye, standup,
-		ScheduleSpec{EyeCron: "0 20 * * * ?", StandUpCron: "0 55 * * * ?"},
-		func(string) {})
+		Spec{EyeCron: "0 20 * * * ?", StandUpCron: "0 55 * * * ?"},
+		func(Category) {})
 	if err != nil {
 		t.Fatalf("ApplySchedule returned %v, want nil", err)
 	}
@@ -48,8 +48,8 @@ func TestApplyScheduleStopsOnEmptyExpression(t *testing.T) {
 	eye, standup := &fakeRunner{}, &fakeRunner{}
 
 	if err := ApplySchedule(eye, standup,
-		ScheduleSpec{EyeCron: "0 20 * * * ?", StandUpCron: ""},
-		func(string) {}); err != nil {
+		Spec{EyeCron: "0 20 * * * ?", StandUpCron: ""},
+		func(Category) {}); err != nil {
 		t.Fatalf("ApplySchedule returned %v, want nil", err)
 	}
 
@@ -68,8 +68,8 @@ func TestApplyScheduleReportsAndStopsOnStartError(t *testing.T) {
 	standup := &fakeRunner{}
 
 	err := ApplySchedule(eye, standup,
-		ScheduleSpec{EyeCron: "nonsense", StandUpCron: "0 55 * * * ?"},
-		func(string) {})
+		Spec{EyeCron: "nonsense", StandUpCron: "0 55 * * * ?"},
+		func(Category) {})
 
 	if err == nil {
 		t.Fatal("ApplySchedule returned nil, want the runner's error")
@@ -88,18 +88,18 @@ func TestApplyScheduleReportsAndStopsOnStartError(t *testing.T) {
 func TestApplyScheduleFiresCorrectCategory(t *testing.T) {
 	eye, standup := &fakeRunner{}, &fakeRunner{}
 
-	var got []string
+	var got []Category
 	if err := ApplySchedule(eye, standup,
-		ScheduleSpec{EyeCron: "0 20 * * * ?", StandUpCron: "0 55 * * * ?"},
-		func(c string) { got = append(got, c) }); err != nil {
+		Spec{EyeCron: "0 20 * * * ?", StandUpCron: "0 55 * * * ?"},
+		func(c Category) { got = append(got, c) }); err != nil {
 		t.Fatalf("ApplySchedule: %v", err)
 	}
 
 	eye.lastFire()
 	standup.lastFire()
 
-	if len(got) != 2 || got[0] != ReminderTypeEye || got[1] != ReminderTypeStandup {
-		t.Errorf("fired categories = %v, want [%s %s]", got, ReminderTypeEye, ReminderTypeStandup)
+	if len(got) != 2 || got[0] != CategoryEye || got[1] != CategoryStandUp {
+		t.Errorf("fired categories = %v, want [%s %s]", got, CategoryEye, CategoryStandUp)
 	}
 }
 

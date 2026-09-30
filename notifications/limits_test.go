@@ -61,8 +61,8 @@ func TestNotificationsFitWin32BalloonLimits(t *testing.T) {
 			}
 
 			worst := aggregatedContent([]scheduling.Reminder{
-				{NotificationCategory: scheduling.ReminderTypeStandup, Message: standUp},
-				{NotificationCategory: scheduling.ReminderTypeEye, Message: eye},
+				{Category: scheduling.CategoryStandUp, Message: standUp},
+				{Category: scheduling.CategoryEye, Message: eye},
 			})
 
 			if n := utf16Len(worst); n > MaxBalloonBodyUTF16 {
