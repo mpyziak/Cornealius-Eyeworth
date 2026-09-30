@@ -5,7 +5,7 @@ package diagnostics
 import (
 	"fyne.io/fyne/v2"
 
-	"github.com/mpyziak/cornealius-eyeworth/dev-diagnostics"
+	devdiag "github.com/mpyziak/cornealius-eyeworth/dev-diagnostics"
 )
 
 // Init starts the rotating-file logger and memory sampler under dir. Call

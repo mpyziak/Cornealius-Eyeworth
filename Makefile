@@ -22,7 +22,7 @@ FYNE_TAG  = v2.7.4
 FYNE_REPO = https://github.com/fyne-io/fyne.git
 FYNE_FORK = ../fyne-v2-watchtheme-patch
 
-.PHONY: deps winres build build-win build-dev build-dev-win build-dev-sysmon build-dev-sysmon-win upx upx-win run patch-fyne package-win package-linux package-darwin i18n-export clean check check-windows
+.PHONY: deps winres build build-win build-dev build-dev-win build-dev-sysmon build-dev-sysmon-win upx upx-win run patch-fyne package-win package-linux package-darwin i18n-export clean check check-windows lint vuln
 
 deps:
 	go mod tidy
@@ -32,9 +32,12 @@ winres:
 
 # ── Checks ───────────────────────────────────────────────────────────────────
 
+# diagnostics/dev-diagnostics' Linux stub files only build under -tags
+# diagnostics, so the untagged `go vet ./...` above never reaches them.
 check:
 	gofmt -l . | (! grep .)
 	go vet ./...
+	go vet -tags "diagnostics sysmon" ./...
 	go test -race ./...
 
 # Windows-tagged code (dev-diagnostics, notifications, systray) is invisible
@@ -44,6 +47,15 @@ check:
 # a bug, and is commented at each call site.
 check-windows:
 	GOOS=windows go vet -tags "diagnostics sysmon" -unsafeptr=false ./dev-diagnostics ./notifications ./systray
+
+lint:
+	golangci-lint run
+	golangci-lint run --build-tags "diagnostics,sysmon"
+	GOOS=windows golangci-lint run --build-tags "diagnostics,sysmon" \
+		./notifications/... ./systray/... ./dev-diagnostics/...
+
+vuln:
+	govulncheck ./...
 
 # ── Release builds (no diagnostics compiled in) ───────────────────────────────
 
