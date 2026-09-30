@@ -110,7 +110,7 @@ func write(level, format string, args ...any) {
 			// Rotation failed; record it in the still-open old file and keep
 			// appending there rather than losing every line until the next
 			// successful rotation.
-			fmt.Fprintf(old, "[%s] ERROR rotate log file: %v\n",
+			_, _ = fmt.Fprintf(old, "[%s] ERROR rotate log file: %v\n", // nothing further to report to if this write itself fails
 				time.Now().UTC().Format("2006-01-02T15:04:05.000Z"), err)
 		}
 	}
@@ -124,7 +124,7 @@ func openNewFile() error {
 	name := fmt.Sprintf("cornealius-%s.log", time.Now().UTC().Format(timestampLayout))
 	path := filepath.Join(logDir, name)
 
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		return err
 	}

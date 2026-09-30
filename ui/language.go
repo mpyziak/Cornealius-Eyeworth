@@ -80,10 +80,7 @@ func ShowLanguageDialog(app fyne.App, repo *config.Repository) {
 	selector.SetSelectedIndex(currentIdx)
 
 	saveBtn := widget.NewButton(str.ButtonSave, func() {
-		idx := selector.SelectedIndex()
-		if idx < 0 {
-			idx = 0
-		}
+		idx := max(selector.SelectedIndex(), 0)
 		selected := options[idx]
 
 		existing, loadErr := repo.Load()
